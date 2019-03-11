@@ -1,0 +1,12 @@
+Source: dde-kwin
+Section: devel
+Priority: optional
+Maintainer: Deepin Packages Builder <packages@deepin.com>
+Build-Depends: debhelper (>=9), qtbase5-dev
+Standards-Version: 3.9.8
+
+Package: dde-kwin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, kwin-x11
+Description: KWin configures/plugins on the DDE
+ Let kwin work well in the Deepin Desktop Environment.
