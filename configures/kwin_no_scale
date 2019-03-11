@@ -1,0 +1,2 @@
+#!/bin/sh
+QT_SCALE_FACTOR=1 kwin_x11 $@

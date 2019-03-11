@@ -5,4 +5,7 @@ TEMPLATE = aux
 config.files = $$PWD/kglobalshortcutsrc $$PWD/kwinrc
 config.path = /etc/xdg
 
-INSTALLS += config
+kwin_fake.files = $$PWD/kwin_no_scale
+kwin_fake.path = /usr/bin
+
+INSTALLS += config kwin_fake
