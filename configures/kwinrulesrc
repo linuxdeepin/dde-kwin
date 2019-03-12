@@ -1,0 +1,10 @@
+[1]
+Description=dde-dock
+desktop=-1
+desktoprule=2
+wmclass=dde-dock dde-dock
+wmclasscomplete=true
+wmclassmatch=1
+
+[General]
+count=1

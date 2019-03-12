@@ -2,7 +2,11 @@ QT -= core
 CONFIG -= qt
 TEMPLATE = aux
 
-config.files = $$PWD/kglobalshortcutsrc $$PWD/kwinrc
+config.files = \
+    $$PWD/kglobalshortcutsrc \
+    $$PWD/kwinrc \
+    $$PWD/kwinrulesrc
+
 config.path = /etc/xdg
 
 kwin_fake.files = $$PWD/kwin_no_scale

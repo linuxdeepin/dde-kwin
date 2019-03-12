@@ -2,3 +2,8 @@
 blurEnabled=true
 enforcedecoEnabled=false
 minimizeallEnabled=true
+
+[Desktops]
+Name_2=工作区 2
+Number=2
+Rows=1
