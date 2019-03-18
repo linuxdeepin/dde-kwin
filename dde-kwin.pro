@@ -1,3 +1,3 @@
 TEMPLATE = subdirs
 
-SUBDIRS += configures plugins
+SUBDIRS += configures plugins aurorae-themes

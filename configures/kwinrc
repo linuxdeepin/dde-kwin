@@ -7,3 +7,10 @@ minimizeallEnabled=true
 Name_2=工作区 2
 Number=2
 Rows=1
+
+[org.kde.kdecoration2]
+BorderSize=Normal
+ButtonsOnLeft=MS
+ButtonsOnRight=HIAX
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__deepin
