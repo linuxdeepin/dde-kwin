@@ -1757,6 +1757,7 @@ void Client::configureRequest(int value_mask, int rx, int ry, int rw, int rh, in
         updateFullScreenHack(QRect(new_pos, QSize(nw, nh)));
         QRect area = workspace()->clientArea(WorkArea, this);
         if (!from_tool && (!isSpecialWindow() || isToolbar()) && !isFullScreen()
+                && rules()->checkStrictGeometry(true)
                 && area.contains(origClientGeometry))
             keepInArea(area);
 
