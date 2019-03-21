@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=Custom Run Command
+Comment=A screen edge action with custom run command
+Icon=preferences-system-windows-script-test
+
+X-Plasma-API=javascript
+X-Plasma-MainScript=main.js
+
+X-KDE-PluginInfo-Author=zccrs
+X-KDE-PluginInfo-Email=zccrs@live.com
+X-KDE-PluginInfo-Name=runcommandaction
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-EnabledByDefault=true
+
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-License=GPL
+X-KDE-ServiceTypes=KWin/Script
+Type=Service
+
+X-KWin-Border-Activate=true
