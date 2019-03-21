@@ -1,2 +1,5 @@
 #!/bin/sh
+if [ -n "$HOME" ];then
+    cp -n /etc/xdg/kglobalshortcutsrc $HOME/.config/kglobalshortcutsrc
+fi
 QT_SCALE_FACTOR=1 kwin_x11 $@
