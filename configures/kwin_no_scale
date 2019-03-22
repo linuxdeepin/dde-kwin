@@ -2,4 +2,4 @@
 if [ -n "$HOME" ];then
     cp -n /etc/xdg/kglobalshortcutsrc $HOME/.config/kglobalshortcutsrc
 fi
-QT_SCALE_FACTOR=1 kwin_x11 $@
+QT_SCALE_FACTOR=1 kwin_x11 -platform kwin-xcb $@
