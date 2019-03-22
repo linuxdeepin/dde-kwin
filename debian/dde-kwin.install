@@ -1,0 +1,5 @@
+etc/xdg
+usr/bin
+usr/share/aurorae
+usr/lib/*/*.so.*
+usr/lib/*/qt5

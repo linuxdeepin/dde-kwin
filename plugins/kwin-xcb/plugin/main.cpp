@@ -24,12 +24,12 @@
 #include <private/qguiapplication_p.h>
 
 #include <QDebug>
-#include <QLibrary>
 #include <QProcess>
 #include <QPluginLoader>
 #include <QDir>
 
 #include "vtablehook.h"
+#include "kwinutils.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -53,25 +53,35 @@ class Scripting : public QObject {
 public:
     static Scripting *s_self;
 };
-class Toplevel : public QObject {
-
-};
-class AbstractClient : public Toplevel {
-
-};
-class Client : public AbstractClient {
-public:
-    static const QMetaObject staticMetaObject;
-};
 }
 
 class Mischievous;
 class  Mischievous : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QObject *workspace READ workspace)
+    Q_PROPERTY(QObject *scripting READ scripting)
+    Q_PROPERTY(KWinUtils *kwinUtils READ kwinUtils)
 public:
     explicit Mischievous() {
         self = this;
+    }
+
+    QObject *workspace() const
+    {
+        return KWin::Workspace::_self;
+    }
+
+    QObject *scripting() const
+    {
+        return KWin::Scripting::s_self;
+    }
+
+    KWinUtils *kwinUtils() const
+    {
+        static KWinUtils *utils = new KWinUtils(const_cast<Mischievous*>(this));
+
+        return utils;
     }
 
     Q_INVOKABLE QObject *require(const QString &module)
@@ -85,8 +95,8 @@ public:
 
         if (!isFile) {
             static QStringList pluginPaths {
-                QDir::home().absoluteFilePath(QStringLiteral(".local/lib/kwin-xcb/plugins")),
-                QStringLiteral("/usr/lib/kwin-xcb/plugins")
+                QDir::home().absoluteFilePath(QStringLiteral(".local/lib/" PROJECT_NAME "/plugins")),
+                QStringLiteral("/usr/lib/" PROJECT_NAME "/plugins")
             };
 
             for (const QString &path : pluginPaths) {
@@ -161,7 +171,7 @@ public slots:
         if (!KWin::Scripting::s_self)
             return;
 
-        const QObjectList &scripting_children = KWin::Scripting::s_self->children();
+        const QObjectList scripting_children = KWin::Scripting::s_self->children();
         QObject *jsWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
         QObject *qmlWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::DeclarativeScriptWorkspaceWrapper"), scripting_children);
 
@@ -194,7 +204,7 @@ static void overrideInitialize(QPlatformIntegration *i)
 class DPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformIntegrationFactoryInterface_iid FILE "kwin-xcb.json")
+    Q_PLUGIN_METADATA(IID QPlatformIntegrationFactoryInterface_iid FILE "dde-kwin-xcb.json")
 
 public:
     QPlatformIntegration *create(const QString&, const QStringList&, int &, char **) Q_DECL_OVERRIDE;
@@ -202,7 +212,7 @@ public:
 
 QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
 {
-    if (system == "kwin-xcb") {
+    if (system == "dde-kwin-xcb") {
         QPlatformIntegration *integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
         VtableHook::overrideVfptrFun(integration, &QPlatformIntegration::initialize, overrideInitialize);
 
