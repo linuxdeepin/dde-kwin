@@ -9,7 +9,9 @@ config.files = \
 
 config.path = /etc/xdg
 
+include(../common.pri)
+
 kwin_fake.files = $$PWD/kwin_no_scale
-kwin_fake.path = /usr/bin
+kwin_fake.path = $$PREFIX/bin
 
 INSTALLS += config kwin_fake
