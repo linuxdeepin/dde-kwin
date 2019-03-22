@@ -1,3 +1,2 @@
-QT -= core
-CONFIG -= qt
-TEMPLATE = aux
+TEMPLATE = subdirs
+SUBDIRS += kwin-xcb
