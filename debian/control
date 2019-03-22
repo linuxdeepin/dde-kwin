@@ -3,7 +3,11 @@ Section: devel
 Priority: optional
 Maintainer: Deepin Packages Builder <packages@deepin.com>
 Build-Depends: debhelper (>=9), qtbase5-dev, qtbase5-private-dev,
- libqt5x11extras5-dev, libxcb1-dev
+ libqt5x11extras5-dev, libxcb1-dev,
+ libkf5globalaccel-dev,
+ libkf5windowsystem-dev,
+ libkf5config-dev,
+ libdtkwidget-dev
 Standards-Version: 3.9.8
 
 Package: dde-kwin
