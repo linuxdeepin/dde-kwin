@@ -3,3 +3,4 @@ usr/bin
 usr/share/aurorae
 usr/lib/*/*.so.*
 usr/lib/*/qt5
+usr/share/kwin/scripts
