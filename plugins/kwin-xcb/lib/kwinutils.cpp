@@ -224,7 +224,7 @@ QVariant KWinUtils::fullmaximizeWindow(QObject *window) const
     return true;
 }
 
-QVariant KWinUtils::unaximizeWindow(QObject *window) const
+QVariant KWinUtils::unmaximizeWindow(QObject *window) const
 {
     if (!window) {
         return false;

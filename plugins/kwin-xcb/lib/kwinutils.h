@@ -50,7 +50,7 @@ public:
 
     Q_INVOKABLE QVariant isFullMaximized(const QObject *window) const;
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
-    Q_INVOKABLE QVariant unaximizeWindow(QObject *window) const;
+    Q_INVOKABLE QVariant unmaximizeWindow(QObject *window) const;
 };
 
 #endif // KWINUTILS_H
