@@ -44,17 +44,6 @@ static QObject *findObjectByClassName(const QByteArray &name, const QObjectList 
     return nullptr;
 }
 
-namespace KWin {
-class Workspace : public QObject {
-public:
-    static Workspace *_self;
-};
-class Scripting : public QObject {
-public:
-    static Scripting *s_self;
-};
-}
-
 class Mischievous;
 class  Mischievous : public QObject
 {
@@ -69,12 +58,12 @@ public:
 
     QObject *workspace() const
     {
-        return KWin::Workspace::_self;
+        return KWinUtils::workspace();
     }
 
     QObject *scripting() const
     {
-        return KWin::Scripting::s_self;
+        return KWinUtils::scripting();
     }
 
     KWinUtils *kwinUtils() const
@@ -166,12 +155,17 @@ public:
         return QProcess::startDetached(command);
     }
 
+    Q_INVOKABLE bool setObjectProperty(QObject *obj, const QString &name, const QVariant &value)
+    {
+        return obj->setProperty(name.toLatin1().constData(), value);
+    }
+
 public slots:
     void init() {
-        if (!KWin::Scripting::s_self)
+        if (!KWinUtils::scripting())
             return;
 
-        const QObjectList scripting_children = KWin::Scripting::s_self->children();
+        const QObjectList scripting_children = KWinUtils::scripting()->children();
         QObject *jsWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
         QObject *qmlWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::DeclarativeScriptWorkspaceWrapper"), scripting_children);
 

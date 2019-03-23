@@ -2,7 +2,8 @@ Source: dde-kwin
 Section: devel
 Priority: optional
 Maintainer: Deepin Packages Builder <packages@deepin.com>
-Build-Depends: debhelper (>=9), qtbase5-dev, qtbase5-private-dev
+Build-Depends: debhelper (>=9), qtbase5-dev, qtbase5-private-dev,
+ libqt5x11extras5-dev, libxcb1-dev
 Standards-Version: 3.9.8
 
 Package: dde-kwin
