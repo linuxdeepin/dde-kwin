@@ -39,9 +39,16 @@ public:
     explicit KWinUtils(QObject *parent = nullptr);
     ~KWinUtils();
 
+    static QObject *workspace();
+    static QObject *scripting();
+
     static QFunctionPointer resolve(const char *symbol);
 
-    Q_INVOKABLE QVariant isFullMaximized(QObject *window) const;
+    Q_INVOKABLE quint32 getXcbAtom(const QString &name, bool only_if_exists) const;
+    Q_INVOKABLE bool isSupportedAtom(quint32 atom) const;
+    Q_INVOKABLE QVariant getGtkFrame(const QObject *window) const;
+
+    Q_INVOKABLE QVariant isFullMaximized(const QObject *window) const;
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
     Q_INVOKABLE QVariant unaximizeWindow(QObject *window) const;
 };

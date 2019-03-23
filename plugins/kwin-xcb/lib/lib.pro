@@ -1,6 +1,7 @@
 include(../../../common.pri)
 TARGET = $$PROJECT_NAME
 TEMPLATE = lib
+QT += x11extras
 QT -= gui
 CONFIG += create_pc create_prl no_install_prl
 

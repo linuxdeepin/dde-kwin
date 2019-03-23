@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=GTK Window Frame
+Comment=Contain the window gtk frame extents on maximize/fullscreen
+Icon=preferences-system-windows-script-test
+
+X-Plasma-API=javascript
+X-Plasma-MainScript=main.js
+
+X-KDE-PluginInfo-Author=zccrs
+X-KDE-PluginInfo-Email=zccrs@live.com
+X-KDE-PluginInfo-Name=gtkframe
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-EnabledByDefault=true
+
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-License=GPLv3
+X-KDE-ServiceTypes=KWin/Script
+Type=Service
