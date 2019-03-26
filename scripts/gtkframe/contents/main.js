@@ -76,20 +76,18 @@ function setupConnection(client) {
     }
 }
 
-if (!workspace.__dde__) {
+if (workspace.__dde__) {
+    // 支持_GTK_FRAME_EXTENTS时不做任何处理
+    var gtk_frame_atom = workspace.__dde__.kwinUtils.getXcbAtom("_GTK_FRAME_EXTENTS", true);
+
+    if (!workspace.__dde__.kwinUtils.isSupportedAtom(gtk_frame_atom)) {
+        workspace.clientAdded.connect(setupConnection);
+        // connect all existing clients
+        var clients = workspace.clientList();
+        for (var i=0; i<clients.length; i++) {
+            setupConnection(clients[i]);
+        }
+    }
+} else {
     print("Not found the '__dde__' object");
-    return;
-}
-// 支持_GTK_FRAME_EXTENTS时不做任何处理
-var gtk_frame_atom = workspace.__dde__.kwinUtils.getXcbAtom("_GTK_FRAME_EXTENTS", true);
-
-if (workspace.__dde__.kwinUtils.isSupportedAtom(gtk_frame_atom)) {
-    return;
-}
-
-workspace.clientAdded.connect(setupConnection);
-// connect all existing clients
-var clients = workspace.clientList();
-for (var i=0; i<clients.length; i++) {
-    setupConnection(clients[i]);
 }
