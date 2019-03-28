@@ -108,9 +108,9 @@ QStringList DeepinWMFaker::GetAccel(const QString &id) const
 }
 
 /*!
- * [ { "Id":"...", "Accels":["...", "..."] }, {...} ]
+ * { "Id":"...", "Accels":["...", "..."] }
  */
-bool DeepinWMFaker::SetAccels(const QString &data)
+bool DeepinWMFaker::SetAccel(const QString &data)
 {
     if (data.isEmpty()) {
         return false;
@@ -122,35 +122,34 @@ bool DeepinWMFaker::SetAccels(const QString &data)
     }
 
     bool result = true;
-    for (const QJsonValue &jsonValue : jsonDoc.array()) {
-        const QJsonObject &jsonObj = jsonValue.toObject();
-        const QString &accelId = jsonObj.value("Id").toString();
-        QAction *action = accelAction(accelId);
-        if (!action) {
-            continue;
-        }
 
-        QList<QKeySequence> accelList;
-        const QJsonArray &accelArray = jsonObj.value("Accels").toArray();
-        for (const QJsonValue &jsonValue : accelArray) {
-            const QString &accelStr = jsonValue.toString();
-            QKeySequence seq(transFromDaemonAccelStr(accelStr));
-            if (seq.isEmpty()) {
-                qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
-            }
-            accelList.append(seq);
-        }
-
-        // 只要有一个失败就返回 false
-        // using setGlobalShortcat() only can set a new accel,
-        // it will not override the exist global accel just change the default accel
-        if (!m_globalAccel->setShortcut(action, accelList, KGlobalAccel::NoAutoloading)) {
-            qDebug() << "WARNING: set accel failed for" << accelId << "with accels:" << accelList;
-            result = false;
-        }
-
-        m_accelIdActionMap.insert(accelId, action);
+    const QJsonObject &jsonObj = jsonDoc.object();
+    const QString &accelId = jsonObj.value("Id").toString();
+    QAction *action = accelAction(accelId);
+    if (!action) {
+        return false;
     }
+
+    QList<QKeySequence> accelList;
+    const QJsonArray &accelArray = jsonObj.value("Accels").toArray();
+    for (const QJsonValue &jsonValue : accelArray) {
+        const QString &accelStr = jsonValue.toString();
+        QKeySequence seq(transFromDaemonAccelStr(accelStr));
+        if (seq.isEmpty()) {
+            qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
+        }
+        accelList.append(seq);
+    }
+
+    // 只要有一个失败就返回 false
+    // using setGlobalShortcat() only can set a new accel,
+    // it will not override the exist global accel just change the default accel
+    if (!m_globalAccel->setShortcut(action, accelList, KGlobalAccel::NoAutoloading)) {
+        qDebug() << "WARNING: set accel failed for" << accelId << "with accels:" << accelList;
+        result = false;
+    }
+
+    m_accelIdActionMap.insert(accelId, action);
 
     return result;
 }

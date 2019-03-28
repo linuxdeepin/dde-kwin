@@ -28,7 +28,7 @@ public Q_SLOTS:
 
     QString GetAllAccels() const;
     QStringList GetAccel(const QString &id) const;
-    bool SetAccels(const QString &data);
+    bool SetAccel(const QString &data);
     void RemoveAccel(const QString &id);
 
 Q_SIGNALS:

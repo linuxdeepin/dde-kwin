@@ -41,7 +41,7 @@
         <arg type="s" name="id" direction="in"/>
         <arg type="as" name="data" direction="out"/>
     </method>
-    <method name="SetAccels">
+    <method name="SetAccel">
         <arg type="s" name="data" direction="in"/>
         <arg type="b" name="result" direction="out"/>
     </method>
