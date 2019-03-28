@@ -4,3 +4,5 @@ usr/share/aurorae
 usr/lib/*/*.so.*
 usr/lib/*/qt5
 usr/share/kwin/scripts
+usr/share/dbus-1/interfaces
+usr/share/dbus-1/services
