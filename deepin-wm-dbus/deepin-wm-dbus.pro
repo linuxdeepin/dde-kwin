@@ -1,5 +1,7 @@
 QT += core dbus KConfigCore KWindowSystem KGlobalAccel
 
+include($$PWD/../common.pri)
+
 TARGET = deepin-wm-dbus
 TEMPLATE = app
 
@@ -16,8 +18,14 @@ SOURCES += \
     main.cpp \
     deepinwmfaker.cpp
 
-DeepinWM.files = $$PWD/com_deepin_wm.xml
+deepin_wm_dbus_interface.files = $$PWD/com.deepin.wm.xml
+deepin_wm_dbus_interface.path = $$PREFIX/share/dbus-1/interfaces
 
-DBUS_ADAPTORS += DeepinWM
+DBUS_ADAPTORS += $$PWD/com.deepin.wm.xml
 
-#INSTALLS += target
+deepin_wm_dbus_service.files = $$PWD/com.deepin.wm.service
+deepin_wm_dbus_service.path = $$PREFIX/share/dbus-1/services
+
+target.path = $$PREFIX/bin
+
+INSTALLS += target deepin_wm_dbus_interface deepin_wm_dbus_service
