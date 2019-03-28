@@ -15,6 +15,19 @@ class DeepinWMFaker : public QObject
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
 
+    enum Action {
+        wmActionShowWorkspace = 1,
+        wmActionToggleMaximize = 2,
+        wmActionMinimize = 3,
+        wmActionShowWindow    = 6,
+        wmActionShowAllWindow = 7,
+    };
+
+    enum LayoutDirection {
+        wmTileDirectionLeft =  1,
+        wmTileDirectionRight = 2,
+    };
+
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
     void SetWorkspaceBackground(const int index, const QString &uri);
@@ -22,7 +35,6 @@ public Q_SLOTS:
     void SetCurrentWorkspaceBackground(const QString &uri);
     // 壁纸预览
     void SetTransientBackground(const QString &uri);
-
 #ifndef DISABLE_DEEPIN_WM
     void ChangeCurrentWorkspaceBackground(const QString &uri);
 #endif
@@ -31,11 +43,22 @@ public Q_SLOTS:
     void SetCurrentWorkspace(const int index);
     void NextWorkspace();
     void PreviousWorkspace();
+#ifndef DISABLE_DEEPIN_WM
+    void SwitchToWorkspace(bool backward);
+#endif
 
     QString GetAllAccels() const;
     QStringList GetAccel(const QString &id) const;
     bool SetAccel(const QString &data);
     void RemoveAccel(const QString &id);
+
+    void PreviewWindow(uint xid);
+    void CancelPreviewWindow();
+
+    void PerformAction(int type);
+    void BeginToMoveActiveWindow();
+    void SwitchApplication(bool backward);
+    void TileActiveWindow(uint side);
 
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
@@ -71,6 +94,8 @@ private:
     QString m_deepinWMBackgroundUri;
     int m_currentDesktop = -1;
 #endif
+
+    QPair<uint, bool> m_previewWinMiniPair;
 };
 
 #endif // DEEPINWMFAKER_H

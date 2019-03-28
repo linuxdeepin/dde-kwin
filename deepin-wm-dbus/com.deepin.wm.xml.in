@@ -1,12 +1,25 @@
 <interface name=\"com.deepin.wm\">
-<!--    <method name=\"PerformAction\">
-        <arg type=\"i\" name=\"type\" direction=\"in\"/>
-    </method>-->
 
-<!--    <method name=\"PreviewWindow\">
+    <method name=\"SwitchApplication\">
+        <arg type=\"b\" name=\"backward\" direction=\"in\"/>
+    </method>
+
+    <method name=\"TileActiveWindow\">
+        <arg type=\"u\" name=\"side\" direction=\"in\"/>
+    </method>
+
+    <method name=\"BeginToMoveActiveWindow\">
+    </method>
+
+    <method name=\"PerformAction\">
+        <arg type=\"i\" name=\"type\" direction=\"in\"/>
+    </method>
+
+    <method name=\"PreviewWindow\">
         <arg type=\"u\" name=\"xid\" direction=\"in\"/>
     </method>
-    <method name=\"CancelPreviewWindow\"></method>-->
+    <method name=\"CancelPreviewWindow\">
+    </method>
 
     <method name=\"GetCurrentWorkspaceBackground\">
         <arg type=\"s\" name=\"result\" direction=\"out\"/>
@@ -56,11 +69,16 @@
         <arg type=\"i\" name=\"index\"/>
         <arg type=\"s\" name=\"newUri\"/>
     </signal>
-<!--compatible interfaces for deepin-wm-->
+
     $${DEEPIN_WM_PREFIX}
     <method name=\"ChangeCurrentWorkspaceBackground\">
-        <arg type=\"s\" direction=\"in\"/>
+        <arg type=\"s\" name=\"uri\" direction=\"in\"/>
     </method>
+
+    <method name="SwitchToWorkspace">
+        <arg type=\"b\" name=\"backward\" direction=\"in\"/>
+    </method>
+
     <signal name=\"WorkspaceSwitched\">
         <arg type=\"i\" name=\"from\"/>
         <arg type=\"i\" name=\"to\"/>

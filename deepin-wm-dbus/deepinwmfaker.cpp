@@ -82,6 +82,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     , m_generalGroup(new KConfigGroup(m_config, GeneralGroupName))
     , m_workspaceBackgroundGroup(new KConfigGroup(m_config, WorkspaceBackgroundGroupName))
     , m_globalAccel(KGlobalAccel::self())
+    , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
 {
 #ifndef DISABLE_DEEPIN_WM
     m_currentDesktop = m_windowSystem->currentDesktop();
@@ -334,6 +335,68 @@ void DeepinWMFaker::RemoveAccel(const QString &id)
     m_accelIdActionMap.remove(kId);
     action->deleteLater();
 }
+
+void DeepinWMFaker::PreviewWindow(uint xid)
+{
+    // FIXME: preview window should not change the order of windows
+
+    qDebug() << "winid" << xid;
+    qDebug() << "windows" << m_windowSystem->windows();
+    qDebug() << "order" << m_windowSystem->stackingOrder();
+    qDebug() << "contains" << m_windowSystem->hasWId(xid);
+
+    m_windowSystem->forceActiveWindow(xid);
+    m_previewWinMiniPair.first = xid;
+    m_previewWinMiniPair.second = false;
+
+    KWindowInfo info(xid, NET::WMState | NET::XAWMState);
+    if (info.valid()) {
+        m_previewWinMiniPair.second = info.isMinimized();
+    }
+
+    qDebug() << "preview" << m_previewWinMiniPair;
+}
+
+void DeepinWMFaker::CancelPreviewWindow()
+{
+    // FIXME: same as above
+    if (m_windowSystem->windows().contains(m_previewWinMiniPair.first)) {
+        if (m_previewWinMiniPair.second) {
+//            m_windowSystem->minimizeWindow(m_previewWinMiniPair.first);
+            // using this way to minimize a window without animation
+            m_windowSystem->setState(m_previewWinMiniPair.first, NET::Hidden);
+            return;
+        }
+        m_windowSystem->lowerWindow(m_previewWinMiniPair.first);
+    }
+}
+
+void DeepinWMFaker::PerformAction(int type)
+{
+    //TODO:
+}
+
+void DeepinWMFaker::BeginToMoveActiveWindow()
+{
+    //TODO:
+}
+
+void DeepinWMFaker::SwitchApplication(bool backward)
+{
+    //TODO:
+}
+
+void DeepinWMFaker::TileActiveWindow(uint side)
+{
+    //TODO:
+}
+
+#ifndef DISABLE_DEEPIN_WM
+void DeepinWMFaker::SwitchToWorkspace(bool backward)
+{
+    backward ? PreviousWorkspace() : NextWorkspace();
+}
+#endif
 
 /*!
  * \brief DeepinWMFaker::accelAction
