@@ -35,7 +35,7 @@ Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
 
 private:
-    QAction *accelAction(const QString accelId) const;
+    QAction *accelAction(const QString accelKid) const;
     QString transFromDaemonAccelStr(const QString &accelStr) const;
     QString transToDaemonAccelStr(const QString &accelStr) const;
 
