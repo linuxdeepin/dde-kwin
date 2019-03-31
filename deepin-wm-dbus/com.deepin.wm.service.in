@@ -1,3 +1,3 @@
 [D-BUS Service]
 Name=com.deepin.wm
-Exec=/usr/bin/deepin-wm-dbus
+Exec=$${target.path}/$${TARGET}
