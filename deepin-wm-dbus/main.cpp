@@ -21,12 +21,13 @@ int main(int argc, char *argv[])
 
     DeepinWMFaker facker;
     WmAdaptor adapter(&facker);
+    Q_UNUSED(adapter)
 
     if (!QDBusConnection::sessionBus().registerService(Service)) {
         return -1;
     }
     if (!QDBusConnection::sessionBus().registerObject(Path, Interface, &facker)) {
-        return -1;
+        return -2;
     }
 
     return app.exec();
