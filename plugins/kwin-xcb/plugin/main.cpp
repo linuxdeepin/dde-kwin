@@ -18,6 +18,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "vtablehook.h"
+#include "kwinutils.h"
+#include "kwinutils_adaptor.h"
+
 #include <qpa/qplatformintegrationplugin.h>
 #include <qpa/qplatformintegrationfactory_p.h>
 #include <qpa/qplatformintegration.h>
@@ -27,11 +32,13 @@
 #include <QProcess>
 #include <QPluginLoader>
 #include <QDir>
-
-#include "vtablehook.h"
-#include "kwinutils.h"
+#include <QDBusConnection>
 
 QT_BEGIN_NAMESPACE
+
+#define KWinUtilsDbusService "org.kde.KWin"
+#define KWinUtilsDbusPath "/dde"
+#define KWinUtilsDbusInterface "org.kde.KWin"
 
 static QObject *findObjectByClassName(const QByteArray &name, const QObjectList &list)
 {
@@ -178,6 +185,11 @@ public slots:
         if (qmlWorkspaceWrapper) {
             qmlWorkspaceWrapper->setProperty("__dde__", QVariant::fromValue(this));
         }
+
+        // 注册 dbus 对象 提供更多的 kwin 相关接口
+        new KWinAdaptor(kwinUtils());
+        QDBusConnection::sessionBus().registerService(KWinUtilsDbusService);
+        QDBusConnection::sessionBus().registerObject(KWinUtilsDbusPath, KWinUtilsDbusInterface, kwinUtils());
     }
 
 public:

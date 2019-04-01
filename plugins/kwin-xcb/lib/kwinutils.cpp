@@ -38,6 +38,15 @@ class Scripting : public QObject {
 public:
     static Scripting *s_self;
 };
+namespace TabBox {
+class TabBox : public QObject {
+public:
+    static TabBox *s_self;
+public Q_SLOTS:
+    void slotWalkThroughWindows();
+    void slotWalkBackThroughWindows();
+};
+}
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -123,6 +132,11 @@ QObject *KWinUtils::workspace()
 QObject *KWinUtils::scripting()
 {
     return KWin::Scripting::s_self;
+}
+
+QObject *KWinUtils::tabBox()
+{
+    return KWin::TabBox::TabBox::s_self;
 }
 
 QFunctionPointer KWinUtils::resolve(const char *symbol)
@@ -237,4 +251,20 @@ QVariant KWinUtils::unmaximizeWindow(QObject *window) const
     interface->clientMaximize(window, MaximizeRestore);
 
     return true;
+}
+
+void KWinUtils::WalkThroughWindows()
+{
+    KWin::TabBox::TabBox *tabbox = static_cast<KWin::TabBox::TabBox *>(tabBox());
+    if (tabbox) {
+        tabbox->slotWalkThroughWindows();
+    }
+}
+
+void KWinUtils::WalkBackThroughWindows()
+{
+    KWin::TabBox::TabBox *tabbox = static_cast<KWin::TabBox::TabBox *>(tabBox());
+    if (tabbox) {
+        tabbox->slotWalkBackThroughWindows();
+    }
 }

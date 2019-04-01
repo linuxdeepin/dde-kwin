@@ -40,6 +40,8 @@ deepin_wm_dbus_interface.path = $$PREFIX/share/dbus-1/interfaces
 
 DBUS_ADAPTORS += $${dbus_xml.output}
 
+DBUS_INTERFACES += $$PWD/../plugins/kwin-xcb/plugin/org.kde.kwin.KWinUtils.xml
+
 deepin_wm_dbus_service.files = $${dbus_service.output}
 deepin_wm_dbus_service.path = $$PREFIX/share/dbus-1/services
 

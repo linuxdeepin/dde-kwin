@@ -1,0 +1,6 @@
+<interface name="org.kde.KWin">
+    <method name="WalkThroughWindows">
+    </method>
+    <method name="WalkBackThroughWindows">
+    </method>
+</interface>

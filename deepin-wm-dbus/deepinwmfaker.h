@@ -1,6 +1,8 @@
 #ifndef DEEPINWMFAKER_H
 #define DEEPINWMFAKER_H
 
+#include "kwinutils_interface.h"
+
 #include <QAction>
 #include <QObject>
 
@@ -86,6 +88,7 @@ private:
     KConfigGroup *m_generalGroup;
     KConfigGroup *m_workspaceBackgroundGroup;
     KGlobalAccel *m_globalAccel;
+    org::kde::KWin *m_kwinUtilsInter;
 
     QMap<QString, QAction *> m_accelIdActionMap;
 
