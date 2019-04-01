@@ -35,6 +35,7 @@ public:
     static Workspace *_self;
 public Q_SLOTS:
     void slotWindowMove();
+    void slotWindowMaximize();
 };
 class Scripting : public QObject {
 public:
@@ -276,5 +277,13 @@ void KWinUtils::WindowMove()
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         ws->slotWindowMove();
+    }
+}
+
+void KWinUtils::WindowMaximize()
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        ws->slotWindowMaximize();
     }
 }

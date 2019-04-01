@@ -57,6 +57,7 @@ public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();
     void WindowMove();
+    void WindowMaximize();
 };
 
 #endif // KWINUTILS_H

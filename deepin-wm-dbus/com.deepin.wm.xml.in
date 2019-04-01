@@ -11,6 +11,11 @@
     <method name=\"BeginToMoveActiveWindow\">
     </method>
 
+    <method name=\"ToggleActiveWindowMaximize\">
+    </method>
+    <method name=\"MinimizeActiveWindow\">
+    </method>
+
     <method name=\"PerformAction\">
         <arg type=\"i\" name=\"type\" direction=\"in\"/>
     </method>

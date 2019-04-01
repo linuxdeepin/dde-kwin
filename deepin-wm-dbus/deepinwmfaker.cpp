@@ -380,6 +380,16 @@ void DeepinWMFaker::CancelPreviewWindow()
 void DeepinWMFaker::PerformAction(int type)
 {
     //TODO:
+    switch (type) {
+    case wmActionToggleMaximize:
+        ToggleActiveWindowMaximize();
+        break;
+    case wmActionMinimize:
+        MinimizeActiveWindow();
+        break;
+    default:
+        break;
+    }
 }
 
 void DeepinWMFaker::BeginToMoveActiveWindow()
@@ -400,6 +410,16 @@ void DeepinWMFaker::SwitchApplication(bool backward)
 void DeepinWMFaker::TileActiveWindow(uint side)
 {
     //TODO:
+}
+
+void DeepinWMFaker::ToggleActiveWindowMaximize()
+{
+    m_kwinUtilsInter->WindowMaximize();
+}
+
+void DeepinWMFaker::MinimizeActiveWindow()
+{
+    m_windowSystem->minimizeWindow(m_windowSystem->activeWindow());
 }
 
 #ifndef DISABLE_DEEPIN_WM
