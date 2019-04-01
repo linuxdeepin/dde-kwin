@@ -58,6 +58,7 @@ public Q_SLOTS:
     void WalkBackThroughWindows();
     void WindowMove();
     void WindowMaximize();
+    void QuickTileWindow(uint side);
 };
 
 #endif // KWINUTILS_H

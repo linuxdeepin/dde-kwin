@@ -33,6 +33,19 @@ namespace KWin {
 class Workspace : public QObject {
 public:
     static Workspace *_self;
+
+    enum class QuickTileFlag {
+        None = 0,
+        Left = 1,
+        Right = 1<<1,
+        Top = 1<<2,
+        Bottom = 1<<3,
+        Horizontal = Left|Right,
+        Vertical = Top|Bottom,
+        Maximize = Left|Right|Top|Bottom
+    };
+    Q_DECLARE_FLAGS(QuickTileMode, QuickTileFlag)
+
 public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
@@ -103,15 +116,18 @@ class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
+    typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
 public:
     KWinInterface()
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
+        quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
     }
 
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
+    QuickTileWindow quickTileWindow;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -285,5 +301,13 @@ void KWinUtils::WindowMaximize()
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         ws->slotWindowMaximize();
+    }
+}
+
+void KWinUtils::QuickTileWindow(uint side)
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        interface->quickTileWindow(ws, (KWin::Workspace::QuickTileFlag)side);
     }
 }
