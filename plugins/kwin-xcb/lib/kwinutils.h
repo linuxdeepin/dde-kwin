@@ -41,6 +41,7 @@ public:
 
     static QObject *workspace();
     static QObject *scripting();
+    static QObject *tabBox();
 
     static QFunctionPointer resolve(const char *symbol);
 
@@ -51,6 +52,10 @@ public:
     Q_INVOKABLE QVariant isFullMaximized(const QObject *window) const;
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
     Q_INVOKABLE QVariant unmaximizeWindow(QObject *window) const;
+
+public Q_SLOTS:
+    void WalkThroughWindows();
+    void WalkBackThroughWindows();
 };
 
 #endif // KWINUTILS_H

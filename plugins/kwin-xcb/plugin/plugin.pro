@@ -7,7 +7,7 @@ PLUGIN_TYPE = platforms
 PLUGIN_CLASS_NAME = KWinPlatformIntegration
 !equals(TARGET, $$QT_DEFAULT_QPA_PLUGIN): PLUGIN_EXTENDS = -
 
-QT       += core-private #xcb_qpa_lib-private
+QT       += core-private dbus #xcb_qpa_lib-private
 greaterThan(QT_MAJOR_VERSION, 4) {
     # Qt >= 5.8
     greaterThan(QT_MINOR_VERSION, 7): QT += gui-private
@@ -41,4 +41,10 @@ isEmpty(INSTALL_PATH) {
 }
 
 DEFINES += PLATFORMS_PLUGIN_PATH=\\\"$$[QT_INSTALL_PLUGINS]/platforms\\\"
-INSTALLS += target
+
+kwin_utils_dbus_interface.files = $$PWD/org.kde.kwin.KWinUtils.xml
+kwin_utils_dbus_interface.path = $$PREFIX/share/dbus-1/interfaces
+
+DBUS_ADAPTORS += $$PWD/org.kde.kwin.KWinUtils.xml
+
+INSTALLS += target kwin_utils_dbus_interface

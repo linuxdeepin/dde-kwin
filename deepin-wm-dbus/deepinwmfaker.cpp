@@ -23,6 +23,11 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _global_appearance, ("com.deepin.dde.appea
 #define GlobalAccelComponentName "kwin"
 #define GlobalAccelComponentDisplayName "KWin"
 
+#define KWinUtilsDbusService "org.kde.KWin"
+#define KWinUtilsDbusPath "/dde"
+
+using org::kde::KWin;
+
 // deepin-wm's accel as Key
 static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "switch-to-workspace-1", "Switch to Desktop 1" },
@@ -82,6 +87,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     , m_generalGroup(new KConfigGroup(m_config, GeneralGroupName))
     , m_workspaceBackgroundGroup(new KConfigGroup(m_config, WorkspaceBackgroundGroupName))
     , m_globalAccel(KGlobalAccel::self())
+    , m_kwinUtilsInter(new KWin(KWinUtilsDbusService, KWinUtilsDbusPath, QDBusConnection::sessionBus(), this))
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
 {
 #ifndef DISABLE_DEEPIN_WM
@@ -383,7 +389,12 @@ void DeepinWMFaker::BeginToMoveActiveWindow()
 
 void DeepinWMFaker::SwitchApplication(bool backward)
 {
-    //TODO:
+    if (!m_kwinUtilsInter->isValid()) {
+        return;
+    }
+
+    backward ? m_kwinUtilsInter->WalkBackThroughWindows()
+             : m_kwinUtilsInter->WalkThroughWindows();
 }
 
 void DeepinWMFaker::TileActiveWindow(uint side)
