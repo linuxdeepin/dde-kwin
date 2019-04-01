@@ -5,4 +5,6 @@
     </method>
     <method name="WindowMove">
     </method>
+    <method name="WindowMaximize">
+    </method>
 </interface>

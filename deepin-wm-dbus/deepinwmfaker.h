@@ -61,6 +61,8 @@ public Q_SLOTS:
     void BeginToMoveActiveWindow();
     void SwitchApplication(bool backward);
     void TileActiveWindow(uint side);
+    void ToggleActiveWindowMaximize();
+    void MinimizeActiveWindow();
 
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
