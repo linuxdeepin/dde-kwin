@@ -3,4 +3,6 @@
     </method>
     <method name="WalkBackThroughWindows">
     </method>
+    <method name="WindowMove">
+    </method>
 </interface>

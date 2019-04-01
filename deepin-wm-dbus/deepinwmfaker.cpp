@@ -384,7 +384,7 @@ void DeepinWMFaker::PerformAction(int type)
 
 void DeepinWMFaker::BeginToMoveActiveWindow()
 {
-    //TODO:
+    m_kwinUtilsInter->WindowMove();
 }
 
 void DeepinWMFaker::SwitchApplication(bool backward)
