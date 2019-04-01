@@ -409,7 +409,7 @@ void DeepinWMFaker::SwitchApplication(bool backward)
 
 void DeepinWMFaker::TileActiveWindow(uint side)
 {
-    //TODO:
+    m_kwinUtilsInter->QuickTileWindow(side);
 }
 
 void DeepinWMFaker::ToggleActiveWindowMaximize()
