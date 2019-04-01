@@ -33,6 +33,8 @@ namespace KWin {
 class Workspace : public QObject {
 public:
     static Workspace *_self;
+public Q_SLOTS:
+    void slotWindowMove();
 };
 class Scripting : public QObject {
 public:
@@ -266,5 +268,13 @@ void KWinUtils::WalkBackThroughWindows()
     KWin::TabBox::TabBox *tabbox = static_cast<KWin::TabBox::TabBox *>(tabBox());
     if (tabbox) {
         tabbox->slotWalkBackThroughWindows();
+    }
+}
+
+void KWinUtils::WindowMove()
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        ws->slotWindowMove();
     }
 }
