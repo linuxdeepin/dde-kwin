@@ -14,3 +14,11 @@ ButtonsOnLeft=MS
 ButtonsOnRight=HIAX
 library=org.kde.kwin.aurorae
 theme=__aurorae__svg__deepin
+
+[Effect-FlipSwitch]
+TabBox=true
+TabBoxAlternative=false
+
+[Effect-CoverSwitch]
+TabBox=false
+TabBoxAlternative=true
