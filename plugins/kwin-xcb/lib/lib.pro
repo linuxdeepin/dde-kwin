@@ -1,9 +1,10 @@
 include(../../../common.pri)
 TARGET = $$PROJECT_NAME
 TEMPLATE = lib
-QT += x11extras
+QT += x11extras KConfigCore KCoreAddons KWindowSystem
 QT -= gui
 CONFIG += create_pc create_prl no_install_prl
+DEFINES += KWINDOWSYSTEM_NO_QWIDGET
 
 SOURCES += \
     $$PWD/vtablehook.cpp \

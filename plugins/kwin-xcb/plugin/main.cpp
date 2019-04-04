@@ -40,17 +40,6 @@ QT_BEGIN_NAMESPACE
 #define KWinUtilsDbusPath "/dde"
 #define KWinUtilsDbusInterface "org.kde.KWin"
 
-static QObject *findObjectByClassName(const QByteArray &name, const QObjectList &list)
-{
-    foreach (QObject *obj, list) {
-        if (obj->metaObject()->className() == name) {
-            return obj;
-        }
-    }
-
-    return nullptr;
-}
-
 class Mischievous;
 class  Mischievous : public QObject
 {
@@ -173,8 +162,8 @@ public slots:
             return;
 
         const QObjectList scripting_children = KWinUtils::scripting()->children();
-        QObject *jsWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
-        QObject *qmlWorkspaceWrapper = findObjectByClassName(QByteArrayLiteral("KWin::DeclarativeScriptWorkspaceWrapper"), scripting_children);
+        QObject *jsWorkspaceWrapper = KWinUtils::findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
+        QObject *qmlWorkspaceWrapper = KWinUtils::findObjectByClassName(QByteArrayLiteral("KWin::DeclarativeScriptWorkspaceWrapper"), scripting_children);
 
         // 给js脚本引擎添加对象
         if (jsWorkspaceWrapper) {

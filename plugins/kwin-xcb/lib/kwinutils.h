@@ -39,6 +39,8 @@ public:
     explicit KWinUtils(QObject *parent = nullptr);
     ~KWinUtils();
 
+    static QObject *findObjectByClassName(const QByteArray &name, const QObjectList &list);
+
     static QObject *workspace();
     static QObject *scripting();
     static QObject *tabBox();
@@ -59,6 +61,7 @@ public Q_SLOTS:
     void WindowMove();
     void WindowMaximize();
     void QuickTileWindow(uint side);
+    void ShowWorkspacesView();
 };
 
 #endif // KWINUTILS_H

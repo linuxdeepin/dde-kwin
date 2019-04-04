@@ -26,6 +26,11 @@
 #include <QX11Info>
 #include <QMargins>
 
+// 为了访问 KWinEffects 的保护成员变量
+#define protected public
+#include <kwineffects.h>
+#undef protected
+
 #include <xcb/xcb.h>
 
 // KWin全局静态对象
@@ -63,6 +68,29 @@ public Q_SLOTS:
     void slotWalkBackThroughWindows();
 };
 }
+
+// 开启窗口合成时才会有此对象
+extern EffectsHandler* effects;
+
+static Effect *getEffect(const QString &name)
+{
+    if (!effects)
+        return nullptr;
+
+    for (auto i : effects->loaded_effects) {
+        if (i.first == name)
+            return i.second;
+    }
+
+    return nullptr;
+}
+
+// 窗口合成器
+class Compositor : public QObject
+{
+public:
+    static Compositor *s_compositor;
+};
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -135,12 +163,22 @@ Q_GLOBAL_STATIC(KWinInterface, interface)
 KWinUtils::KWinUtils(QObject *parent)
     : QObject(parent)
 {
-
 }
 
 KWinUtils::~KWinUtils()
 {
 
+}
+
+QObject *KWinUtils::findObjectByClassName(const QByteArray &name, const QObjectList &list)
+{
+    foreach (QObject *obj, list) {
+        if (obj->metaObject()->className() == name) {
+            return obj;
+        }
+    }
+
+    return nullptr;
 }
 
 QObject *KWinUtils::workspace()
@@ -309,5 +347,14 @@ void KWinUtils::QuickTileWindow(uint side)
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         interface->quickTileWindow(ws, (KWin::Workspace::QuickTileFlag)side);
+    }
+}
+
+void KWinUtils::ShowWorkspacesView()
+{
+    QObject *desktop_grid = KWin::getEffect("desktopgrid");
+
+    if (desktop_grid) {
+        QMetaObject::invokeMethod(desktop_grid, "toggle");
     }
 }
