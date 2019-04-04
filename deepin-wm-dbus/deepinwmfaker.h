@@ -30,6 +30,21 @@ public:
         wmTileDirectionRight = 2,
     };
 
+    // position of possible screen edge(zone)
+    // DDE currently only support the four corners
+    enum ElectricBorder {
+        ElectricTop,
+        ElectricTopRight,
+        ElectricRight,
+        ElectricBottomRight,
+        ElectricBottom,
+        ElectricBottomLeft,
+        ElectricLeft,
+        ElectricTopLeft,
+        ELECTRIC_COUNT,
+        ElectricNone
+    };
+
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
     void SetWorkspaceBackground(const int index, const QString &uri);
@@ -90,6 +105,9 @@ private:
     KConfig *m_deepinWMConfig;
     KConfigGroup *m_deepinWMGeneralGroup;
     KConfigGroup *m_deepinWMWorkspaceBackgroundGroup;
+    KConfig *m_kwinConfig;
+    KConfigGroup *m_kwinCloseWindowGroup;
+    KConfigGroup *m_kwinRunCommandGroup;
     KGlobalAccel *m_globalAccel;
     org::kde::KWin *m_kwinUtilsInter;
 
