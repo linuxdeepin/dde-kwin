@@ -214,6 +214,11 @@ class DPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
 
 public:
     QPlatformIntegration *create(const QString&, const QStringList&, int &, char **) Q_DECL_OVERRIDE;
+
+    Q_SLOT void init()
+    {
+        connect(qApp, SIGNAL(workspaceCreated()), _m.operator ->(), SLOT(init()));
+    }
 };
 
 QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
@@ -221,10 +226,7 @@ QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, 
     if (system == "dde-kwin-xcb") {
         QPlatformIntegration *integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
         VtableHook::overrideVfptrFun(integration, &QPlatformIntegration::initialize, overrideInitialize);
-
-        metaObject()->invokeMethod(this, [] {
-            connect(qApp, SIGNAL(workspaceCreated()), _m.operator ->(), SLOT(init()));
-        }, Qt::QueuedConnection);
+        metaObject()->invokeMethod(this, "init", Qt::QueuedConnection);
 
         return integration;
     }
