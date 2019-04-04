@@ -14,12 +14,20 @@
 #include <QGSettings>
 Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_appearance, ("com.deepin.dde.appearance"))
 Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone"))
-#define GsettingsBackgroundUri "background-uris"
+#define GsettingsBackgroundUri "backgroundUris"
+#define GsettingsZoneRightUp "rightUp"
+#define GsettingsZoneRightDown "rightDown"
+#define GsettingsZoneLeftDown "leftDown"
+#define GsettingsZoneLeftUp "leftUp"
 #endif // DISABLE_DEEPIN_WM
 
-#define ConfigName "deepinwmrc"
-#define GeneralGroupName "General"
-#define WorkspaceBackgroundGroupName "WorkspaceBackground"
+#define DeepinWMConfigName "deepinwmrc"
+#define DeepinWMGeneralGroupName "General"
+#define DeepinWMWorkspaceBackgroundGroupName "WorkspaceBackground"
+
+#define KWinConfigName "kwinrc"
+#define KWinCloseWindowGroupName "Script-closewindowaction"
+#define KWinRunCommandGroupName "Script-runcommandaction"
 
 #define GlobalAccelComponentName "kwin"
 #define GlobalAccelComponentDisplayName "KWin"
@@ -84,9 +92,12 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
 DeepinWMFaker::DeepinWMFaker(QObject *parent)
     : QObject(parent)
     , m_windowSystem(KWindowSystem::self())
-    , m_deepinWMConfig(new KConfig(ConfigName, KConfig::SimpleConfig))
-    , m_deepinWMGeneralGroup(new KConfigGroup(m_deepinWMConfig, GeneralGroupName))
-    , m_deepinWMWorkspaceBackgroundGroup(new KConfigGroup(m_deepinWMConfig, WorkspaceBackgroundGroupName))
+    , m_deepinWMConfig(new KConfig(DeepinWMConfigName, KConfig::SimpleConfig))
+    , m_deepinWMGeneralGroup(new KConfigGroup(m_deepinWMConfig->group(DeepinWMGeneralGroupName)))
+    , m_deepinWMWorkspaceBackgroundGroup(new KConfigGroup(m_deepinWMConfig->group(DeepinWMWorkspaceBackgroundGroupName)))
+    , m_kwinConfig(new KConfig(KWinConfigName, KConfig::SimpleConfig))
+    , m_kwinCloseWindowGroup(new KConfigGroup(m_kwinConfig->group(KWinCloseWindowGroupName)))
+    , m_kwinRunCommandGroup(new KConfigGroup(m_kwinConfig->group(KWinRunCommandGroupName)))
     , m_globalAccel(KGlobalAccel::self())
     , m_kwinUtilsInter(new KWin(KWinUtilsDbusService, KWinUtilsDbusPath, QDBusConnection::sessionBus(), this))
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
@@ -528,6 +539,31 @@ void DeepinWMFaker::onGsettingsDDEAppearanceChanged(const QString &key)
 
 void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
 {
+    ElectricBorder pos = ElectricNone;
 
+    if (key == GsettingsZoneRightUp) {
+        pos = ElectricTopRight;
+    } else if (key == GsettingsZoneRightDown) {
+        pos = ElectricBottomRight;
+    } else if (key == GsettingsZoneLeftDown) {
+        pos = ElectricBottomLeft;
+    } else if (key == GsettingsZoneLeftUp) {
+        pos = ElectricTopLeft;
+    }
+
+    const QString &activate = "BorderActivate";
+    const QString &program = QString("Border%1Program").arg(pos);
+
+    const QString &value = _gsettings_dde_zone->get(key).toString();
+    qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>zonekey" << key << value;
+    if (value.isEmpty()) {
+    } else {
+        if (value == "!wm:close") {
+            m_kwinCloseWindowGroup->writeEntry(activate, static_cast<int>(pos));
+        } else {
+            m_kwinRunCommandGroup->writeEntry(activate, static_cast<int>(pos));
+            m_kwinRunCommandGroup->writeEntry(program, value);
+        }
+    }
 }
 #endif // DISABLE_DEEPIN_WM
