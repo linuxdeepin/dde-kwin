@@ -1,3 +1,20 @@
+<a name="0.0.2"></a>
+## 0.0.2 (2019-04-04)
+
+
+#### Features
+
+*   set default tasks switch manager ([e9f92dcb](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/e9f92dcb38a5574fc0f05e06d72c632c8f8aface))
+*   implemention of TileActiveWindow ([669aa446](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/669aa44675a6d9c07952fe8a15fa03503d8b31b2))
+*   implemention two actions of PerformAction ([d2cb55e2](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/d2cb55e2d7ea5827571a8aed30a22bbb54fa3972))
+*   implemention of BeginToMoveActiveWindow ([f43b2230](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/f43b2230686aa9b9a951f93059e9badb212711fd))
+
+#### Bug Fixes
+
+*   build failed on Qt 5.7.x ([df8feedf](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/df8feedf852332d0ac5fe3546b52fc47a9723d70))
+
+
+
 <a name="0.0.1"></a>
 ## 0.0.1 (2019-04-02)
 
