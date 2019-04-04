@@ -83,9 +83,9 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
 DeepinWMFaker::DeepinWMFaker(QObject *parent)
     : QObject(parent)
     , m_windowSystem(KWindowSystem::self())
-    , m_config(new KConfig(ConfigName, KConfig::SimpleConfig))
-    , m_generalGroup(new KConfigGroup(m_config, GeneralGroupName))
-    , m_workspaceBackgroundGroup(new KConfigGroup(m_config, WorkspaceBackgroundGroupName))
+    , m_deepinWMConfig(new KConfig(ConfigName, KConfig::SimpleConfig))
+    , m_deepinWMGeneralGroup(new KConfigGroup(m_deepinWMConfig, GeneralGroupName))
+    , m_deepinWMWorkspaceBackgroundGroup(new KConfigGroup(m_deepinWMConfig, WorkspaceBackgroundGroupName))
     , m_globalAccel(KGlobalAccel::self())
     , m_kwinUtilsInter(new KWin(KWinUtilsDbusService, KWinUtilsDbusPath, QDBusConnection::sessionBus(), this))
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
@@ -473,12 +473,12 @@ QString DeepinWMFaker::transToDaemonAccelStr(const QString &accelStr) const
 
 QString DeepinWMFaker::getWorkspaceBackground(const int index) const
 {
-    return m_workspaceBackgroundGroup->readEntry(QString::number(index));
+    return m_deepinWMWorkspaceBackgroundGroup->readEntry(QString::number(index));
 }
 
 void DeepinWMFaker::setWorkspaceBackground(const int index, const QString &uri)
 {
-    m_workspaceBackgroundGroup->writeEntry(QString::number(index), uri);
+    m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString::number(index), uri);
 
     Q_EMIT WorkspaceBackgroundChanged(index, uri);
 }
