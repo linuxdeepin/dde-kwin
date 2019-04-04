@@ -86,9 +86,9 @@ private:
 
 private:
     KWindowSystem *m_windowSystem;
-    KConfig *m_config;
-    KConfigGroup *m_generalGroup;
-    KConfigGroup *m_workspaceBackgroundGroup;
+    KConfig *m_deepinWMConfig;
+    KConfigGroup *m_deepinWMGeneralGroup;
+    KConfigGroup *m_deepinWMWorkspaceBackgroundGroup;
     KGlobalAccel *m_globalAccel;
     org::kde::KWin *m_kwinUtilsInter;
 
