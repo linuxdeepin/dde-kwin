@@ -81,7 +81,8 @@ private:
     void quitTransientBackground();
 
 #ifndef DISABLE_DEEPIN_WM
-    void onDeepinWMSettingsChanged(const QString &key);
+    void onGsettingsDDEAppearanceChanged(const QString &key);
+    void onGsettingsDDEZoneChanged(const QString &key);
 #endif
 
 private:

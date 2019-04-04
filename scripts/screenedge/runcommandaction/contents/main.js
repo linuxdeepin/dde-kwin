@@ -4,6 +4,7 @@ function runCommand(program, arguments) {
     print(program, typeof(program));
     print(arguments, typeof(arguments));
 
+    // TODO:: use workspace.__dde__.kwinUtils.startDetached instead of callDBus
     callDBus("com.deepin.SessionManager", "/com/deepin/StartManager", "com.deepin.StartManager",
              "RunCommand", program, arguments);
 }
