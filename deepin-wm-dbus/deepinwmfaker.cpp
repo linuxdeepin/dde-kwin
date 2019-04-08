@@ -555,8 +555,8 @@ void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
     const QString &program = QString("Border%1Program").arg(pos);
 
     const QString &value = _gsettings_dde_zone->get(key).toString();
-    qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>zonekey" << key << value;
     if (value.isEmpty()) {
+        // TODO: unset
     } else {
         if (value == "!wm:close") {
             m_kwinCloseWindowGroup->writeEntry(activate, static_cast<int>(pos));
