@@ -16,8 +16,8 @@ Build-Depends: debhelper (>=9), qtbase5-dev, qtbase5-private-dev,
  libglib2.0-dev,
  libxrender-dev,
  libmtdev-dev
-
 Standards-Version: 3.9.8
+Homepage: https://github.com/linuxdeepin/dde-kwin
 
 Package: dde-kwin
 Architecture: any
