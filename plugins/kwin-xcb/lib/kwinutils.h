@@ -62,6 +62,8 @@ public Q_SLOTS:
     void WindowMaximize();
     void QuickTileWindow(uint side);
     void ShowWorkspacesView();
+    void ShowAllWindowsView();
+    void ShowWindowsView();
 };
 
 #endif // KWINUTILS_H

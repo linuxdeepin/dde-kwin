@@ -358,3 +358,21 @@ void KWinUtils::ShowWorkspacesView()
         QMetaObject::invokeMethod(desktop_grid, "toggle");
     }
 }
+
+void KWinUtils::ShowAllWindowsView()
+{
+    QObject *presentWindows = KWin::getEffect("presentwindows");
+
+    if (presentWindows) {
+        QMetaObject::invokeMethod(presentWindows, "toggleActiveAllDesktops");
+    }
+}
+
+void KWinUtils::ShowWindowsView()
+{
+    QObject *presentWindows = KWin::getEffect("presentwindows");
+
+    if (presentWindows) {
+        QMetaObject::invokeMethod(presentWindows, "toggleActive");
+    }
+}

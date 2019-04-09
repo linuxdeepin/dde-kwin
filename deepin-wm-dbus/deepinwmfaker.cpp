@@ -426,13 +426,21 @@ void DeepinWMFaker::CancelPreviewWindow()
 
 void DeepinWMFaker::PerformAction(int type)
 {
-    //TODO:
     switch (type) {
+    case wmActionShowWorkspace:
+        ShowWorkspace();
+        break;
     case wmActionToggleMaximize:
         ToggleActiveWindowMaximize();
         break;
     case wmActionMinimize:
         MinimizeActiveWindow();
+        break;
+    case wmActionShowWindow:
+        ShowWindow();
+        break;
+    case wmActionShowAllWindow:
+        ShowAllWindow();
         break;
     default:
         break;
@@ -496,6 +504,21 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
     } else {
         compositor.call("suspend");
     }
+}
+
+void DeepinWMFaker::ShowAllWindow()
+{
+    m_kwinUtilsInter->ShowAllWindowsView();
+}
+
+void DeepinWMFaker::ShowWindow()
+{
+    m_kwinUtilsInter->ShowWindowsView();
+}
+
+void DeepinWMFaker::ShowWorkspace()
+{
+    m_kwinUtilsInter->ShowWorkspacesView();
 }
 
 #ifndef DISABLE_DEEPIN_WM

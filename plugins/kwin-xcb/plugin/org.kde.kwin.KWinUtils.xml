@@ -10,4 +10,10 @@
     <method name="QuickTileWindow">
         <arg type="u" name="side" direction="in"/>
     </method>
+    <method name="ShowWorkspacesView">
+    </method>
+    <method name="ShowWindowsView">
+    </method>
+    <method name="ShowAllWindowsView">
+    </method>
 </interface>
