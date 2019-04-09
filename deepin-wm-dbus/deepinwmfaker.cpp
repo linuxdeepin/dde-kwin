@@ -617,8 +617,12 @@ void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
         setBorderActivate(m_kwinRunCommandGroup, pos, true);
     } else {
         if (value == "!wm:close") {
+            // 移除这个区域设置的其它命令
+            setBorderActivate(m_kwinRunCommandGroup, pos, true);
             setBorderActivate(m_kwinCloseWindowGroup, pos, false);
         } else {
+            // 移除这个区域设置的关闭窗口命令
+            setBorderActivate(m_kwinCloseWindowGroup, pos, true);
             setBorderActivate(m_kwinRunCommandGroup, pos, false);
 
             const QString &program = QString("Border%1Program").arg(pos);
