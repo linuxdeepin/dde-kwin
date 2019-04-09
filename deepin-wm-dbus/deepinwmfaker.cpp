@@ -38,6 +38,8 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 // kwin dbus
 #define KWinDBusService "org.kde.KWin"
 #define KWinDBusPath "/KWin"
+#define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
+#define KWinDBusCompositorPath "/Compositor"
 
 using org::kde::KWin;
 
@@ -139,6 +141,11 @@ DeepinWMFaker::~DeepinWMFaker()
     delete m_kwinConfig;
     delete m_kwinCloseWindowGroup;
     delete m_kwinRunCommandGroup;
+}
+
+bool DeepinWMFaker::compositingEnabled() const
+{
+    return QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface).property("active").toBool();
 }
 
 #ifndef DISABLE_DEEPIN_WM
@@ -474,6 +481,20 @@ void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
         SetDecorationTheme("__aurorae__svg__deepin");
     } else if (name == "dark") {
         SetDecorationTheme("__aurorae__svg__deepin-dark");
+    }
+}
+
+void DeepinWMFaker::setCompositingEnabled(bool on)
+{
+    m_kwinConfig->group("Compositing").writeEntry("Enabled", on);
+    syncConfigForKWin();
+
+    QDBusInterface compositor(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface);
+
+    if (on) {
+        compositor.call("resume");
+    } else {
+        compositor.call("suspend");
     }
 }
 

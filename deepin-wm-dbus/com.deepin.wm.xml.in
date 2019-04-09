@@ -1,5 +1,5 @@
 <interface name=\"com.deepin.wm\">
-
+    <property name=\"compositingEnabled\" type=\"b\" access=\"readwrite\"/>
     <method name=\"SwitchApplication\">
         <arg type=\"b\" name=\"backward\" direction=\"in\"/>
     </method>

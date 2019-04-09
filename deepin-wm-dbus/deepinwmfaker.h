@@ -14,6 +14,8 @@ class KGlobalAccel;
 class DeepinWMFaker : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool compositingEnabled READ compositingEnabled WRITE setCompositingEnabled NOTIFY compositingEnabledChanged)
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
     ~DeepinWMFaker();
@@ -45,6 +47,8 @@ public:
         ELECTRIC_COUNT,
         ElectricNone
     };
+
+    bool compositingEnabled() const;
 
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
@@ -83,12 +87,16 @@ public Q_SLOTS:
     void SetDecorationTheme(const QString &name);
     void SetDecorationDeepinTheme(const QString &name);
 
+    void setCompositingEnabled(bool on);
+
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
 #ifndef DISABLE_DEEPIN_WM
     // 兼容deepin-wm提供的接口
     void WorkspaceSwitched(int from, int to);
 #endif
+
+    void compositingEnabledChanged(bool compositingEnabled);
 
 private:
     QAction *accelAction(const QString accelKid) const;
