@@ -16,9 +16,21 @@ library=org.kde.kwin.aurorae
 theme=__aurorae__svg__deepin
 
 [Effect-FlipSwitch]
-TabBox=true
+TabBox=false
 TabBoxAlternative=false
 
 [Effect-CoverSwitch]
 TabBox=false
-TabBoxAlternative=true
+TabBoxAlternative=false
+
+[TabBox]
+ActivitiesMode=1
+ApplicationsMode=0
+DesktopMode=1
+HighlightWindows=true
+LayoutName=thumbnail_grid
+MinimizedMode=0
+MultiScreenMode=0
+ShowDesktopMode=0
+ShowTabBox=true
+SwitchingMode=0
