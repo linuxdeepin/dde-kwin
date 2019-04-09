@@ -1,3 +1,3 @@
 TEMPLATE = subdirs
 
-SUBDIRS += configures plugins aurorae-themes scripts deepin-wm-dbus
+SUBDIRS += configures plugins aurorae-themes scripts deepin-wm-dbus tabbox
