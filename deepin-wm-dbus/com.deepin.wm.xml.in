@@ -70,6 +70,13 @@
         <arg type=\"s\" name=\"id\" direction=\"in\"/>
     </method>
 
+    <method name=\"SetDecorationTheme\">
+        <arg type=\"s\" name=\"themeName\" direction=\"in\"/>
+    </method>
+    <method name=\"SetDecorationDeepinTheme\">
+        <arg type=\"s\" name=\"deepinThemeName\" direction=\"in\"/>
+    </method>
+
     <signal name=\"WorkspaceBackgroundChanged\">
         <arg type=\"i\" name=\"index\"/>
         <arg type=\"s\" name=\"newUri\"/>

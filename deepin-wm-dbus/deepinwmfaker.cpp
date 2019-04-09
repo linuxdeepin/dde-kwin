@@ -131,6 +131,16 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
 #endif // DISABLE_DEEPIN_WM
 }
 
+DeepinWMFaker::~DeepinWMFaker()
+{
+    delete m_deepinWMConfig;
+    delete m_deepinWMGeneralGroup;
+    delete m_deepinWMWorkspaceBackgroundGroup;
+    delete m_kwinConfig;
+    delete m_kwinCloseWindowGroup;
+    delete m_kwinRunCommandGroup;
+}
+
 #ifndef DISABLE_DEEPIN_WM
 static QString getWorkspaceBackgroundOfDeepinWM(const int index)
 {
@@ -450,6 +460,21 @@ void DeepinWMFaker::ToggleActiveWindowMaximize()
 void DeepinWMFaker::MinimizeActiveWindow()
 {
     m_windowSystem->minimizeWindow(m_windowSystem->activeWindow());
+}
+
+void DeepinWMFaker::SetDecorationTheme(const QString &name)
+{
+    m_kwinConfig->group("org.kde.kdecoration2").writeEntry("theme", name);
+    syncConfigForKWin();
+}
+
+void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
+{
+    if (name == "light") {
+        SetDecorationTheme("__aurorae__svg__deepin");
+    } else if (name == "dark") {
+        SetDecorationTheme("__aurorae__svg__deepin-dark");
+    }
 }
 
 #ifndef DISABLE_DEEPIN_WM

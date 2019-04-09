@@ -16,6 +16,7 @@ class DeepinWMFaker : public QObject
     Q_OBJECT
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
+    ~DeepinWMFaker();
 
     enum Action {
         wmActionShowWorkspace = 1,
@@ -78,6 +79,9 @@ public Q_SLOTS:
     void TileActiveWindow(uint side);
     void ToggleActiveWindowMaximize();
     void MinimizeActiveWindow();
+
+    void SetDecorationTheme(const QString &name);
+    void SetDecorationDeepinTheme(const QString &name);
 
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
