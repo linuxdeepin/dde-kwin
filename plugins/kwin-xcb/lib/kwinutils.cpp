@@ -89,7 +89,12 @@ static Effect *getEffect(const QString &name)
 class Compositor : public QObject
 {
 public:
+    enum SuspendReason { NoReasonSuspend = 0, UserSuspend = 1<<0, BlockRuleSuspend = 1<<1, ScriptSuspend = 1<<2, AllReasonSuspend = 0xff };
     static Compositor *s_compositor;
+
+public Q_SLOTS:
+    void suspend(Compositor::SuspendReason reason);
+    void resume(Compositor::SuspendReason reason);
 };
 }
 
@@ -357,6 +362,22 @@ void KWinUtils::ShowWorkspacesView()
     if (desktop_grid) {
         QMetaObject::invokeMethod(desktop_grid, "toggle");
     }
+}
+
+void KWinUtils::ResumeCompositor(int type)
+{
+    if (!KWin::Compositor::s_compositor)
+        return;
+
+    KWin::Compositor::s_compositor->resume(static_cast<KWin::Compositor::SuspendReason>(type));
+}
+
+void KWinUtils::SuspendCompositor(int type)
+{
+    if (!KWin::Compositor::s_compositor)
+        return;
+
+    KWin::Compositor::s_compositor->suspend(static_cast<KWin::Compositor::SuspendReason>(type));
 }
 
 void KWinUtils::ShowAllWindowsView()

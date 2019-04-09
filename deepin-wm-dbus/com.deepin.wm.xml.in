@@ -1,5 +1,6 @@
 <interface name=\"com.deepin.wm\">
     <property name=\"compositingEnabled\" type=\"b\" access=\"readwrite\"/>
+    <property name=\"compositingPossible\" type=\"b\" access=\"read\"/>
     <method name=\"SwitchApplication\">
         <arg type=\"b\" name=\"backward\" direction=\"in\"/>
     </method>
@@ -86,6 +87,9 @@
     <signal name=\"WorkspaceBackgroundChanged\">
         <arg type=\"i\" name=\"index\"/>
         <arg type=\"s\" name=\"newUri\"/>
+    </signal>
+    <signal name=\"compositingEnabledChanged\">
+        <arg type=\"b\" name=\"enabled\"/>
     </signal>
 
     $${DEEPIN_WM_PREFIX}

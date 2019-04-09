@@ -16,4 +16,10 @@
     </method>
     <method name="ShowAllWindowsView">
     </method>
+    <method name="ResumeCompositor">
+        <arg type="i" name="type" direction="in"/>
+    </method>
+    <method name="SuspendCompositor">
+        <arg type="i" name="type" direction="in"/>
+    </method>
 </interface>

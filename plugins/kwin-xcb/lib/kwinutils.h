@@ -64,6 +64,8 @@ public Q_SLOTS:
     void ShowWorkspacesView();
     void ShowAllWindowsView();
     void ShowWindowsView();
+    void ResumeCompositor(int type);
+    void SuspendCompositor(int type);
 };
 
 #endif // KWINUTILS_H

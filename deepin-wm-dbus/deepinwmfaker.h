@@ -16,6 +16,8 @@ class DeepinWMFaker : public QObject
     Q_OBJECT
 
     Q_PROPERTY(bool compositingEnabled READ compositingEnabled WRITE setCompositingEnabled NOTIFY compositingEnabledChanged)
+    Q_PROPERTY(bool compositingPossible READ compositingPossible)
+
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
     ~DeepinWMFaker();
@@ -49,6 +51,7 @@ public:
     };
 
     bool compositingEnabled() const;
+    bool compositingPossible() const;
 
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
