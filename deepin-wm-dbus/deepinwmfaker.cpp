@@ -35,6 +35,10 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinUtilsDbusService "org.kde.KWin"
 #define KWinUtilsDbusPath "/dde"
 
+// kwin dbus
+#define KWinDBusService "org.kde.KWin"
+#define KWinDBusPath "/KWin"
+
 using org::kde::KWin;
 
 // deepin-wm's accel as Key
@@ -111,6 +115,19 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     });
     connect(_gsettings_dde_appearance, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEAppearanceChanged);
     connect(_gsettings_dde_zone, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEZoneChanged);
+
+    // 启动后先将所有热区设置同步一遍
+    const QStringList zoneKeyList = {GsettingsZoneRightUp, GsettingsZoneRightDown,
+                                    GsettingsZoneLeftUp, GsettingsZoneLeftDown};
+
+    // 清理旧数据
+    m_kwinCloseWindowGroup->deleteGroup();
+    m_kwinRunCommandGroup->deleteGroup();
+
+    // 设置新数据
+    for (const QString &key : zoneKeyList) {
+        onGsettingsDDEZoneChanged(key);
+    }
 #endif // DISABLE_DEEPIN_WM
 }
 
@@ -537,6 +554,23 @@ void DeepinWMFaker::onGsettingsDDEAppearanceChanged(const QString &key)
     }
 }
 
+static void setBorderActivate(KConfigGroup *group, int value, bool remove)
+{
+    const QString &activate = "BorderActivate";
+    QStringList list = group->readEntry(activate).split(",");
+    const QString &v = QString::number(value);
+
+    if (remove) {
+        list.removeAll(v);
+    } else if (!list.contains(v)) {
+        list.append(v);
+    } else {
+        return;
+    }
+
+    group->writeEntry(activate, list.join(","));
+}
+
 void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
 {
     ElectricBorder pos = ElectricNone;
@@ -551,19 +585,30 @@ void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
         pos = ElectricTopLeft;
     }
 
-    const QString &activate = "BorderActivate";
-    const QString &program = QString("Border%1Program").arg(pos);
-
     const QString &value = _gsettings_dde_zone->get(key).toString();
+
     if (value.isEmpty()) {
-        // TODO: unset
+        setBorderActivate(m_kwinCloseWindowGroup, pos, true);
+        setBorderActivate(m_kwinRunCommandGroup, pos, true);
     } else {
         if (value == "!wm:close") {
-            m_kwinCloseWindowGroup->writeEntry(activate, static_cast<int>(pos));
+            setBorderActivate(m_kwinCloseWindowGroup, pos, false);
         } else {
-            m_kwinRunCommandGroup->writeEntry(activate, static_cast<int>(pos));
+            setBorderActivate(m_kwinRunCommandGroup, pos, false);
+
+            const QString &program = QString("Border%1Program").arg(pos);
             m_kwinRunCommandGroup->writeEntry(program, value);
         }
     }
+
+    syncConfigForKWin();
+}
+
+void DeepinWMFaker::syncConfigForKWin()
+{
+    // 同步配置到文件
+    m_kwinConfig->sync();
+    // 通知kwin重新加载配置文件
+    QDBusInterface(KWinDBusService, KWinDBusPath).call("reconfigure");
 }
 #endif // DISABLE_DEEPIN_WM

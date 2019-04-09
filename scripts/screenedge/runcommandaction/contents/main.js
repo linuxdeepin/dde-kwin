@@ -4,15 +4,23 @@ function runCommand(program, arguments) {
     print(program, typeof(program));
     print(arguments, typeof(arguments));
 
-    // TODO:: use workspace.__dde__.kwinUtils.startDetached instead of callDBus
-    callDBus("com.deepin.SessionManager", "/com/deepin/StartManager", "com.deepin.StartManager",
-             "RunCommand", program, arguments);
+    if (arguments && arguments.length > 0) {
+        workspace.__dde__.startDetached(program, arguments);
+    } else {
+        workspace.__dde__.startDetached(program);
+    }
 }
 
 function parseCommand(border) {
     var border_string = String(border)
     var program = readConfig("Border" + border_string + "Program", "").toString();
-    var args = readConfig("Border" + border_string + "Args", "").toString().split(",");
+    var args = readConfig("Border" + border_string + "Args", "").toString();
+
+    if (args) { // 只分割非空字符
+        args = args.split(",");
+    } else {
+        args = [];
+    }
 
     if (!program) {
         return false;
@@ -20,7 +28,8 @@ function parseCommand(border) {
 
     if (!(args instanceof Array)) {
         if (args instanceof String) {
-            args = [args]
+            if (args) // 只传入非空参数
+                args = [args]
         }
     }
 
