@@ -101,6 +101,8 @@ private:
 #endif
 
 private:
+    void syncConfigForKWin();
+
     KWindowSystem *m_windowSystem;
     KConfig *m_deepinWMConfig;
     KConfigGroup *m_deepinWMGeneralGroup;
