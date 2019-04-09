@@ -131,6 +131,9 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
         onGsettingsDDEZoneChanged(key);
     }
 #endif // DISABLE_DEEPIN_WM
+
+    QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface,
+                                          "compositingToggled", "b", this, SLOT(compositingEnabledChanged(bool)));
 }
 
 DeepinWMFaker::~DeepinWMFaker()
@@ -146,6 +149,11 @@ DeepinWMFaker::~DeepinWMFaker()
 bool DeepinWMFaker::compositingEnabled() const
 {
     return QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface).property("active").toBool();
+}
+
+bool DeepinWMFaker::compositingPossible() const
+{
+    return QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface).property("compositingPossible").toBool();
 }
 
 #ifndef DISABLE_DEEPIN_WM
@@ -495,15 +503,13 @@ void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
 void DeepinWMFaker::setCompositingEnabled(bool on)
 {
     m_kwinConfig->group("Compositing").writeEntry("Enabled", on);
-    syncConfigForKWin();
+    // 只同步配置文件，不要通知kwin重新加载配置
+    m_kwinConfig->sync();
 
-    QDBusInterface compositor(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface);
-
-    if (on) {
-        compositor.call("resume");
-    } else {
-        compositor.call("suspend");
-    }
+    if (on)
+        m_kwinUtilsInter->ResumeCompositor(1);
+    else
+        m_kwinUtilsInter->SuspendCompositor(1);
 }
 
 void DeepinWMFaker::ShowAllWindow()

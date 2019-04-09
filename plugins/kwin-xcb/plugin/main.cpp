@@ -177,8 +177,11 @@ public slots:
 
         // 注册 dbus 对象 提供更多的 kwin 相关接口
         new KWinAdaptor(kwinUtils());
-        QDBusConnection::sessionBus().registerService(KWinUtilsDbusService);
         QDBusConnection::sessionBus().registerObject(KWinUtilsDbusPath, KWinUtilsDbusInterface, kwinUtils());
+    }
+
+    void onExec() {
+        connect(qApp, SIGNAL(workspaceCreated()), this, SLOT(init()));
     }
 
 public:
@@ -203,11 +206,6 @@ class DPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
 
 public:
     QPlatformIntegration *create(const QString&, const QStringList&, int &, char **) Q_DECL_OVERRIDE;
-
-    Q_SLOT void init()
-    {
-        connect(qApp, SIGNAL(workspaceCreated()), _m.operator ->(), SLOT(init()));
-    }
 };
 
 QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
@@ -215,7 +213,7 @@ QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, 
     if (system == "dde-kwin-xcb") {
         QPlatformIntegration *integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
         VtableHook::overrideVfptrFun(integration, &QPlatformIntegration::initialize, overrideInitialize);
-        metaObject()->invokeMethod(this, "init", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(_m.operator ->(), "onExec", Qt::QueuedConnection);
 
         return integration;
     }
