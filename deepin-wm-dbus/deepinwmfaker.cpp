@@ -156,6 +156,16 @@ bool DeepinWMFaker::compositingPossible() const
     return QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface).property("compositingPossible").toBool();
 }
 
+bool DeepinWMFaker::zoneEnabled() const
+{
+    bool enable_closewindow = m_kwinCloseWindowGroup->readEntry("Enabled", QVariant(true)).toBool();
+
+    if (enable_closewindow)
+        return true;
+
+    return m_kwinRunCommandGroup->readEntry("Enabled", QVariant(true)).toBool();
+}
+
 #ifndef DISABLE_DEEPIN_WM
 static QString getWorkspaceBackgroundOfDeepinWM(const int index)
 {
@@ -527,10 +537,29 @@ void DeepinWMFaker::ShowWorkspace()
     m_kwinUtilsInter->ShowWorkspacesView();
 }
 
+void DeepinWMFaker::setZoneEnabled(bool zoneEnabled)
+{
+    m_kwinCloseWindowGroup->writeEntry("Enabled", zoneEnabled);
+    m_kwinRunCommandGroup->writeEntry("Enabled", zoneEnabled);
+    syncConfigForKWin();
+}
+
 #ifndef DISABLE_DEEPIN_WM
 void DeepinWMFaker::SwitchToWorkspace(bool backward)
 {
     backward ? PreviousWorkspace() : NextWorkspace();
+}
+
+// TODO(zccrs): 预览这些窗口
+void DeepinWMFaker::PresentWindows(const QList<quint32> &xids)
+{
+    Q_UNUSED(xids)
+}
+
+// TODO(zccrs): 开启/禁用热区
+void DeepinWMFaker::EnableZoneDetected(bool enabled)
+{
+    setZoneEnabled(enabled);
 }
 #endif
 

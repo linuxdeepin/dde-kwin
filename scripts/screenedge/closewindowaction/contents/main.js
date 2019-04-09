@@ -7,6 +7,10 @@ function init() {
 
     registeredBorders = [];
 
+    if (readConfig("Enabled", "true").toString() === "false") {
+        return;
+    }
+
     var borders = readConfig("BorderActivate", "").toString().split(",");
     for (var i in borders) {
         var border = parseInt(borders[i]);

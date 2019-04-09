@@ -1,6 +1,8 @@
 <interface name=\"com.deepin.wm\">
     <property name=\"compositingEnabled\" type=\"b\" access=\"readwrite\"/>
     <property name=\"compositingPossible\" type=\"b\" access=\"read\"/>
+    <property name=\"zoneEnabled\" type=\"b\" access=\"readwrite\"/>
+
     <method name=\"SwitchApplication\">
         <arg type=\"b\" name=\"backward\" direction=\"in\"/>
     </method>
@@ -97,8 +99,15 @@
         <arg type=\"s\" name=\"uri\" direction=\"in\"/>
     </method>
 
-    <method name="SwitchToWorkspace">
+    <method name=\"SwitchToWorkspace\">
         <arg type=\"b\" name=\"backward\" direction=\"in\"/>
+    </method>
+    <method name=\"PresentWindows\">
+        <arg type=\"au\" name=\"xids\" direction=\"in\"/>
+        <annotation name=\"org.qtproject.QtDBus.QtTypeName.In0\" value=\"QList&lt;quint32&gt;\"/>
+    </method>
+    <method name=\"EnableZoneDetected\">
+        <arg type=\"b\" name=\"enabled\" direction=\"in\"/>
     </method>
 
     <signal name=\"WorkspaceSwitched\">

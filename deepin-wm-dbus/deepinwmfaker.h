@@ -17,6 +17,7 @@ class DeepinWMFaker : public QObject
 
     Q_PROPERTY(bool compositingEnabled READ compositingEnabled WRITE setCompositingEnabled NOTIFY compositingEnabledChanged)
     Q_PROPERTY(bool compositingPossible READ compositingPossible)
+    Q_PROPERTY(bool zoneEnabled READ zoneEnabled WRITE setZoneEnabled)
 
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
@@ -52,6 +53,7 @@ public:
 
     bool compositingEnabled() const;
     bool compositingPossible() const;
+    bool zoneEnabled() const;
 
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
@@ -70,6 +72,8 @@ public Q_SLOTS:
     void PreviousWorkspace();
 #ifndef DISABLE_DEEPIN_WM
     void SwitchToWorkspace(bool backward);
+    void PresentWindows(const QList<quint32> &xids);
+    void EnableZoneDetected(bool enabled);
 #endif
 
     QString GetAllAccels() const;
@@ -95,6 +99,8 @@ public Q_SLOTS:
     void ShowAllWindow();
     void ShowWindow();
     void ShowWorkspace();
+
+    void setZoneEnabled(bool zoneEnabled);
 
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
