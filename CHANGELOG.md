@@ -1,3 +1,26 @@
+<a name="0.0.3"></a>
+## 0.0.3 (2019-04-09)
+
+
+#### Bug Fixes
+
+*   can not enable compositing for kwin ([0610e555](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/0610e55507fb77f21b665a077736e19f8184256f))
+*   delete old action before setting the zone ([a8994862](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/a89948622c3a892ad095578bd4267e686d53c379))
+*   zone setting is invalid ([fcdb4cfe](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/fcdb4cfeaadf5c0bb83557a30f85f65bd340c105))
+*   build package failed ([1bdb85b3](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/1bdb85b32fb6218f0e568d762e2e633dacb5470b))
+*   depends packages on debian stable ([41464c0c](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/41464c0c35e8f981afdf2f85883c640bee51f187))
+
+#### Features
+
+*   support set the zone enabled property ([e27a92be](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/e27a92be5c4ac6f485bd7623a561748e9721d55c))
+*   add a new tabbox theme ([709b73e3](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/709b73e3472d19303c6aaf4a897934b865f60ccb))
+*   implement show workspace/windows interfaces ([875d0654](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/875d0654133cbcece6470cc13951be4d08749f37))
+*   add property "compositingEnabled" for the com.deepin.wm dbus interface ([1eeb7fad](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/1eeb7fadcad7743c6d24f72419e273d412240de3))
+*   support set window decoration theme ([a2de87f2](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/a2de87f27d6cfddcc67eec1bd2db3b80c655fe68))
+*   add show workspaces manager view interface ([4540714d](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/4540714d242b29349b3982bb775365e276801e58))
+
+
+
 <a name="0.0.2"></a>
 ## 0.0.2 (2019-04-04)
 
