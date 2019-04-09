@@ -15,6 +15,12 @@
     </method>
     <method name=\"MinimizeActiveWindow\">
     </method>
+    <method name=\"ShowWorkspace\">
+    </method>
+    <method name=\"ShowWindow\">
+    </method>
+    <method name=\"ShowAllWindow\">
+    </method>
 
     <method name=\"PerformAction\">
         <arg type=\"i\" name=\"type\" direction=\"in\"/>

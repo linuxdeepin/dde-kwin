@@ -89,6 +89,10 @@ public Q_SLOTS:
 
     void setCompositingEnabled(bool on);
 
+    void ShowAllWindow();
+    void ShowWindow();
+    void ShowWorkspace();
+
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
 #ifndef DISABLE_DEEPIN_WM
