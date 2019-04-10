@@ -1,3 +1,13 @@
+<a name="0.0.3.1"></a>
+## 0.0.3.1 (2019-04-10)
+
+
+#### Bug Fixes
+
+*   build failed on libkf5windowsystem-dev 5.28.0 ([7c6f94fd](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/7c6f94fdd67442c90a849001b9ec657fd737c9f6))
+
+
+
 <a name="0.0.3"></a>
 ## 0.0.3 (2019-04-09)
 
