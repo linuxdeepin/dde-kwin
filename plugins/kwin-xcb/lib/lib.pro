@@ -4,7 +4,12 @@ TEMPLATE = lib
 QT += x11extras KConfigCore KCoreAddons KWindowSystem
 QT -= gui
 CONFIG += create_pc create_prl no_install_prl
-DEFINES += KWINDOWSYSTEM_NO_QWIDGET
+
+greaterThan(QT.KWindowSystem.MINOR_VERSION, 45) {
+    DEFINES += KWINDOWSYSTEM_NO_QWIDGET
+} else {
+    QT += widgets
+}
 
 SOURCES += \
     $$PWD/vtablehook.cpp \
