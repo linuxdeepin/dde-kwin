@@ -33,6 +33,27 @@
 
 #include <xcb/xcb.h>
 
+static int appVersion()
+{
+    static int version = -1;
+
+    if (version == -1) {
+        // 初始化版本号
+        const QStringList &ver_list = qApp->applicationVersion().split(".");
+        int app_major = ver_list.value(0).toInt();
+        int app_minor = ver_list.value(1).toInt();
+        int app_patch = ver_list.value(2).toInt();
+
+        version = QT_VERSION_CHECK(app_major, app_minor, app_patch);
+
+        if (version == -1) {
+            version =  INT_MAX;
+        }
+    }
+
+    return version;
+}
+
 // KWin全局静态对象
 namespace KWin {
 class Workspace : public QObject {
@@ -47,13 +68,27 @@ public:
         Bottom = 1<<3,
         Horizontal = Left|Right,
         Vertical = Top|Bottom,
-        Maximize = Left|Right|Top|Bottom
+        Maximize = Left|Right|Top|Bottom,
+        TopLeft = Top|Left,
+        TopRight = Top|Right,
+        BottomLeft = Bottom|Left,
+        BottomRight = Bottom|Right
     };
     Q_DECLARE_FLAGS(QuickTileMode, QuickTileFlag)
 
 public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
+
+    // kwin 5.8.6
+    void slotWindowQuickTileLeft();
+    void slotWindowQuickTileRight();
+    void slotWindowQuickTileTop();
+    void slotWindowQuickTileBottom();
+    void slotWindowQuickTileTopLeft();
+    void slotWindowQuickTileTopRight();
+    void slotWindowQuickTileBottomLeft();
+    void slotWindowQuickTileBottomRight();
 };
 class Scripting : public QObject {
 public:
@@ -351,7 +386,46 @@ void KWinUtils::QuickTileWindow(uint side)
 {
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
-        interface->quickTileWindow(ws, (KWin::Workspace::QuickTileFlag)side);
+        if (interface->quickTileWindow) {
+            interface->quickTileWindow(ws, (KWin::Workspace::QuickTileFlag)side);
+        } else { // fallback for kwin 5.8.6
+            switch ((KWin::Workspace::QuickTileFlag)side) {
+            case KWin::Workspace::QuickTileFlag::Left:
+                ws->slotWindowQuickTileLeft();
+                break;
+            case KWin::Workspace::QuickTileFlag::Right:
+                ws->slotWindowQuickTileRight();;
+                break;
+            case KWin::Workspace::QuickTileFlag::Top:
+                ws->slotWindowQuickTileTop();
+                break;
+            case KWin::Workspace::QuickTileFlag::Bottom:
+                ws->slotWindowQuickTileBottom();
+                break;
+            case KWin::Workspace::QuickTileFlag::Horizontal:
+                ws->slotWindowQuickTileLeft();
+                ws->slotWindowQuickTileRight();
+                break;
+            case KWin::Workspace::QuickTileFlag::Vertical:
+                ws->slotWindowQuickTileTop();
+                ws->slotWindowQuickTileBottom();
+                break;
+            case KWin::Workspace::QuickTileFlag::TopLeft:
+                ws->slotWindowQuickTileTopLeft();
+                break;
+            case KWin::Workspace::QuickTileFlag::TopRight:
+                ws->slotWindowQuickTileTopRight();
+                break;
+            case KWin::Workspace::QuickTileFlag::BottomLeft:
+                ws->slotWindowQuickTileBottomLeft();
+                break;
+            case KWin::Workspace::QuickTileFlag::BottomRight:
+                ws->slotWindowQuickTileBottomRight();
+                break;
+            default:
+                break;
+            }
+        }
     }
 }
 
