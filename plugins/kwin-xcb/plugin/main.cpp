@@ -40,6 +40,17 @@ QT_BEGIN_NAMESPACE
 #define KWinUtilsDbusPath "/dde"
 #define KWinUtilsDbusInterface "org.kde.KWin"
 
+// let startdde know that we've already started.
+void RegisterDDESession()
+{
+    const QString &cookie = qgetenv("DDE_SESSION_PROCESS_COOKIE_ID");
+    qunsetenv(cookie.toLocal8Bit().constData());
+
+    if (!cookie.isEmpty()) {
+        QDBusInterface("com.deepin.SessionManager", "/com/deepin/SessionManager").call("Register", cookie);
+    }
+}
+
 class Mischievous;
 class  Mischievous : public QObject
 {
@@ -158,6 +169,9 @@ public:
 
 public slots:
     void init() {
+        // 通知startdde kwin启动完成
+        RegisterDDESession();
+
         if (!KWinUtils::scripting())
             return;
 
