@@ -95,6 +95,21 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "preview-workspace", "ShowDesktopGrid" },
 };
 
+static const QMap<QString, QString> SpecialKeyMap = {
+    {"minus", "-"}, {"equal", "="}, {"brackertleft", "["}, {"breckertright", "]"},
+    {"backslash", "\\"}, {"semicolon", ";"}, {"apostrophe", "'"}, {"comma", ","},
+    {"period", "."}, {"slash", "/"}, {"grave", "`"},
+};
+
+static const QMap<QString, QString> SpecialRequireShiftKeyMap = {
+    {"exclam", "!"}, {"at", "@"}, {"numbersign", "#"}, {"dollar", "$"},
+    {"percent", "%"}, {"asciicircum", "^"}, {"ampersand", "&"}, {"asterisk", "*"},
+    {"parenleft", "("}, {"parenright", ")"}, {"underscore", "_"}, {"plus", "+"},
+    {"braceleft", "{"}, {"braceright", "}"}, {"bar", "|"}, {"colon", ":"},
+    {"quotedbl", "\""}, {"less", "<"}, {"greater", ">"}, {"question", "?"},
+    {"asciitilde", "~"}
+};
+
 DeepinWMFaker::DeepinWMFaker(QObject *parent)
     : QObject(parent)
     , m_windowSystem(KWindowSystem::self())
@@ -591,18 +606,69 @@ QAction *DeepinWMFaker::accelAction(const QString accelKid) const
 
 QString DeepinWMFaker::transFromDaemonAccelStr(const QString &accelStr) const
 {
-    return QString(accelStr).remove("<")
+    if (accelStr.isEmpty()) {
+        return accelStr;
+    }
+
+    QString str(accelStr);
+
+    str.remove("<")
             .replace(">", "+")
             .replace("Control", "Ctrl")
             .replace("Super", "Meta");
+
+    for (auto it = SpecialKeyMap.constBegin(); it != SpecialKeyMap.constEnd(); ++it) {
+        QString origin(str);
+        str.replace(it.key(), it.value());
+        if (str != origin) {
+            return str;
+        }
+    }
+
+    for (auto it = SpecialRequireShiftKeyMap.constBegin(); it != SpecialRequireShiftKeyMap.constEnd(); ++it) {
+        QString origin(str);
+        str.replace(it.key(), it.value());
+        if (str != origin) {
+            return str.remove("Shift+");
+        }
+    }
+
+    return str;
 }
 
 QString DeepinWMFaker::transToDaemonAccelStr(const QString &accelStr) const
 {
-    return QString(accelStr).replace("Shift+", "<Shift>")
+    if (accelStr.isEmpty()) {
+        return accelStr;
+    }
+
+    QString str(accelStr);
+
+    str.replace("Shift+", "<Shift>")
             .replace("Ctrl+", "<Control>")
             .replace("Alt+", "<Alt>")
-            .replace("Meta+", "<Super>");
+            .replace("Meta+", "<Super>")
+            .replace("Backtab", "Tab");
+
+    for (auto it = SpecialKeyMap.constBegin(); it != SpecialKeyMap.constEnd(); ++it) {
+        if (it.value() == str.at(str.length() - 1)) {
+            str.chop(1);
+            return str.append(it.key());
+        }
+    }
+
+    for (auto it = SpecialRequireShiftKeyMap.constBegin(); it != SpecialRequireShiftKeyMap.constEnd(); ++it) {
+        if (it.value() == str.at(str.length() - 1)) {
+            str.chop(1);
+            str = str.append(it.key());
+            if (!str.contains("<Shift>")) {
+                str = str.prepend("<Shift>");
+            }
+            return str;
+        }
+    }
+
+    return str;
 }
 
 QString DeepinWMFaker::getWorkspaceBackground(const int index) const
