@@ -1,3 +1,18 @@
+<a name="0.0.3.2"></a>
+## 0.0.3.2 (2019-04-12)
+
+
+#### Features
+
+*   support wait kwin started on startdde ([3112f3bb](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/3112f3bbb484704abc6a59b847a99631e470434c))
+
+#### Bug Fixes
+
+*   transform all sign keys ([c77a822b](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/c77a822bf3ca5086a45d8a23e969474f606d492b))
+*   undefined symbol "_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE" on kwin 5.8.6 ([00e155fa](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/00e155fa2058fe05d97df3f53dc82862ed29c1cc))
+
+
+
 <a name="0.0.3.1"></a>
 ## 0.0.3.1 (2019-04-10)
 
