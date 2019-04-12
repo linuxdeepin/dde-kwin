@@ -2,6 +2,7 @@
 blurEnabled=true
 enforcedecoEnabled=false
 minimizeallEnabled=true
+kwin4_effect_dialogparentEnabled=false
 
 [Desktops]
 Name_2=工作区 2
