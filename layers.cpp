@@ -439,6 +439,12 @@ void Workspace::lowerClientRequest(KWin::AbstractClient *c)
 
 void Workspace::restack(AbstractClient* c, AbstractClient* under, bool force)
 {
+    // Do not anything if the clint not in stacks
+    // note: The client maybe is deleting
+    //       When this call is from TabBoxHandlerImpl::restack
+    if (!unconstrained_stacking_order.contains(c))
+        return;
+
     assert(unconstrained_stacking_order.contains(under));
     if (!force && !AbstractClient::belongToSameApplication(under, c)) {
          // put in the stacking order below _all_ windows belonging to the active application
