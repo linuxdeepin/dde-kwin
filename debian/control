@@ -21,7 +21,7 @@ Homepage: https://github.com/linuxdeepin/dde-kwin
 
 Package: dde-kwin
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, kwin-x11
+Depends: ${shlibs:Depends}, ${misc:Depends}, kwin-x11, plasma-framework, libkf5globalaccel-bin
 Description: KWin configures/plugins on the DDE
  Let kwin work well in the Deepin Desktop Environment.
 
