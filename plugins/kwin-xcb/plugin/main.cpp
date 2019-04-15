@@ -195,7 +195,11 @@ public slots:
     }
 
     void onExec() {
-        connect(qApp, SIGNAL(workspaceCreated()), this, SLOT(init()));
+        if (KWinUtils::scripting()) {
+            init();
+        } else {
+            connect(qApp, SIGNAL(workspaceCreated()), this, SLOT(init()));
+        }
     }
 
 public:
