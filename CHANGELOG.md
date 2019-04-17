@@ -1,3 +1,15 @@
+<a name="0.0.3.3"></a>
+## 0.0.3.3 (2019-04-17)
+
+
+#### Bug Fixes
+
+*   add depends for kwin ([023d7899](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/023d789963383dd938259bc2e297948aa2a7c9d7))
+*   The Mischievous objects are sometimes not initialized ([4979fd77](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/4979fd774049311f94254e4d0dfb25dafcde8c52))
+*   disable everything zone action of kwin with default ([acc68714](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/acc6871445690b6adcdad1330834831fb427cd2a))
+
+
+
 <a name="0.0.3.2"></a>
 ## 0.0.3.2 (2019-04-12)
 
