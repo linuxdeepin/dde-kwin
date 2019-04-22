@@ -11,7 +11,7 @@ Rows=1
 
 [org.kde.kdecoration2]
 BorderSize=Normal
-ButtonsOnLeft=MS
+ButtonsOnLeft=
 ButtonsOnRight=HIAX
 library=org.kde.kwin.aurorae
 theme=__aurorae__svg__deepin
