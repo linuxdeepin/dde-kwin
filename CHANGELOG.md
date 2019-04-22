@@ -1,3 +1,13 @@
+<a name="0.0.4"></a>
+## 0.0.4 (2019-04-22)
+
+
+#### Features
+
+*   diasble minimal for dialog type windows ([a1959eb2](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/a1959eb2b774107d052c875a81d01661c4b45085))
+
+
+
 <a name="0.0.3.3"></a>
 ## 0.0.3.3 (2019-04-17)
 
