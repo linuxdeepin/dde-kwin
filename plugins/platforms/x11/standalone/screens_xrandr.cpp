@@ -95,17 +95,21 @@ void XRandRScreens::update()
 
         const QRect geo = info.rect();
         if (geo.isValid()) {
-            m_geometries << geo;
-            m_refreshRates << refreshRate;
-            QString name;
+            Xcb::RandR::OutputInfo output;
+
             for (int j = 0; j < info->num_outputs; ++j) {
                 Xcb::RandR::OutputInfo outputInfo(outputInfos.at(j));
                 if (crtcs[i] == outputInfo->crtc) {
-                    name = outputInfo.name();
+                    output = outputInfo;
                     break;
                 }
             }
-            m_names << name;
+
+            if (output && output->connection == XCB_RANDR_CONNECTION_CONNECTED) {
+                m_names << output.name();
+                m_geometries << geo;
+                m_refreshRates << refreshRate;
+            }
         }
     }
     if (m_geometries.isEmpty()) {
