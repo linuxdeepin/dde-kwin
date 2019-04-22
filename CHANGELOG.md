@@ -1,3 +1,13 @@
+<a name="0.0.4.1"></a>
+## 0.0.4.1 (2019-04-22)
+
+
+#### Bug Fixes
+
+*   hidden the titlebar all button at left area ([c2ed5794](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/c2ed579499eec71a093f1d30dfd79a5436fb27a8))
+
+
+
 <a name="0.0.4"></a>
 ## 0.0.4 (2019-04-22)
 
