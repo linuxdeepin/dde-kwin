@@ -1,3 +1,17 @@
+<a name="0.0.5"></a>
+## 0.0.5 (2019-04-24)
+
+
+#### Features
+
+*   add kwin multitaskingview desktop file ([dc701963](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/dc70196388bebe2a613c13396067bd8da464cd76))
+
+#### Bug Fixes
+
+*   start kwin_no_scale when the kwin restart with crash ([f040ae65](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/f040ae65bbedcc49544741ec78a02a8cbd6b7513))
+
+
+
 <a name="0.0.4.1"></a>
 ## 0.0.4.1 (2019-04-22)
 
