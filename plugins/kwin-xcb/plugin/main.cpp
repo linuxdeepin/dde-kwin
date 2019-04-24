@@ -229,6 +229,18 @@ public:
 QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
 {
     if (system == "dde-kwin-xcb") {
+        for (const QString &arg : parameters) {
+            const char pre_arg[] = "appFilePath=";
+
+            if (!arg.startsWith(pre_arg)) {
+                continue;
+            }
+
+            // 覆盖QCoreApplication::applicationFilePath
+            // kwin 在意外退出时会重新启动自己，应该在 kwin restart 时调用 kwin_no_scale
+            QCoreApplicationPrivate::setApplicationFilePath(arg.mid(strlen(pre_arg)));
+        }
+
         QPlatformIntegration *integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
         VtableHook::overrideVfptrFun(integration, &QPlatformIntegration::initialize, overrideInitialize);
         QMetaObject::invokeMethod(_m.operator ->(), "onExec", Qt::QueuedConnection);
