@@ -5,7 +5,8 @@ TEMPLATE = aux
 config.files = \
     $$PWD/kglobalshortcutsrc \
     $$PWD/kwinrc \
-    $$PWD/kwinrulesrc
+    $$PWD/kwinrulesrc \
+    $$PWD/klaunchrc
 
 config.path = /etc/xdg
 

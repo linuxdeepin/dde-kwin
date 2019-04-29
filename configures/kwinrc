@@ -3,6 +3,8 @@ blurEnabled=true
 enforcedecoEnabled=false
 minimizeallEnabled=true
 kwin4_effect_dialogparentEnabled=false
+kwin4_effect_translucencyEnabled=false
+kwin4_effect_windowapertureEnabled=false
 
 [Desktops]
 Name_2=工作区 2
