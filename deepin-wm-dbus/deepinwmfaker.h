@@ -5,19 +5,22 @@
 
 #include <QAction>
 #include <QObject>
+#include <QDBusContext>
 
 class KWindowSystem;
 class KConfig;
 class KConfigGroup;
 class KGlobalAccel;
 
-class DeepinWMFaker : public QObject
+class DeepinWMFaker : public QObject, protected QDBusContext
 {
     Q_OBJECT
 
     Q_PROPERTY(bool compositingEnabled READ compositingEnabled WRITE setCompositingEnabled NOTIFY compositingEnabledChanged)
     Q_PROPERTY(bool compositingPossible READ compositingPossible)
     Q_PROPERTY(bool zoneEnabled READ zoneEnabled WRITE setZoneEnabled)
+    Q_PROPERTY(QString cursorTheme READ cursorTheme WRITE setCursorTheme)
+    Q_PROPERTY(int cursorSize READ cursorSize WRITE setCursorSize)
 
 public:
     explicit DeepinWMFaker(QObject *parent = nullptr);
@@ -54,6 +57,9 @@ public:
     bool compositingEnabled() const;
     bool compositingPossible() const;
     bool zoneEnabled() const;
+
+    QString cursorTheme() const;
+    int cursorSize() const;
 
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
@@ -102,6 +108,9 @@ public Q_SLOTS:
 
     void setZoneEnabled(bool zoneEnabled);
 
+    void setCursorTheme(QString cursorTheme);
+    void setCursorSize(int cursorSize);
+
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
 #ifndef DISABLE_DEEPIN_WM
@@ -127,6 +136,7 @@ private:
 
 private:
     void syncConfigForKWin();
+    void updateCursorConfig();
 
     KWindowSystem *m_windowSystem;
     KConfig *m_deepinWMConfig;
