@@ -44,6 +44,10 @@ public:
     static QObject *workspace();
     static QObject *scripting();
     static QObject *tabBox();
+    static QObject *cursor();
+
+    static QObjectList clientList();
+    static void clientUpdateCursor(QObject *client);
 
     static QFunctionPointer resolve(const char *symbol);
 

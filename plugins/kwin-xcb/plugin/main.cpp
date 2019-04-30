@@ -192,6 +192,10 @@ public slots:
         // 注册 dbus 对象 提供更多的 kwin 相关接口
         new KWinAdaptor(kwinUtils());
         QDBusConnection::sessionBus().registerObject(KWinUtilsDbusPath, KWinUtilsDbusInterface, kwinUtils());
+
+        if (QObject *cursor = kwinUtils()->cursor()) {
+            connect(cursor, SIGNAL(themeChanged()), this, SLOT(onCursorThemeChanged()), Qt::QueuedConnection);
+        }
     }
 
     void onExec() {
@@ -199,6 +203,28 @@ public slots:
             init();
         } else {
             connect(qApp, SIGNAL(workspaceCreated()), this, SLOT(init()));
+        }
+    }
+
+    void updateCursorSize() {
+        bool ok = false;
+        int cursorSize = QDBusInterface("com.deepin.wm", "/com/deepin/wm").property("cursorSize").toInt(&ok);
+
+        // 应该跟随dpi缩放设置光标大小
+        if (!ok || cursorSize <= 0) {
+            if (QScreen *s = QGuiApplication::primaryScreen()) {
+                cursorSize = qRound(s->logicalDotsPerInchY() * 16 / 72);
+                qputenv("XCURSOR_SIZE", QByteArray::number(cursorSize));
+            }
+        }
+    }
+
+    void onCursorThemeChanged() {
+        updateCursorSize();
+
+        // 光标主题改变后应该立即更新所有客户端的当前光标
+        for (QObject *client : kwinUtils()->clientList()) {
+            QMetaObject::invokeMethod(client, "moveResizeCursorChanged", Q_ARG(Qt::CursorShape, Qt::ArrowCursor));
         }
     }
 
@@ -215,6 +241,9 @@ static void overrideInitialize(QPlatformIntegration *i)
     // kwin中只允许使用名称为"xcb"插件
     *QGuiApplicationPrivate::platform_name = "xcb";
     VtableHook::callOriginalFun(i, &QPlatformIntegration::initialize);
+
+    // 初始化设置光标大小
+    _m->updateCursorSize();
 }
 
 class DPlatformIntegrationPlugin : public QPlatformIntegrationPlugin

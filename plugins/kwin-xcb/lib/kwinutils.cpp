@@ -131,6 +131,13 @@ public Q_SLOTS:
     void suspend(Compositor::SuspendReason reason);
     void resume(Compositor::SuspendReason reason);
 };
+
+// 光标管理
+class Cursor : public QObject
+{
+public:
+    static Cursor *s_self;
+};
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -185,17 +192,20 @@ class KWinInterface
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
+    typedef void (*ClientUpdateCursor)(void *);
 public:
     KWinInterface()
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
+        clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
     }
 
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     QuickTileWindow quickTileWindow;
+    ClientUpdateCursor clientUpdateCursor;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -234,6 +244,50 @@ QObject *KWinUtils::scripting()
 QObject *KWinUtils::tabBox()
 {
     return KWin::TabBox::TabBox::s_self;
+}
+
+QObject *KWinUtils::cursor()
+{
+    return KWin::Cursor::s_self;
+}
+
+namespace KWin {
+class Client : public QObject
+{
+
+};
+}
+
+QObjectList KWinUtils::clientList()
+{
+    const QObjectList scripting_children = KWinUtils::scripting()->children();
+    QObject *jsWorkspaceWrapper = KWinUtils::findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
+
+    if (!jsWorkspaceWrapper) {
+        return {};
+    }
+
+    QList<KWin::Client*> clients;
+    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::Client*>, clients));
+
+    if (!ok) {
+        return {};
+    }
+
+    QObjectList list;
+
+    for (KWin::Client *c : clients) {
+        list << c;
+    }
+
+    return list;
+}
+
+void KWinUtils::clientUpdateCursor(QObject *client)
+{
+    if (interface->clientUpdateCursor) {
+        interface->clientUpdateCursor(client);
+    }
 }
 
 QFunctionPointer KWinUtils::resolve(const char *symbol)

@@ -2,6 +2,8 @@
     <property name=\"compositingEnabled\" type=\"b\" access=\"readwrite\"/>
     <property name=\"compositingPossible\" type=\"b\" access=\"read\"/>
     <property name=\"zoneEnabled\" type=\"b\" access=\"readwrite\"/>
+    <property name=\"cursorTheme\" type=\"s\" access=\"readwrite\"/>
+    <property name=\"cursorSize\" type=\"i\" access=\"readwrite\"/>
 
     <method name=\"SwitchApplication\">
         <arg type=\"b\" name=\"backward\" direction=\"in\"/>

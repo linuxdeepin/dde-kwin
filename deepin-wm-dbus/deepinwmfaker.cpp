@@ -1,5 +1,7 @@
 #include "deepinwmfaker.h"
 
+#include <QDBusConnection>
+#include <QDBusMessage>
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -7,6 +9,7 @@
 
 #include <KF5/KConfigCore/KConfig>
 #include <KF5/KConfigCore/KConfigGroup>
+#include <KF5/KConfigCore/KSharedConfig>
 #include <KF5/KWindowSystem/KWindowSystem>
 #include <KF5/KGlobalAccel/KGlobalAccel>
 
@@ -179,6 +182,23 @@ bool DeepinWMFaker::zoneEnabled() const
         return true;
 
     return m_kwinRunCommandGroup->readEntry("Enabled", QVariant(true)).toBool();
+}
+
+QString DeepinWMFaker::cursorTheme() const
+{
+    KConfigGroup mousecfg(KSharedConfig::openConfig("kcminputrc", KConfig::NoGlobals), "Mouse");
+    const QString themeName = mousecfg.readEntry("cursorTheme", "default");
+
+    return themeName;
+}
+
+int DeepinWMFaker::cursorSize() const
+{
+    KConfigGroup mousecfg(KSharedConfig::openConfig("kcminputrc", KConfig::NoGlobals), "Mouse");
+    bool ok = false;
+    int themeSize = mousecfg.readEntry("cursorSize", QString("0")).toInt(&ok);
+
+    return ok ? themeSize : -1;
 }
 
 #ifndef DISABLE_DEEPIN_WM
@@ -559,6 +579,38 @@ void DeepinWMFaker::setZoneEnabled(bool zoneEnabled)
     syncConfigForKWin();
 }
 
+static bool updateCursorConfig()
+{
+    if (!KSharedConfig::openConfig("kcminputrc", KConfig::NoGlobals)->sync()) {
+        return false;
+    }
+
+    auto message = QDBusMessage::createSignal(QStringLiteral("/KGlobalSettings"),
+                                              QStringLiteral("org.kde.KGlobalSettings"),
+                                              QStringLiteral("notifyChange"));
+
+    // 添加 notify 类型参数 (ChangeCursor = 5)
+    message << 5;
+    // 添加任意 int 参数，未被使用
+    message << 0;
+
+    return QDBusConnection::sessionBus().send(message);
+}
+
+void DeepinWMFaker::setCursorTheme(QString cursorTheme)
+{
+    KConfigGroup mousecfg(KSharedConfig::openConfig("kcminputrc", KConfig::NoGlobals), "Mouse");
+    mousecfg.writeEntry("cursorTheme", cursorTheme);
+    updateCursorConfig();
+}
+
+void DeepinWMFaker::setCursorSize(int cursorSize)
+{
+    KConfigGroup mousecfg(KSharedConfig::openConfig("kcminputrc", KConfig::NoGlobals), "Mouse");
+    mousecfg.writeEntry("cursorSize", QString::number(cursorSize));
+    updateCursorConfig();
+}
+
 #ifndef DISABLE_DEEPIN_WM
 void DeepinWMFaker::SwitchToWorkspace(bool backward)
 {
@@ -784,5 +836,19 @@ void DeepinWMFaker::syncConfigForKWin()
     m_kwinConfig->sync();
     // 通知kwin重新加载配置文件
     QDBusInterface(KWinDBusService, KWinDBusPath).call("reconfigure");
+}
+
+void DeepinWMFaker::updateCursorConfig()
+{
+    if (!::updateCursorConfig() && calledFromDBus()) {
+        auto error = QDBusConnection::sessionBus().lastError();
+
+        if (error.type() == QDBusError::NoError) {
+            error = QDBusError(QDBusError::Failed, "Failed on sync kcminputrc");
+        }
+
+        setDelayedReply(true);
+        connection().send(QDBusMessage::createError(error));
+    }
 }
 #endif // DISABLE_DEEPIN_WM
