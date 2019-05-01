@@ -225,6 +225,13 @@ public slots:
         // 光标主题改变后应该立即更新所有客户端的当前光标
         for (QObject *client : kwinUtils()->clientList()) {
             QMetaObject::invokeMethod(client, "moveResizeCursorChanged", Q_ARG(Qt::CursorShape, Qt::ArrowCursor));
+            const QVariant &wrapper = kwinUtils()->getParentWindow(client);
+
+            // KWin会为client创建一个父窗口wrapper，wrapper初始化时设置了光标为ArrowCursor类型,
+            // gtk应用默认不会给主窗口设置任何光标，因此gtk窗口会跟随其父窗口wrapper的光标样式，
+            // 当光标主题改变时，应该主动更新wrapper的光标，否则会导致gtk应用的窗口默认光标不跟随主题
+            if (wrapper.isValid())
+                KWinUtils::defineWindowCursor(wrapper.toUInt(), Qt::ArrowCursor);
         }
     }
 
