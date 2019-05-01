@@ -48,6 +48,7 @@ public:
 
     static QObjectList clientList();
     static void clientUpdateCursor(QObject *client);
+    static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
 
     static QFunctionPointer resolve(const char *symbol);
 
@@ -55,6 +56,7 @@ public:
     Q_INVOKABLE bool isSupportedAtom(quint32 atom) const;
     Q_INVOKABLE QVariant getGtkFrame(const QObject *window) const;
 
+    Q_INVOKABLE QVariant getParentWindow(const QObject *window) const;
     Q_INVOKABLE QVariant isFullMaximized(const QObject *window) const;
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
     Q_INVOKABLE QVariant unmaximizeWindow(QObject *window) const;

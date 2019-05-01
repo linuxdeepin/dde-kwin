@@ -157,7 +157,7 @@ static xcb_atom_t internAtom(const char *name, bool only_if_exists)
     return atom;
 }
 
-static QByteArray windowProperty(qulonglong WId, xcb_atom_t propAtom, xcb_atom_t typeAtom)
+static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom)
 {
     QByteArray data;
     xcb_connection_t* xcb_connection = QX11Info::connection();
@@ -187,12 +187,30 @@ static QByteArray windowProperty(qulonglong WId, xcb_atom_t propAtom, xcb_atom_t
     return data;
 }
 
+static xcb_window_t getParentWindow(xcb_window_t WId)
+{
+    xcb_connection_t* xcb_connection = QX11Info::connection();
+    xcb_query_tree_cookie_t cookie = xcb_query_tree_unchecked(xcb_connection, WId);
+    xcb_query_tree_reply_t *reply = xcb_query_tree_reply(xcb_connection, cookie, NULL);
+
+    if (reply) {
+        xcb_window_t parent = reply->parent;
+
+        free(reply);
+
+        return parent;
+    }
+
+    return XCB_WINDOW_NONE;
+}
+
 class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef void (*ClientUpdateCursor)(void *);
+    typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
 public:
     KWinInterface()
     {
@@ -200,12 +218,14 @@ public:
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
+        x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor12getX11CursorEN2Qt11CursorShapeE");
     }
 
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     QuickTileWindow quickTileWindow;
     ClientUpdateCursor clientUpdateCursor;
+    X11CursorGetCursor x11CursorGetCursor;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -290,6 +310,19 @@ void KWinUtils::clientUpdateCursor(QObject *client)
     }
 }
 
+void KWinUtils::defineWindowCursor(quint32 window, Qt::CursorShape cshape)
+{
+    if (window == XCB_WINDOW_NONE)
+        return;
+
+    if (!interface->x11CursorGetCursor) {
+        return;
+    }
+
+    xcb_cursor_t cursor = interface->x11CursorGetCursor(cshape);
+    xcb_change_window_attributes(QX11Info::connection(), window, XCB_CW_CURSOR, &cursor);
+}
+
 QFunctionPointer KWinUtils::resolve(const char *symbol)
 {
     static QString lib_name = "kwin.so." + qApp->applicationVersion();
@@ -359,6 +392,18 @@ QVariant KWinUtils::getGtkFrame(const QObject *window) const
     };
 
     return frame_margins;
+}
+
+QVariant KWinUtils::getParentWindow(const QObject *window) const
+{
+    bool ok = false;
+    qulonglong wid = window->property("windowId").toLongLong(&ok);
+
+    if (!ok) {
+        return QVariant();
+    }
+
+    return ::getParentWindow(wid);
 }
 
 QVariant KWinUtils::isFullMaximized(const QObject *window) const
