@@ -323,12 +323,21 @@ void KWinUtils::defineWindowCursor(quint32 window, Qt::CursorShape cshape)
     xcb_change_window_attributes(QX11Info::connection(), window, XCB_CW_CURSOR, &cursor);
 }
 
+#if defined(Q_OS_LINUX) && !defined(QT_NO_DYNAMIC_LIBRARY) && !defined(QT_NO_LIBRARY)
+QT_BEGIN_NAMESPACE
+QFunctionPointer qt_linux_find_symbol_sys(const char *symbol);
+QT_END_NAMESPACE
+QFunctionPointer KWinUtils::resolve(const char *symbol)
+{
+    return QT_PREPEND_NAMESPACE(qt_linux_find_symbol_sys)(symbol);
+#else
 QFunctionPointer KWinUtils::resolve(const char *symbol)
 {
     static QString lib_name = "kwin.so." + qApp->applicationVersion();
 
     return QLibrary::resolve(lib_name, symbol);
-}
+#endif
+    }
 
 quint32 KWinUtils::getXcbAtom(const QString &name, bool only_if_exists) const
 {
