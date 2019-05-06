@@ -575,6 +575,7 @@ FBConfigInfo *GlxBackend::infoForVisual(xcb_visualid_t visual)
     };
 
     std::deque<FBConfig> candidates;
+    std::deque<FBConfig> candidates_ignore_depth;
 
     for (int i = 0; i < count; i++) {
         int red, green, blue;
@@ -588,8 +589,7 @@ FBConfigInfo *GlxBackend::infoForVisual(xcb_visualid_t visual)
         xcb_visualid_t visual;
         glXGetFBConfigAttrib(display(), configs[i], GLX_VISUAL_ID, (int *) &visual);
 
-        if (visualDepth(visual) != depth)
-            continue;
+        bool ignore_depth = visualDepth(visual) != depth;
 
         int bind_rgb, bind_rgba;
         glXGetFBConfigAttrib(display(), configs[i], GLX_BIND_TO_TEXTURE_RGBA_EXT, &bind_rgba);
@@ -608,7 +608,15 @@ FBConfigInfo *GlxBackend::infoForVisual(xcb_visualid_t visual)
         else
             texture_format = bind_rgb ? GLX_TEXTURE_FORMAT_RGB_EXT : GLX_TEXTURE_FORMAT_RGBA_EXT;
 
-        candidates.emplace_back(FBConfig{configs[i], depth, stencil, texture_format});
+        if (ignore_depth) {
+            candidates_ignore_depth.emplace_back(FBConfig{configs[i], depth, stencil, texture_format});
+        } else {
+            candidates.emplace_back(FBConfig{configs[i], depth, stencil, texture_format});
+        }
+    }
+
+    if (candidates.size() == 0) {
+        candidates = candidates_ignore_depth;
     }
 
     if (count > 0)
