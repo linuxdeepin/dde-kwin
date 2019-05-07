@@ -445,6 +445,14 @@ void DeepinWMFaker::RemoveAccel(const QString &id)
 
 void DeepinWMFaker::PreviewWindow(uint xid)
 {
+    QDBusInterface interface_kwin(KWinDBusService, KWinDBusPath);
+
+    interface_kwin.call("previewWindows", QVariant::fromValue(QList<uint>({xid})));
+
+    if (interface_kwin.lastError().type() == QDBusError::NoError) {
+        return;
+    } // else 兼容非deepin-kwin的环境
+
     // FIXME: preview window should not change the order of windows
 
     qDebug() << "winid" << xid;
@@ -466,6 +474,14 @@ void DeepinWMFaker::PreviewWindow(uint xid)
 
 void DeepinWMFaker::CancelPreviewWindow()
 {
+    QDBusInterface interface_kwin(KWinDBusService, KWinDBusPath);
+
+    interface_kwin.call("quitPreviewWindows");
+
+    if (interface_kwin.lastError().type() == QDBusError::NoError) {
+        return;
+    } // else 兼容非deepin-kwin的环境
+
     // FIXME: same as above
     if (m_windowSystem->windows().contains(m_previewWinMiniPair.first)) {
         if (m_previewWinMiniPair.second) {
