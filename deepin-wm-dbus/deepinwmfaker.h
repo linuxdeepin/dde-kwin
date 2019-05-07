@@ -78,7 +78,7 @@ public Q_SLOTS:
     void PreviousWorkspace();
 #ifndef DISABLE_DEEPIN_WM
     void SwitchToWorkspace(bool backward);
-    void PresentWindows(const QList<quint32> &xids);
+    void PresentWindows(const QList<uint> &xids);
     void EnableZoneDetected(bool enabled);
 #endif
 
