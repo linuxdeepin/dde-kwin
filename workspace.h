@@ -308,6 +308,10 @@ public:
     void setShowingDesktop(bool showing);
     bool showingDesktop() const;
 
+    Q_SLOT void setPreviewClientList(const QList<AbstractClient *> &list);
+    Q_SLOT bool previewingClientList() const;
+    Q_SLOT bool previewingClient(const AbstractClient *c) const;
+
     void sendPingToWindow(xcb_window_t w, xcb_timestamp_t timestamp);   // Called from Client::pingWindow()
 
     void removeClient(Client*);   // Only called from Client::destroyClient() or Client::releaseWindow()
@@ -486,6 +490,7 @@ Q_SIGNALS:
     void configChanged();
     void reinitializeCompositing();
     void showingDesktopChanged(bool showing);
+    void previewClientListChanged(QList<AbstractClient*> list);
     /**
      * This signels is emitted when ever the stacking order is change, ie. a window is risen
      * or lowered
@@ -572,6 +577,7 @@ private:
     QList<AbstractClient*> attention_chain;
 
     bool showing_desktop;
+    QList<AbstractClient*> previewClients;
 
     GroupList groups;
 

@@ -943,6 +943,19 @@ void EffectsHandlerImpl::setShowingDesktop(bool showing)
     Workspace::self()->setShowingDesktop(showing);
 }
 
+void EffectsHandlerImpl::setPreviewWindowList(const QList<EffectWindow *> list)
+{
+    QList<AbstractClient*> clients;
+
+    for (AbstractClient *c : Workspace::self()->allClientList()) {
+        if (list.contains(c->effectWindow())) {
+            clients << c;
+        }
+    }
+
+    Workspace::self()->setPreviewClientList(clients);
+}
+
 QString EffectsHandlerImpl::currentActivity() const
 {
 #ifdef KWIN_BUILD_ACTIVITIES

@@ -409,6 +409,7 @@ void FlipSwitchEffect::slotTabBoxAdded(int mode)
         return;
     // only for windows mode
     effects->setShowingDesktop(false);
+    effects->setPreviewWindowList({});
     if (((mode == TabBoxWindowsMode && m_tabbox) ||
             (mode == TabBoxWindowsAlternativeMode && m_tabboxAlternative) ||
             (mode == TabBoxCurrentAppWindowsMode && m_tabbox) ||

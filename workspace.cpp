@@ -498,6 +498,7 @@ void Workspace::initWithX11()
         desktop_geometry.height = geom.height();
         rootInfo->setDesktopGeometry(desktop_geometry);
         setShowingDesktop(false);
+        setPreviewClientList({});
 
     } // End updates blocker block
 
@@ -950,6 +951,8 @@ void Workspace::updateClientVisibilityOnDesktopChange(uint newDesktop)
     }
     if (showingDesktop())   // Do this only after desktop change to avoid flicker
         setShowingDesktop(false);
+
+    setPreviewClientList({});
 }
 
 void Workspace::activateClientOnNewDesktop(uint desktop)
@@ -1064,6 +1067,8 @@ void Workspace::updateCurrentActivity(const QString &new_activity)
     //FIXME not sure if I should do this either
     if (showingDesktop())   // Do this only after desktop change to avoid flicker
         setShowingDesktop(false);
+
+    setPreviewClientList({});
 
     // Restore the focus on this desktop
     --block_focus;
@@ -1303,6 +1308,40 @@ void Workspace::setShowingDesktop(bool showing)
     }
     if (changed)
         emit showingDesktopChanged(showing);
+}
+
+void Workspace::setPreviewClientList(const QList<AbstractClient*> &list)
+{
+    const bool changed = previewClients != list;
+
+    if (!changed)
+        return;
+
+    previewClients = list;
+
+    { // for the blocker RAII
+    StackingUpdatesBlocker blocker(this); // updateLayer & lowerClient would invalidate stacking_order
+    for (int i = stacking_order.count() - 1; i > -1; --i) {
+        AbstractClient *c = qobject_cast<AbstractClient*>(stacking_order.at(i));
+        if (c && c->isOnCurrentDesktop()) {
+            if (!c->isDock() && !c->isDesktop()) {
+                c->updateLayer();
+            }
+        }
+    }
+    } // ~StackingUpdatesBlocker
+
+    emit previewClientListChanged(list);
+}
+
+bool Workspace::previewingClientList() const
+{
+    return !previewClients.isEmpty();
+}
+
+bool Workspace::previewingClient(const AbstractClient *c) const
+{
+    return previewClients.contains(const_cast<AbstractClient*>(c));
 }
 
 void Workspace::disableGlobalShortcutsForClient(bool disable)

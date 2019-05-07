@@ -351,6 +351,11 @@ Layer AbstractClient::belongsToLayer() const
             return NotificationLayer;
         return layerForDock();
     }
+
+    if (workspace()->previewingClientList() && !workspace()->previewingClient(this)) {
+        return UnderDesktopLayer;
+    }
+
     if (isOnScreenDisplay())
         return OnScreenDisplayLayer;
     if (isNotification())

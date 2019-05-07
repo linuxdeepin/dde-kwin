@@ -197,6 +197,7 @@ public:
     void setElevatedWindow(KWin::EffectWindow *, bool) override {}
     void setNumberOfDesktops(int) override {}
     void setShowingDesktop(bool) override {}
+    void setPreviewWindowList(const QList<KWin::EffectWindow*>) override {}
     void setTabBoxDesktop(int) override {}
     void setTabBoxWindow(KWin::EffectWindow*) override {}
     KWin::EffectWindowList stackingOrder() const override {
