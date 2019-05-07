@@ -1394,8 +1394,18 @@ void Client::takeFocus()
             }
         }
     }
-    if (breakShowingDesktop)
-        workspace()->setShowingDesktop(false);
+    if (breakShowingDesktop) {
+        if (workspace()->showingDesktop()) {
+            // 最小化其它所有窗口
+            for (Client *c : workspace()->clientList()) {
+                if (this != c && !c->isDock() && !c->isDesktop()) {
+                    c->minimize(true);
+                }
+            }
+
+            workspace()->setShowingDesktop(false);
+        }
+    }
 }
 
 /**
