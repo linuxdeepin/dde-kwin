@@ -11,6 +11,7 @@
 #include <KF5/KConfigCore/KConfigGroup>
 #include <KF5/KConfigCore/KSharedConfig>
 #include <KF5/KWindowSystem/KWindowSystem>
+#include <KF5/KWindowSystem/KWindowEffects>
 #include <KF5/KGlobalAccel/KGlobalAccel>
 
 #ifndef DISABLE_DEEPIN_WM
@@ -617,10 +618,17 @@ void DeepinWMFaker::SwitchToWorkspace(bool backward)
     backward ? PreviousWorkspace() : NextWorkspace();
 }
 
-// TODO(zccrs): 预览这些窗口
-void DeepinWMFaker::PresentWindows(const QList<quint32> &xids)
+void DeepinWMFaker::PresentWindows(const QList<uint> &xids)
 {
-    Q_UNUSED(xids)
+    if (xids.isEmpty())
+        return;
+
+    QList<WId> windows;
+
+    for (uint w : xids)
+        windows << w;
+
+    KWindowEffects::presentWindows(windows.first(), windows);
 }
 
 // TODO(zccrs): 开启/禁用热区

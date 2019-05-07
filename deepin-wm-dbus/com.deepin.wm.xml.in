@@ -106,7 +106,7 @@
     </method>
     <method name=\"PresentWindows\">
         <arg type=\"au\" name=\"xids\" direction=\"in\"/>
-        <annotation name=\"org.qtproject.QtDBus.QtTypeName.In0\" value=\"QList&lt;quint32&gt;\"/>
+        <annotation name=\"org.qtproject.QtDBus.QtTypeName.In0\" value=\"QList&lt;uint&gt;\"/>
     </method>
     <method name=\"EnableZoneDetected\">
         <arg type=\"b\" name=\"enabled\" direction=\"in\"/>
