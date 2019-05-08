@@ -152,7 +152,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
 #endif // DISABLE_DEEPIN_WM
 
     QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface,
-                                          "compositingToggled", "b", this, SLOT(compositingEnabledChanged(bool)));
+                                          "compositingToggled", "b", this, SLOT(wmCompositingEnabledChanged(bool)));
 }
 
 DeepinWMFaker::~DeepinWMFaker()
@@ -568,10 +568,17 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
     // 只同步配置文件，不要通知kwin重新加载配置
     m_kwinConfig->sync();
 
+    if (compositingEnabled() == on) {
+        return;
+    }
+
     if (on)
         m_kwinUtilsInter->ResumeCompositor(1);
     else
         m_kwinUtilsInter->SuspendCompositor(1);
+
+    if (compositingEnabled() == on)
+        emit compositingEnabledChanged(on);
 }
 
 void DeepinWMFaker::ShowAllWindow()

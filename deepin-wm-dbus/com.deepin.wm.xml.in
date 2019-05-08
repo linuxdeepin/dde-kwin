@@ -95,6 +95,9 @@
     <signal name=\"compositingEnabledChanged\">
         <arg type=\"b\" name=\"enabled\"/>
     </signal>
+    <signal name=\"wmCompositingEnabledChanged\">
+        <arg type=\"b\" name=\"enabled\"/>
+    </signal>
 
     $${DEEPIN_WM_PREFIX}
     <method name=\"ChangeCurrentWorkspaceBackground\">

@@ -118,6 +118,9 @@ Q_SIGNALS:
     void WorkspaceSwitched(int from, int to);
 #endif
 
+    // 由窗管通知的混成变化信号
+    void wmCompositingEnabledChanged(bool compositingEnabled);
+    // 只在由此DBus调用引起的窗管混成变化时发出
     void compositingEnabledChanged(bool compositingEnabled);
 
 private:
