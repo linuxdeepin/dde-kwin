@@ -6,7 +6,8 @@ config.files = \
     $$PWD/kglobalshortcutsrc \
     $$PWD/kwinrc \
     $$PWD/kwinrulesrc \
-    $$PWD/klaunchrc
+    $$PWD/klaunchrc \
+    $$PWD/kdeglobals
 
 config.path = /etc/xdg
 
