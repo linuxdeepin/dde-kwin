@@ -1,3 +1,22 @@
+<a name="0.0.6"></a>
+## 0.0.6 (2019-05-09)
+
+
+#### Bug Fixes
+
+*   install the "kdeglobals" file ([7fe147ad](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/7fe147ad2b5c76c6009c623367632c819bb85368))
+*   The compositingEnabledChanged signal is sent only when the user actively sets it ([bd0af31c](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/bd0af31c39ddaee902cd371c308fc4193e913f3d))
+*   the window default cursor of the gtk application does not follow the theme ([3b467f97](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/3b467f97821a27800a907b0562e34b43a36d985c))
+
+#### Features
+
+*   disable window manager window menu ([e889bda0](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/e889bda07084c8ef2121b33a2ef5b6b9e693cfd9))
+*   preview window give priority to use the dbus interface by kwin ([9516ab8a](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/9516ab8a5757feda8bbdea7f23a2dcfe32dcf4c1))
+*   support PresentWindows ([42e18684](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/42e18684f0ec58f21b7da04e193d6f20193c1a38))
+*   support set cursor theme/size for kwin ([f5c7ad01](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/f5c7ad01bd478d47a2757070973e733430928f33))
+
+
+
 <a name="0.0.5"></a>
 ## 0.0.5 (2019-04-24)
 
