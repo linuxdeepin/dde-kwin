@@ -24,6 +24,11 @@
 #include <QObject>
 #include <QVariant>
 
+#define KWIN_VERSION_CHECK(major, minor, patch, build) ((major<<24)|(minor<<16)|(patch<<8)|build)
+#ifdef KWIN_VERSION_STR
+#define KWIN_VERSION KWIN_VERSION_CHECK(KWIN_VERSION_MAJ, KWIN_VERSION_MIN, KWIN_VERSION_PAT, KWIN_VERSION_BUI)
+#endif
+
 class KWinUtils : public QObject
 {
     Q_OBJECT
@@ -40,6 +45,9 @@ public:
     ~KWinUtils();
 
     static QObject *findObjectByClassName(const QByteArray &name, const QObjectList &list);
+
+    static int kwinBuildVersion();
+    static int kwinRuntimeVersion();
 
     static QObject *workspace();
     static QObject *scripting();

@@ -80,7 +80,8 @@ public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
 
-    // kwin 5.8.6
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 10, 95, 0)
+    // kwin < 5.10.95
     void slotWindowQuickTileLeft();
     void slotWindowQuickTileRight();
     void slotWindowQuickTileTop();
@@ -89,6 +90,7 @@ public Q_SLOTS:
     void slotWindowQuickTileTopRight();
     void slotWindowQuickTileBottomLeft();
     void slotWindowQuickTileBottomRight();
+#endif
 };
 class Scripting : public QObject {
 public:
@@ -233,6 +235,11 @@ Q_GLOBAL_STATIC(KWinInterface, interface)
 KWinUtils::KWinUtils(QObject *parent)
     : QObject(parent)
 {
+#ifdef KWIN_VERSION
+    if (kwinBuildVersion() != kwinRuntimeVersion()) {
+        qWarning() << QString("Build on kwin " KWIN_VERSION_STR " version, but run on kwin %1 version").arg(qApp->applicationVersion());
+    }
+#endif
 }
 
 KWinUtils::~KWinUtils()
@@ -249,6 +256,19 @@ QObject *KWinUtils::findObjectByClassName(const QByteArray &name, const QObjectL
     }
 
     return nullptr;
+}
+
+int KWinUtils::kwinBuildVersion()
+{
+#ifdef KWIN_VERSION
+    return KWIN_VERSION;
+#endif
+    return 0;
+}
+
+int KWinUtils::kwinRuntimeVersion()
+{
+    return appVersion();
 }
 
 QObject *KWinUtils::workspace()
@@ -496,7 +516,9 @@ void KWinUtils::QuickTileWindow(uint side)
     if (ws) {
         if (interface->quickTileWindow) {
             interface->quickTileWindow(ws, (KWin::Workspace::QuickTileFlag)side);
-        } else { // fallback for kwin 5.8.6
+        }
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 10, 95, 0)
+        else { // fallback for kwin < 5.10.95
             switch ((KWin::Workspace::QuickTileFlag)side) {
             case KWin::Workspace::QuickTileFlag::Left:
                 ws->slotWindowQuickTileLeft();
@@ -534,6 +556,7 @@ void KWinUtils::QuickTileWindow(uint side)
                 break;
             }
         }
+#endif
     }
 }
 
