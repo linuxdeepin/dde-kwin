@@ -443,6 +443,7 @@ void DeepinWMFaker::RemoveAccel(const QString &id)
     action->deleteLater();
 }
 
+static WId previewingController = 0;
 void DeepinWMFaker::PreviewWindow(uint xid)
 {
     QDBusInterface interface_kwin(KWinDBusService, KWinDBusPath);
@@ -452,6 +453,20 @@ void DeepinWMFaker::PreviewWindow(uint xid)
     if (interface_kwin.lastError().type() == QDBusError::NoError) {
         return;
     } // else 兼容非deepin-kwin的环境
+
+    // 只允许同时预览一个窗口
+    if (previewingController) {
+        return;
+    }
+
+    // 使用kwin自带的预览特效
+    if (KWindowEffects::isEffectAvailable(KWindowEffects::HighlightWindows)) {
+        // ###(zccrs): 按道理讲 previewingController 应该为dock的预览展示窗口（发起预览请求的窗口）
+        // 不过，dde-dock中不支持此种用法，而且对kwin接口的调用仅仅是fallback，因此直接将xid作为预览请求的controller窗口
+        previewingController = xid;
+        KWindowEffects::highlightWindows(previewingController, {xid});
+        return;
+    }
 
     // FIXME: preview window should not change the order of windows
 
@@ -481,6 +496,13 @@ void DeepinWMFaker::CancelPreviewWindow()
     if (interface_kwin.lastError().type() == QDBusError::NoError) {
         return;
     } // else 兼容非deepin-kwin的环境
+
+    // 退出kwin自带的预览特效
+    if (previewingController) {
+        KWindowEffects::highlightWindows(previewingController, {});
+        previewingController = 0;
+        return;
+    }
 
     // FIXME: same as above
     if (m_windowSystem->windows().contains(m_previewWinMiniPair.first)) {
