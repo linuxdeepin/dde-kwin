@@ -8,3 +8,4 @@ usr/share/kwin/tabbox
 usr/share/dbus-1/interfaces
 usr/share/dbus-1/services
 usr/share/applications
+usr/share/dde-kwin-xcb

@@ -140,6 +140,12 @@ class Cursor : public QObject
 public:
     static Cursor *s_self;
 };
+
+class AbstractClient : public QObject {};
+class Options {
+public:
+    enum WindowOperation {};
+};
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -210,24 +216,27 @@ class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
-    typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef void (*ClientUpdateCursor)(void *);
+    typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
+    typedef KWin::Options::WindowOperation (*OptionsWindowOperation)(const QString &, bool);
 public:
     KWinInterface()
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
-        quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
+        quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor12getX11CursorEN2Qt11CursorShapeE");
+        optionsWindowOperation = (OptionsWindowOperation)KWinUtils::resolve("_ZN4KWin7Options15windowOperationERK7QStringb");
     }
 
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
-    QuickTileWindow quickTileWindow;
     ClientUpdateCursor clientUpdateCursor;
+    QuickTileWindow quickTileWindow;
     X11CursorGetCursor x11CursorGetCursor;
+    OptionsWindowOperation optionsWindowOperation;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -289,6 +298,14 @@ QObject *KWinUtils::tabBox()
 QObject *KWinUtils::cursor()
 {
     return KWin::Cursor::s_self;
+}
+
+QObject *KWinUtils::virtualDesktop()
+{
+    if (!workspace())
+        return nullptr;
+
+    return findObjectByClassName("KWin::VirtualDesktopManager", workspace()->children());
 }
 
 namespace KWin {
@@ -357,7 +374,31 @@ QFunctionPointer KWinUtils::resolve(const char *symbol)
 
     return QLibrary::resolve(lib_name, symbol);
 #endif
+}
+
+qulonglong KWinUtils::getWindowId(const QObject *client, bool *ok)
+{
+    // kwin class: Toplevel
+    return client->property("windowId").toLongLong(ok);
+}
+
+uint KWinUtils::virtualDesktopCount()
+{
+    if (virtualDesktop()) {
+        return virtualDesktop()->property("count").toUInt();
     }
+
+    return 0;
+}
+
+uint KWinUtils::currentVirtualDesktop()
+{
+    if (virtualDesktop()) {
+        return virtualDesktop()->property("current").toUInt();
+    }
+
+    return 0;
+}
 
 quint32 KWinUtils::getXcbAtom(const QString &name, bool only_if_exists) const
 {
@@ -395,7 +436,7 @@ QVariant KWinUtils::getGtkFrame(const QObject *window) const
     }
 
     bool ok = false;
-    qulonglong wid = window->property("windowId").toLongLong(&ok);
+    qulonglong wid = getWindowId(window, &ok);
 
     if (!ok) {
         return QVariant();
@@ -426,7 +467,7 @@ QVariant KWinUtils::getGtkFrame(const QObject *window) const
 QVariant KWinUtils::getParentWindow(const QObject *window) const
 {
     bool ok = false;
-    qulonglong wid = window->property("windowId").toLongLong(&ok);
+    qulonglong wid = getWindowId(window, &ok);
 
     if (!ok) {
         return QVariant();
@@ -437,45 +478,29 @@ QVariant KWinUtils::getParentWindow(const QObject *window) const
 
 QVariant KWinUtils::isFullMaximized(const QObject *window) const
 {
-    if (!window) {
-        return false;
-    }
-
     if (!interface->clientMaximizeMode) {
         return QVariant();
     }
 
-    return interface->clientMaximizeMode(window) == MaximizeFull;
+    return Window::isFullMaximized(window);
 }
 
 QVariant KWinUtils::fullmaximizeWindow(QObject *window) const
 {
-    if (!window) {
-        return false;
-    }
-
     if (!interface->clientMaximize) {
         return QVariant();
     }
 
-    interface->clientMaximize(window, MaximizeFull);
-
-    return true;
+    return Window::fullmaximizeWindow(window);
 }
 
 QVariant KWinUtils::unmaximizeWindow(QObject *window) const
 {
-    if (!window) {
-        return false;
-    }
-
     if (!interface->clientMaximize) {
         return QVariant();
     }
 
-    interface->clientMaximize(window, MaximizeRestore);
-
-    return true;
+    return Window::unmaximizeWindow(window);
 }
 
 void KWinUtils::WalkThroughWindows()
@@ -601,4 +626,137 @@ void KWinUtils::ShowWindowsView()
     if (presentWindows) {
         QMetaObject::invokeMethod(presentWindows, "toggleActive");
     }
+}
+
+bool KWinUtils::Window::isFullMaximized(const QObject *window)
+{
+    if (!window) {
+        return false;
+    }
+
+    if (!interface->clientMaximizeMode) {
+        return false;
+    }
+
+    return interface->clientMaximizeMode(window) == MaximizeFull;
+}
+
+bool KWinUtils::Window::fullmaximizeWindow(QObject *window)
+{
+    if (!window) {
+        return false;
+    }
+
+    if (!interface->clientMaximize) {
+        return false;
+    }
+
+    interface->clientMaximize(window, MaximizeFull);
+
+    return true;
+}
+
+bool KWinUtils::Window::unmaximizeWindow(QObject *window)
+{
+    if (!window) {
+        return false;
+    }
+
+    if (!interface->clientMaximize) {
+        return false;
+    }
+
+    interface->clientMaximize(window, MaximizeRestore);
+
+    return true;
+}
+
+void KWinUtils::Window::setWindowMinimize(QObject *window, bool on)
+{
+    if (window) {
+        window->setProperty("minimized", on);
+    }
+}
+
+void KWinUtils::Window::closeWindow(QObject *window)
+{
+    if (window) {
+        QMetaObject::invokeMethod(window, "closeWindow");
+    }
+}
+
+bool KWinUtils::Window::canMaximize(const QObject *window)
+{
+    return window && window->property("maximizable").toBool();
+}
+
+bool KWinUtils::Window::canMinimize(const QObject *window)
+{
+    return window && window->property("minimizable").toBool();
+}
+
+bool KWinUtils::Window::canMove(const QObject *window)
+{
+    return window && window->property("moveable").toBool();
+}
+
+bool KWinUtils::Window::canResize(const QObject *window)
+{
+    return window && window->property("resizeable").toBool();
+}
+
+bool KWinUtils::Window::canClose(const QObject *window)
+{
+    return window && window->property("closeable").toBool();
+}
+
+bool KWinUtils::Window::isKeepAbove(const QObject *window)
+{
+    return window && window->property("keepAbove").toBool();
+}
+
+void KWinUtils::Window::setKeepAbove(QObject *window, bool on)
+{
+    if (!window)
+        return;
+
+    window->setProperty("keepAbove", on);
+}
+
+bool KWinUtils::Window::isOnAllDesktops(const QObject *window)
+{
+    return window && window->property("onAllDesktops").toBool();
+}
+
+void KWinUtils::Window::setOnAllDesktops(QObject *window, bool on)
+{
+    if (!window)
+        return;
+
+    window->setProperty("onAllDesktops", on);
+}
+
+int KWinUtils::Window::windowDesktop(const QObject *window)
+{
+    if (!window)
+        return -1;
+
+    return window->property("desktop").toInt();
+}
+
+void KWinUtils::Window::setWindowDesktop(QObject *window, int desktop)
+{
+    if (window) {
+        window->setProperty("desktop", desktop);
+    }
+}
+
+void KWinUtils::Window::performWindowOperation(QObject *window, const QString &opName, bool restricted)
+{
+    if (!window || !interface->optionsWindowOperation)
+        return;
+
+    KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(window);
+    KWin::Options::WindowOperation op = interface->optionsWindowOperation(opName, restricted);
+    QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::AbstractClient*, c), Q_ARG(KWin::Options::WindowOperation, op));
 }

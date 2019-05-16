@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+minimum_perc = 80
+mode = developer
+
+[dde-kwin.dde-kwin-xcb]
+file_filter = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb_<lang>.ts
+source_file = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb.ts
+source_lang = en
+type = QT

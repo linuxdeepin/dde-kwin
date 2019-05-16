@@ -53,12 +53,41 @@ public:
     static QObject *scripting();
     static QObject *tabBox();
     static QObject *cursor();
+    static QObject *virtualDesktop();
 
     static QObjectList clientList();
     static void clientUpdateCursor(QObject *client);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
 
     static QFunctionPointer resolve(const char *symbol);
+
+    static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
+
+    static uint virtualDesktopCount();
+    static uint currentVirtualDesktop();
+
+    struct Window {
+        static bool isFullMaximized(const QObject *window);
+        static bool fullmaximizeWindow(QObject *window);
+        static bool unmaximizeWindow(QObject *window);
+        static void setWindowMinimize(QObject *window, bool on);
+        static void closeWindow(QObject *window);
+
+        static bool canMaximize(const QObject *window);
+        static bool canMinimize(const QObject *window);
+        static bool canMove(const QObject *window);
+        static bool canResize(const QObject *window);
+        static bool canClose(const QObject *window);
+
+        static bool isKeepAbove(const QObject *window);
+        static void setKeepAbove(QObject *window, bool on);
+        static bool isOnAllDesktops(const QObject *window);
+        static void setOnAllDesktops(QObject *window, bool on);
+        static int windowDesktop(const QObject *window);
+        static void setWindowDesktop(QObject *window, int desktop);
+
+        static void performWindowOperation(QObject* window, const QString &opName, bool restricted = false);
+    };
 
     Q_INVOKABLE quint32 getXcbAtom(const QString &name, bool only_if_exists) const;
     Q_INVOKABLE bool isSupportedAtom(quint32 atom) const;
