@@ -1325,6 +1325,21 @@ void Workspace::setPreviewClientList(const QList<AbstractClient*> &list)
         AbstractClient *c = qobject_cast<AbstractClient*>(stacking_order.at(i));
         if (c && c->isOnCurrentDesktop()) {
             if (!c->isDock() && !c->isDesktop()) {
+                if (list.contains(c)) {
+                    if (c->isMinimized()) {
+                        // 记录窗口的最小化状态
+                        c->setProperty("__deepin_kwin_minimized", true);
+                        // 恢复最小化以便预览窗口
+                        c->unminimize(true);
+                    }
+                } else {
+                    if (c->property("__deepin_kwin_minimized").toBool()) {
+                        c->setProperty("__deepin_kwin_minimized", QVariant());
+                        // 恢复窗口被预览之前的状态
+                        c->minimize(true);
+                    }
+                }
+
                 c->updateLayer();
             }
         }
