@@ -196,6 +196,25 @@ public slots:
         if (QObject *cursor = kwinUtils()->cursor()) {
             connect(cursor, SIGNAL(themeChanged()), this, SLOT(onCursorThemeChanged()), Qt::QueuedConnection);
         }
+
+        // 初始化翻译资源
+        QTranslator *ts = new QTranslator(this);
+        QString ts_file;
+        auto ts_dir_list = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+
+        for (QString dir : ts_dir_list) {
+            dir += TARGET_NAME "/translations";
+
+            if (!QDir(dir).exists()) {
+                continue;
+            }
+
+            if (ts->load(ts_file, dir) && qApp->installTranslator(ts)) {
+                break;
+            } else {
+                qWarning() << Q_FUNC_INFO << "Failed on load translators, path:" << dir;
+            }
+        }
     }
 
     void onExec() {
@@ -253,7 +272,7 @@ static void overrideInitialize(QPlatformIntegration *i)
     _m->updateCursorSize();
 }
 
-class DPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
+class DKWinPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QPlatformIntegrationFactoryInterface_iid FILE "dde-kwin-xcb.json")
@@ -262,9 +281,9 @@ public:
     QPlatformIntegration *create(const QString&, const QStringList&, int &, char **) Q_DECL_OVERRIDE;
 };
 
-QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
+QPlatformIntegration* DKWinPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
 {
-    if (system == "dde-kwin-xcb") {
+    if (system == TARGET_NAME) {
         for (const QString &arg : parameters) {
             const char pre_arg[] = "appFilePath=";
 
@@ -277,7 +296,17 @@ QPlatformIntegration* DPlatformIntegrationPlugin::create(const QString& system, 
             QCoreApplicationPrivate::setApplicationFilePath(arg.mid(strlen(pre_arg)));
         }
 
-        QPlatformIntegration *integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
+        QPlatformIntegration *integration;
+
+#ifndef DISABLE_DXCB
+        if (QPlatformIntegrationFactory::keys().contains("dxcb")) {
+            integration = QPlatformIntegrationFactory::create("dxcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
+        } else
+#endif
+        {
+            integration = QPlatformIntegrationFactory::create("xcb", parameters, argc, argv, PLATFORMS_PLUGIN_PATH);
+        }
+
         VtableHook::overrideVfptrFun(integration, &QPlatformIntegration::initialize, overrideInitialize);
         QMetaObject::invokeMethod(_m.operator ->(), "onExec", Qt::QueuedConnection);
 

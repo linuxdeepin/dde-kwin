@@ -13,7 +13,11 @@ config.path = /etc/xdg
 
 include(../common.pri)
 
-kwin_fake.files = $$PWD/kwin_no_scale
+kwin_no_scale.input = $$PWD/kwin_no_scale.in
+kwin_no_scale.output = $$OUT_PWD/kwin_no_scale
+QMAKE_SUBSTITUTES += kwin_no_scale
+
+kwin_fake.files = $${kwin_no_scale.output}
 kwin_fake.path = $$PREFIX/bin
 
 kwin_multitaskingview.files = $$PWD/kwin-wm-multitaskingview.desktop

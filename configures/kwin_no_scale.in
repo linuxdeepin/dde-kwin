@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ -n "$HOME" ];then
+    cp -n /etc/xdg/kglobalshortcutsrc $HOME/.config/kglobalshortcutsrc
+fi
+export LD_PRELOAD=$$[QT_INSTALL_PLUGINS]/platforms/libdde-kwin-xcb.so
+export QT_SCALE_FACTOR=1
+#":"后的"appFilePath=..."会传递给QPlatformIntegration::create调用
+# appFilePath 的值会覆盖 QCoreApplication::applicationPath，以确保kwin崩溃自动重启时也是启动的kwin_no_scale脚本
+kwin_x11 -platform dde-kwin-xcb:appFilePath=$(cd `dirname $0`; pwd)/kwin_no_scale $@
