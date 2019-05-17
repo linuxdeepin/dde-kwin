@@ -62,3 +62,7 @@ Right=None
 Top=None
 TopLeft=None
 TopRight=None
+
+[Compositing]
+#窗口最小化后也保持map状态
+HiddenPreviews=6
