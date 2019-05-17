@@ -239,4 +239,14 @@ void UserActionsMenu::close()
 #endif // USE_DBUS_MENU
 } // namespace KWin
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION <= KWIN_VERSION_CHECK(5, 8, 6, 0)
+namespace Plasma
+{
+bool Theme::findInRectsCache(const QString &, const QString &, QRectF &) const
+{
+    return false;
+}
+}
+#endif
+
 #include "libkwinpreload.moc"
