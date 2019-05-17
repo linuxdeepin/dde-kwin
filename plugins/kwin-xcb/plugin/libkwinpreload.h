@@ -24,6 +24,8 @@
 
 #include <QObject>
 
+#include "kwinutils.h"
+
 namespace KWin {
 // 覆盖libkwin.so中的符号
 // 使用DBUS菜单时，覆盖了Workspace::showWindowMenu，此函数的原本逻辑中将会调用 UserActionsMenu::show
@@ -45,5 +47,21 @@ class Q_DECL_EXPORT UserActionsMenu : public QObject {
 };
 #endif // USE_DBUS_MENU
 }
+
+#if !defined(KWIN_VERSION) || KWIN_VERSION <= KWIN_VERSION_CHECK(5, 8, 6, 0)
+namespace Plasma
+{
+// 覆盖此函数，修复在kwin 5.8.6版本中窗口标题栏显示异常
+// bug由plasma-framework库中的Svg类生成缓存机制有问题导致
+// 重现步骤：
+// 1.设置屏幕缩放比为2.0
+// 2.注销后删除 .cache 中 plasma 相关的所有缓存文件
+// 3.登录后不要打开任何窗口，直接设置屏幕缩放比为1.75
+// 4.再次注销登录进入桌面，打开使用系统标题栏的应用即可观察到此bug
+class Q_DECL_EXPORT Theme {
+    bool findInRectsCache(const QString &image, const QString &element, QRectF &rect) const;
+};
+}
+#endif
 
 #endif // LIBKWINPRELOAD_H
