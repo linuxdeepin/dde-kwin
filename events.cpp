@@ -669,6 +669,14 @@ void Client::clientMessageEvent(xcb_client_message_event_t *e)
         if (e->data.data32[0] == XCB_ICCCM_WM_STATE_ICONIC)
             minimize();
         return;
+    } else if (e->type == atoms->gtk_show_window_menu) {
+        // _GTK_SHOW_WINDOW_MENU
+        QPoint pos;
+
+        pos.setX(e->data.data32[1]);
+        pos.setY(e->data.data32[2]);
+
+        workspace()->showWindowMenu(QRect(pos, pos), this);
     }
 }
 
