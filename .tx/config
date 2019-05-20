@@ -8,3 +8,9 @@ file_filter = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb_<lang>.ts
 source_file = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb.ts
 source_lang = en
 type = QT
+
+[dde-kwin.multitask-desktop]
+file_filter = translations/desktop/desktop_<lang>.ts
+source_file = translations/desktop/desktop.ts
+source_lang = en
+type = QT
