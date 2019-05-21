@@ -43,8 +43,9 @@ static int appVersion()
         int app_major = ver_list.value(0).toInt();
         int app_minor = ver_list.value(1).toInt();
         int app_patch = ver_list.value(2).toInt();
+        int app_build = ver_list.value(3).toInt();
 
-        version = QT_VERSION_CHECK(app_major, app_minor, app_patch);
+        version = KWIN_VERSION_CHECK(app_major, app_minor, app_patch, app_build);
 
         if (version == -1) {
             version =  INT_MAX;
@@ -245,7 +246,8 @@ KWinUtils::KWinUtils(QObject *parent)
     : QObject(parent)
 {
 #ifdef KWIN_VERSION
-    if (kwinBuildVersion() != kwinRuntimeVersion()) {
+    // 往右移动8位是为了排除 build version 字段
+    if ((kwinBuildVersion() >> 8) != (kwinRuntimeVersion() >> 8)) {
         qWarning() << QString("Build on kwin " KWIN_VERSION_STR " version, but run on kwin %1 version").arg(qApp->applicationVersion());
     }
 #endif
