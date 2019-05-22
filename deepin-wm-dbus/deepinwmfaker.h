@@ -140,6 +140,7 @@ private:
 private:
     void syncConfigForKWin();
     void updateCursorConfig();
+    bool maybeShowWarningDialog();
 
     KWindowSystem *m_windowSystem;
     KConfig *m_deepinWMConfig;
