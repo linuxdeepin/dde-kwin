@@ -603,18 +603,37 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
         emit compositingEnabledChanged(on);
 }
 
+// 2D效果下不支持显示工作区、显示应用程序所有窗口、显示所有窗口等功能，此处调用对话框告知用户
+bool DeepinWMFaker::maybeShowWarningDialog()
+{
+    if (!compositingEnabled()) {
+        return QProcess::startDetached("/usr/lib/deepin-daemon/dde-warning-dialog");
+    }
+
+    return false;
+}
+
 void DeepinWMFaker::ShowAllWindow()
 {
+    if (maybeShowWarningDialog())
+        return;
+
     m_kwinUtilsInter->ShowAllWindowsView();
 }
 
 void DeepinWMFaker::ShowWindow()
 {
+    if (maybeShowWarningDialog())
+        return;
+
     m_kwinUtilsInter->ShowWindowsView();
 }
 
 void DeepinWMFaker::ShowWorkspace()
 {
+    if (maybeShowWarningDialog())
+        return;
+
     m_kwinUtilsInter->ShowWorkspacesView();
 }
 
