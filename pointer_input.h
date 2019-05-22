@@ -40,6 +40,9 @@ class SurfaceInterface;
 
 namespace KWin
 {
+
+Q_DECL_HIDDEN Qt::MouseButton buttonToQtMouseButton(uint32_t button);
+
 class CursorImage;
 class InputRedirection;
 class Toplevel;

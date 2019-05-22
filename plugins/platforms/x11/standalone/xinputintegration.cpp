@@ -48,7 +48,8 @@ class XInputEventFilter : public X11EventFilter
 {
 public:
     XInputEventFilter(int xi_opcode)
-        : X11EventFilter(XCB_GE_GENERIC, xi_opcode, QVector<int>{XI_RawMotion, XI_RawButtonPress, XI_RawButtonRelease, XI_RawKeyPress, XI_RawKeyRelease, XI_TouchBegin, XI_TouchUpdate, XI_TouchOwnership, XI_TouchEnd})
+        : X11EventFilter(XCB_GE_GENERIC, xi_opcode, QVector<int>{XI_RawMotion, XI_RawButtonPress, XI_RawButtonRelease, XI_RawKeyPress, XI_RawKeyRelease, XI_TouchBegin, XI_TouchUpdate, XI_TouchOwnership, XI_TouchEnd,
+                                                                 XI_RawTouchBegin, XI_RawTouchUpdate, XI_RawTouchEnd})
         {}
     virtual ~XInputEventFilter() = default;
 
@@ -90,6 +91,11 @@ public:
                 m_x11Cursor->schedulePoll();
             }
             break;
+        case XI_RawMotion: {
+            auto e = reinterpret_cast<xXIRawEvent*>(event);
+            kwinApp()->platform()->pointerMotion(QCursor::pos(), e->time);
+            break;
+        }
         case XI_RawButtonRelease: {
                 auto e = reinterpret_cast<xXIRawEvent*>(event);
                 switch (e->detail) {
@@ -154,6 +160,45 @@ public:
             }
             break;
         }
+        // 在xorg中，一个触摸点的touchUpdate和touchEnd事件只会发送给touchBegin事件的接收者，
+        // 也就是说，当手指已经按在触屏上后，在此之后kwin成功grab了触屏和鼠标事件，但在grab之前
+        // 已经按下的触摸点的后续事件kwin中也无法接收。这样情况发生于：一个client收到touchBegin
+        // 后请求_NET_WM_MOVERESIZE，之后手指移动时无法移动窗口，因此，此处监听原始的触屏事件，
+        // 用于处理此问题。
+        case XI_RawTouchBegin: {
+            auto e = reinterpret_cast<xXIRawEvent*>(event);
+
+            // 鼠标只会跟随第一个触摸点，此处只处理第一个触摸点
+            if (m_first_touch_point  == UINT_MAX) {
+                m_first_touch_point = e->detail;
+            } else {
+                break;
+            }
+
+            kwinApp()->platform()->touchDown(e->detail, QCursor::pos(), e->time);
+            break;
+        }
+        case XI_RawTouchUpdate: {
+            auto e = reinterpret_cast<xXIRawEvent*>(event);
+
+            if (m_first_touch_point != e->detail) {
+                break;
+            }
+
+            kwinApp()->platform()->touchMotion(e->detail, QCursor::pos(), e->time);
+            break;
+        }
+        case XI_RawTouchEnd: {
+            auto e = reinterpret_cast<xXIRawEvent*>(event);
+
+            if (m_first_touch_point != e->detail) {
+                break;
+            }
+
+            // 清除已按下的第一个点
+            m_first_touch_point = UINT_MAX;
+            kwinApp()->platform()->touchUp(e->detail, e->time);
+        }
         default:
             if (m_x11Cursor) {
                 m_x11Cursor->schedulePoll();
@@ -179,6 +224,7 @@ private:
     Display *m_x11Display = nullptr;
     uint32_t m_trackingTouchId = 0;
     QHash<uint32_t, QPointF> m_lastTouchPositions;
+    quint32 m_first_touch_point = UINT_MAX;
 };
 
 class XKeyPressReleaseEventFilter : public X11EventFilter
@@ -256,10 +302,20 @@ void XInputIntegration::startListening()
     XISetMask(mask1, XI_RawMotion);
     XISetMask(mask1, XI_RawButtonPress);
     XISetMask(mask1, XI_RawButtonRelease);
-    if (m_majorVersion >= 2 && m_minorVersion >= 1) {
-        // we need to listen to all events, which is only available with XInput 2.1
-        XISetMask(mask1, XI_RawKeyPress);
-        XISetMask(mask1, XI_RawKeyRelease);
+
+    if (m_majorVersion >= 2) {
+        if (m_minorVersion >= 1) {
+            // we need to listen to all events, which is only available with XInput 2.1
+            XISetMask(mask1, XI_RawKeyPress);
+            XISetMask(mask1, XI_RawKeyRelease);
+        }
+
+        // 在xinput>=2.2版本时监听触摸事件，支持触摸屏下窗口移动/resize
+        if (m_minorVersion >= 2) {
+            XISetMask(mask1, XI_RawTouchBegin);
+            XISetMask(mask1, XI_RawTouchUpdate);
+            XISetMask(mask1, XI_RawTouchEnd);
+        }
     }
     if (m_majorVersion >=2 && m_minorVersion >= 2) {
         // touch events since 2.2

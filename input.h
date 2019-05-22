@@ -287,6 +287,8 @@ private:
     QVector<InputEventFilter*> m_filters;
     QVector<InputEventSpy*> m_spies;
 
+    InputEventFilter *m_firstFilter = nullptr;
+
     KWIN_SINGLETON(InputRedirection)
     friend InputRedirection *input();
     friend class DecorationEventFilter;

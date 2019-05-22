@@ -58,7 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace KWin
 {
 
-static Qt::MouseButton buttonToQtMouseButton(uint32_t button)
+Qt::MouseButton buttonToQtMouseButton(uint32_t button)
 {
     switch (button) {
     case BTN_LEFT:
