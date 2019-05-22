@@ -222,6 +222,8 @@ VirtualDesktop *VirtualDesktopGrid::at(const QPoint &coords) const
 
 KWIN_SINGLETON_FACTORY_VARIABLE(VirtualDesktopManager, s_manager)
 
+uint VirtualDesktopManager::m_maxCount = 4;
+
 VirtualDesktopManager::VirtualDesktopManager(QObject *parent)
     : QObject(parent)
     , m_navigationWrapsAround(false)
@@ -695,6 +697,7 @@ void VirtualDesktopManager::load()
     }
     KConfigGroup group(m_config, groupname);
     const int n = group.readEntry("Number", 1);
+    m_maxCount = group.readEntry("Maximum", 4);
     setCount(n);
 
     for (int i = 1; i <= n; i++) {
