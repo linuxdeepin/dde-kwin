@@ -70,3 +70,11 @@ HiddenPreviews=6
 [Windows]
 #设置焦点检测策略为最低级，防止由于kwin在窗口获取焦点时比较的严格的检查而导致的窗口无法获取到焦点
 FocusStealingPreventionLevel=0
+
+[MouseBindings]
+#禁用Alt+鼠标左键移动窗口
+CommandAll1=Nothing
+#禁用Alt+鼠标中键改变窗口层叠顺序的功能
+CommandAll2=Nothing
+#禁用Alt+鼠标右键绑定的改变窗口大小的功能
+CommandAll3=Nothing
