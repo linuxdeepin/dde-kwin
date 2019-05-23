@@ -11,6 +11,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_P
 
 find_package(ECM 5.38 REQUIRED NO_MODULE)
 
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "sw_64")
+    set(CMAKE_C_FLAGS "-mieee")
+    set(CMAKE_CXX_FLAGS "-mieee")
+endif()
+
 include(FeatureSummary)
 include(WriteBasicConfigVersionFile)
 include(GenerateExportHeader)
