@@ -284,6 +284,9 @@ public:
 QPlatformIntegration* DKWinPlatformIntegrationPlugin::create(const QString& system, const QStringList& parameters, int &argc, char **argv)
 {
     if (system == TARGET_NAME) {
+        // 清理对libdde-kwin-xcb.so的ld preload，防止使用QProcess调用其他进程时被传递
+        qunsetenv("LD_PRELOAD");
+
         for (const QString &arg : parameters) {
             const char pre_arg[] = "appFilePath=";
 
