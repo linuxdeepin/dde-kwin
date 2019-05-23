@@ -129,6 +129,7 @@ Client::Client()
     syncRequest.timeout = syncRequest.failsafeTimeout = NULL;
     syncRequest.lastTimestamp = xTime();
     syncRequest.isPending = false;
+    syncRequest.calledSyncRequest = false;
 
     // Set the initial mapping state
     mapping_state = Withdrawn;
@@ -1690,6 +1691,22 @@ void Client::getSyncCounter()
                 xcb_sync_change_alarm_aux(c, syncRequest.alarm, XCB_SYNC_CA_DELTA | XCB_SYNC_CA_VALUE, &value);
             }
         }
+
+        // 修复可能导致窗口内容没有被合成的问题，合成窗口有两种模式：同步和非同步，
+        // 根据窗口是否支持xsync或者说是否设置了_NET_WM_SYNC_REQUEST_COUNTER属性做判断，
+        // 支持则为同步模式否则为非同步模式 。只有当窗口被调用setReadyForPainting()后才会
+        // 合成其内容，在不同的模式下，setReadyForPainting()调用的时机不同，同步模式中，
+        // 只会在窗口map/resize的通知事件中调用sendSyncRequest()，由其完成对
+        // setReadyForPainting的调用，非同步模式则在每次收到窗口重绘事件时都会判断是否应该
+        // 调用setReadyForPainting。考虑以下情况：窗口被map和resize之前未设置_NET_WM_SYNC_REQUEST_COUNTER，
+        // 且这个时间段内也没有重绘，也就是说窗口还未进入到readyForPainting状态，在此之后
+        // 窗口设置了_NET_WM_SYNC_REQUEST_COUNTER属性，然而此时窗口已经被map，也就是说，
+        // 只有再收到resize请求时才会使窗口进入ReadyForPainting状态，这样就会导致这个窗口一直无法显示。
+        // 这种情况往往出现在创建窗口的 进程卡顿较长时间的情况下。
+        // 下面的代码通过判断定时器和时间戳的值来确定sendSyncRequest是否被调用过，如果有，则立即调用它
+        if (!ready_for_painting && syncRequest.calledSyncRequest) {
+            sendSyncRequest();
+        }
     }
 }
 
@@ -1698,6 +1715,8 @@ void Client::getSyncCounter()
  */
 void Client::sendSyncRequest()
 {
+    syncRequest.calledSyncRequest = true;
+
     if (syncRequest.counter == XCB_NONE || syncRequest.isPending)
         return; // do NOT, NEVER send a sync request when there's one on the stack. the clients will just stop respoding. FOREVER! ...
 
