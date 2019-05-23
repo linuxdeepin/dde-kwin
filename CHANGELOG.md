@@ -1,3 +1,27 @@
+<a name="0.0.7"></a>
+## 0.0.7 (2019-05-23)
+
+
+#### Features
+
+*   support KWin highlightWindows effect for PreviewWindow ([1a28d4a1](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/1a28d4a1e7dcf006c24e00f355c6c9c1384483a3))
+*   overwrite the window menu ([42fb49fe](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/42fb49fead923f68da81ca8e26543ac4b39c3186))
+*   Support for specifying the version of kwin on build ([f27e571f](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/f27e571f5307429ce74e5f1965cc6f4d2ebee9d2))
+* **multitaskingview:**  add multitaskingview ts ([7f5a9697](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/7f5a9697b48a37b6c54ff396093c19fd7ffc845b))
+
+#### Bug Fixes
+
+*   automatically append the wallpaper's gsetting value item ([15328ffe](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/15328ffe83acaf49b61c97875851f6bc92898c45))
+*   clean LD_PRELOAD env ([340c297c](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/340c297c712fe3a7fe64c840289b9f4e89288801))
+*   the window was closed incorrectly ([87d942cf](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/87d942cf363e0255dbd7ba52300fa43ea96b6150))
+*   the "Window to Desktop" shoutcuts is invalid ([4d920b19](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/4d920b19e300025ac2c61ba1860f094e91f29926))
+*   No warning when opening the multitasking view app in 2D window manager ([c3501e54](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/c3501e545fb73e395a420bbe68d854953a0ce21a))
+*   do not print warning messages when the build and runtime versions are consistent ([4ee6f0c2](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/4ee6f0c2a78e9d77eee4b4d9d27c686459d925c4))
+*   keep window to viewable if it is minimized ([921ae1f5](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/921ae1f5c6049e7f25402debe29f3b972ca160e4))
+*   disable theme cache of FrameSvg ([6ced80ed](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/6ced80ed5471e68b303b6456d567cf01f0f6a991))
+
+
+
 <a name="0.0.6"></a>
 ## 0.0.6 (2019-05-09)
 
