@@ -212,11 +212,18 @@ static void setWorkspaceBackgroundForDeepinWM(const int index, const QString &ur
 {
     QStringList all_wallpaper = _gsettings_dde_appearance->get(GsettingsBackgroundUri).toStringList();
 
-    if (index <= all_wallpaper.size()) {
-        all_wallpaper[index - 1] = uri;
-        // 将壁纸设置同步到 deepin-wm
-        _gsettings_dde_appearance->set(GsettingsBackgroundUri, all_wallpaper);
+    // 当设置的工作区编号大于列表长度时，先填充数据
+    if (index > all_wallpaper.size()) {
+        all_wallpaper.reserve(index);
+
+        for (int i = all_wallpaper.size(); i < index; ++i) {
+            all_wallpaper.append(QString());
+        }
     }
+
+    all_wallpaper[index - 1] = uri;
+    // 将壁纸设置同步到 deepin-wm
+    _gsettings_dde_appearance->set(GsettingsBackgroundUri, all_wallpaper);
 }
 #endif // DISABLE_DEEPIN_WM
 
