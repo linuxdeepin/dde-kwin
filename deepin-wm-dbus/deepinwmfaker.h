@@ -84,6 +84,7 @@ public Q_SLOTS:
 
     QString GetAllAccels() const;
     QStringList GetAccel(const QString &id) const;
+    QStringList GetDefaultAccel(const QString &id) const;
     bool SetAccel(const QString &data);
     void RemoveAccel(const QString &id);
 
