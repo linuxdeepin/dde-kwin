@@ -2,7 +2,8 @@
 # this file is used to auto-generate .qm file from .ts file.
 # author: shibowen at linuxdeepin.com
 
-ts_list=(`ls translations/*.ts`)
+EXECUTE_PATH=$(cd `dirname $0`; pwd)
+ts_list=(`ls $EXECUTE_PATH/translations/*.ts`)
 
 for ts in "${ts_list[@]}"
 do

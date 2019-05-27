@@ -21,7 +21,7 @@
 
 #include "vtablehook.h"
 #include "kwinutils.h"
-#include "kwinutils_adaptor.h"
+#include "kwinutilsadaptor.h"
 
 #include <qpa/qplatformintegrationplugin.h>
 #include <qpa/qplatformintegrationfactory_p.h>

@@ -1,4 +1,4 @@
-#include "wm_adaptor.h"
+#include "wmadaptor.h"
 #include "deepinwmfaker.h"
 
 #include <QGuiApplication>
