@@ -1,0 +1,13 @@
+prefix=${CMAKE_INSTALL_PREFIX}
+exec_prefix=${CMAKE_INSTALL_PREFIX}
+libdir=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+includedir=${INCLUDE_OUTPUT_PATH}
+
+
+Name: ${PROJECT_NAME}
+Description: DDE KWin plugin library
+Version: ${PROJECT_VERSION}
+Libs: -l${PROJECT_NAME}
+Libs.private: -L/usr/X11R6/lib64 -lQt5X11Extras -lKF5WindowSystem -lQt5Widgets -lQt5Gui -lKF5ConfigCore -lKF5CoreAddons -lQt5Core -lGL -lpthread   
+Cflags: -I${INCLUDE_OUTPUT_PATH}
+
