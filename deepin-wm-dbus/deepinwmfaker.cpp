@@ -331,6 +331,7 @@ QString DeepinWMFaker::GetAllAccels() const
         QJsonObject accelObj;
         accelObj.insert("Id", it.key());
         accelObj.insert("Accels", QJsonArray::fromStringList(GetAccel(it.key())));
+        accelObj.insert("Default", QJsonArray::fromStringList(GetDefaultAccel(it.key())));
         allAccelsArray.append(accelObj);
     }
 
@@ -354,6 +355,66 @@ QStringList DeepinWMFaker::GetAccel(const QString &id) const
     }
 
     const QList<QKeySequence> &seqList = m_globalAccel->globalShortcut(GlobalAccelComponentName, kId);
+    if (seqList.isEmpty()) {
+        return QStringList();
+    }
+
+    QStringList accelList;
+    for (const QKeySequence &seq : seqList) {
+        accelList.append(transToDaemonAccelStr(seq.toString()));
+    }
+
+    return accelList;
+}
+
+static QMap<QString, QList<QKeySequence>> getShoutcutListFromKDEConfigFile()
+{
+    // 认为系统配置文件中存储的快捷键为默认值
+    KConfig kglobalshortcutsrc("/etc/xdg/kglobalshortcutsrc");
+    KConfigGroup kwin(&kglobalshortcutsrc, "kwin");
+
+    if (!kwin.isValid())
+        return {};
+
+    const QStringList key_list = kwin.keyList();
+    QMap<QString, QList<QKeySequence>> result;
+
+    for (const QString &str : key_list) {
+        auto value_list = kwin.readEntry(str, QStringList());
+
+        if (value_list.isEmpty())
+            continue;
+
+        QList<QKeySequence> ks_list;
+
+        // 多个快捷键是以制表符为分隔符
+        for (const QString &key : value_list.first().split("\t")) {
+            QKeySequence ks(key);
+
+            if (!ks.isEmpty()) {
+                ks_list << ks;
+            }
+        }
+
+        result[str] = ks_list;
+    }
+
+    return result;
+}
+
+QStringList DeepinWMFaker::GetDefaultAccel(const QString &id) const
+{
+    if (id.isEmpty()) {
+        return QStringList();
+    }
+
+    const QString &kId = AllDeepinWMKWinAccelsMap.value(id);
+    if (kId.isEmpty()) {
+        return QStringList();
+    }
+
+    static auto shortcutMap = getShoutcutListFromKDEConfigFile();
+    const QList<QKeySequence> &seqList = shortcutMap.value(kId);
     if (seqList.isEmpty()) {
         return QStringList();
     }
