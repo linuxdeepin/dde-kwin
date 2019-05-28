@@ -35,6 +35,7 @@
 #include <QWindow>
 #include <QStyleFactory>
 #include <QStyle>
+#include <QTimer>
 
 // deepin dbus menu
 #define MenuDBusService "com.deepin.menu"
@@ -236,6 +237,15 @@ void UserActionsMenu::close()
         _globalWindowMenu->close();
     }
 }
+
+void RuleBook::save()
+{
+    if (QTimer * m_updateTimer = findChild<QTimer*>(QString(), Qt::FindDirectChildrenOnly)) {
+        // 集成原代码的部分逻辑
+        m_updateTimer->stop();
+    }
+}
+
 #endif // USE_DBUS_MENU
 } // namespace KWin
 
