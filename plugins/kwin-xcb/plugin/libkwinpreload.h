@@ -45,6 +45,21 @@ class Q_DECL_EXPORT UserActionsMenu : public QObject {
     void show(const QRect& pos, const QWeakPointer<AbstractClient> &cl);
     void close();
 };
+
+class RuleBook : public QObject
+{
+    // kwin经常会触发RuleBool::save函数，
+    // 此函数中会修改 ~/.config/kwinrulesrc 配置文件，
+    // 且函数会在退出前sync此文件的数据，如果磁盘io被占用，
+    // kwin主线程将陷入休眠，导致用户界面长时间无法操作。
+    // 故此处禁止修改此配置文件。
+
+    // ###(zccrs): 会导致"kde系统设置"应用中的窗口规则列表为空
+    // 带来的影响，不能使用kde系统设置更改窗口规则，
+    // 否则会导致 /etc/xdg 中预设的窗口规则失效
+    void save();
+};
+
 #endif // USE_DBUS_MENU
 }
 
