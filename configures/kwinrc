@@ -70,6 +70,11 @@ HiddenPreviews=6
 [Windows]
 #设置焦点检测策略为最低级，防止由于kwin在窗口获取焦点时比较的严格的检查而导致的窗口无法获取到焦点
 FocusStealingPreventionLevel=0
+#禁止在inactive时自动隐藏Utilty类型的窗口，如Qt::Tool/Qt::Drawer类型的Qt窗口
+#将导致窗口flags为
+#Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Drawer | Qt::WindowStaysOnTopHint
+#的窗口无法同时显示多个
+HideUtilityWindowsForInactive=false
 
 [MouseBindings]
 #禁用Alt+鼠标左键移动窗口
