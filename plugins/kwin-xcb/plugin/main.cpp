@@ -199,20 +199,43 @@ public slots:
 
         // 初始化翻译资源
         QTranslator *ts = new QTranslator(this);
-        QString ts_file;
+        const QString &lang_name = QLocale::system().name();
+        QString ts_file = TARGET_NAME "_" + lang_name;
+        QString ts_fallback_file;
+
+        {
+            int index = lang_name.indexOf("_");
+
+            if (index > 0) {
+                ts_fallback_file = lang_name.left(index);
+            }
+        }
+
         auto ts_dir_list = QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
 
-        for (QString dir : ts_dir_list) {
-            dir += TARGET_NAME "/translations";
+        while (!ts_file.isEmpty()) {
+            bool ok = false;
 
-            if (!QDir(dir).exists()) {
-                continue;
+            for (QString dir : ts_dir_list) {
+                dir += "/" TARGET_NAME "/translations";
+
+                if (!QDir(dir).exists()) {
+                    continue;
+                }
+
+                if (ts->load(ts_file, dir) && qApp->installTranslator(ts)) {
+                    ok = true;
+                    break;
+                } else {
+                    qWarning() << Q_FUNC_INFO << "Failed on load translators, file:" << dir + "/" + ts_file;
+                }
             }
 
-            if (ts->load(ts_file, dir) && qApp->installTranslator(ts)) {
-                break;
-            } else {
-                qWarning() << Q_FUNC_INFO << "Failed on load translators, path:" << dir;
+            ts_file.clear();
+
+            if (!ok && !ts_fallback_file.isEmpty()) {
+                ts_file = ts_fallback_file;
+                ts_fallback_file.clear();
             }
         }
     }
