@@ -637,23 +637,18 @@ void DeepinWMFaker::MinimizeActiveWindow()
     m_windowSystem->minimizeWindow(m_windowSystem->activeWindow());
 }
 
-void DeepinWMFaker::SetDecorationTheme(const QString &name)
+void DeepinWMFaker::SetDecorationTheme(const QString &type, const QString &name)
 {
-    m_kwinConfig->group("org.kde.kdecoration2").writeEntry("theme", name);
+    m_kwinConfig->group("org.kde.kdecoration2").writeEntry("theme", QVariant());
+    m_kwinConfig->group("org.kde.kdecoration2").writeEntry("library", "com.deepin.chameleon");
+    m_kwinConfig->group("deepin-chameleon").writeEntry("theme", type + "/" + name);
+
     syncConfigForKWin();
 }
 
 void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
 {
-    KConfigGroup group(m_kwinConfig, "deepin-chameleon");
-
-    if (name == "light") {
-        group.writeEntry("theme", "light/deepin");
-    } else if (name == "dark") {
-        group.writeEntry("theme", "dark/deepin");
-    }
-
-    SetDecorationTheme("deepin");
+    SetDecorationTheme(name, "deepin");
 }
 
 void DeepinWMFaker::setCompositingEnabled(bool on)

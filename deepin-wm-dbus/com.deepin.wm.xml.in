@@ -86,6 +86,7 @@
     </method>
 
     <method name="SetDecorationTheme">
+        <arg type="s" name="themeType" direction="in"/>
         <arg type="s" name="themeName" direction="in"/>
     </method>
     <method name="SetDecorationDeepinTheme">

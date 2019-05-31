@@ -98,7 +98,7 @@ public Q_SLOTS:
     void ToggleActiveWindowMaximize();
     void MinimizeActiveWindow();
 
-    void SetDecorationTheme(const QString &name);
+    void SetDecorationTheme(const QString &name, const QString &library);
     void SetDecorationDeepinTheme(const QString &name);
 
     void setCompositingEnabled(bool on);
