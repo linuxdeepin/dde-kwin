@@ -39,7 +39,6 @@ set(CMAKE_AUTORCC ON)
 
 add_subdirectory(configures)
 add_subdirectory(plugins)
-add_subdirectory(aurorae-themes)
 add_subdirectory(scripts)
 add_subdirectory(deepin-wm-dbus)
 add_subdirectory(tabbox)
