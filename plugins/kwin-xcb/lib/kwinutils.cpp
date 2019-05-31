@@ -221,6 +221,7 @@ class KWinInterface
     typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
     typedef KWin::Options::WindowOperation (*OptionsWindowOperation)(const QString &, bool);
+    typedef QObject *(*WorkspaceFindClient)(KWinUtils::Predicate, xcb_window_t);
 public:
     KWinInterface()
     {
@@ -230,6 +231,7 @@ public:
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor12getX11CursorEN2Qt11CursorShapeE");
         optionsWindowOperation = (OptionsWindowOperation)KWinUtils::resolve("_ZN4KWin7Options15windowOperationERK7QStringb");
+        findClient = (WorkspaceFindClient)KWinUtils::resolve("_ZNK4KWin9Workspace10findClientENS_9PredicateEj");
     }
 
     ClientMaximizeMode clientMaximizeMode;
@@ -238,6 +240,7 @@ public:
     QuickTileWindow quickTileWindow;
     X11CursorGetCursor x11CursorGetCursor;
     OptionsWindowOperation optionsWindowOperation;
+    WorkspaceFindClient findClient;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -340,6 +343,14 @@ QObjectList KWinUtils::clientList()
     }
 
     return list;
+}
+
+QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
+{
+    if (!interface->findClient)
+        return nullptr;
+
+    return interface->findClient(predicate, window);
 }
 
 void KWinUtils::clientUpdateCursor(QObject *client)

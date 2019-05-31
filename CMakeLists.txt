@@ -1,7 +1,6 @@
 project(DDEKWin)
 
 set(PROJECT_NAME "dde-kwin")
-add_definitions(-DPROJECT_NAME=\\"${PROJECT_NAME}\\")
 
 if (NOT PROJECT_VERSION)
     set(PROJECT_VERSION "0.0.1")
@@ -10,6 +9,11 @@ endif()
 if (NOT PROJECT_VERSION_MAJOR)
     set(PROJECT_VERSION_MAJOR 0)
 endif()
+
+add_definitions(
+    -DPROJECT_NAME=\\"${PROJECT_NAME}\\"
+    -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
+)
 
 find_package(Qt5Core)
 get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
@@ -31,6 +35,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 # Create code from a list of Qt designer ui files
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 add_subdirectory(configures)
 add_subdirectory(plugins)

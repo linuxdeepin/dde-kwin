@@ -645,11 +645,15 @@ void DeepinWMFaker::SetDecorationTheme(const QString &name)
 
 void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
 {
+    KConfigGroup group(m_kwinConfig, "deepin-chameleon");
+
     if (name == "light") {
-        SetDecorationTheme("__aurorae__svg__deepin");
+        group.writeEntry("theme", "light/deepin");
     } else if (name == "dark") {
-        SetDecorationTheme("__aurorae__svg__deepin-dark");
+        group.writeEntry("theme", "dark/deepin");
     }
+
+    SetDecorationTheme("deepin");
 }
 
 void DeepinWMFaker::setCompositingEnabled(bool on)

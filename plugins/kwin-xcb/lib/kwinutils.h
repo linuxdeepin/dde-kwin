@@ -41,6 +41,13 @@ public:
         MaximizeFull = MaximizeVertical | MaximizeHorizontal
     };
 
+    enum class Predicate {
+        WindowMatch,
+        WrapperIdMatch,
+        FrameIdMatch,
+        InputIdMatch
+    };
+
     explicit KWinUtils(QObject *parent = nullptr);
     ~KWinUtils();
 
@@ -56,6 +63,7 @@ public:
     static QObject *virtualDesktop();
 
     static QObjectList clientList();
+    static QObject *findClient(Predicate predicate, quint32 window);
     static void clientUpdateCursor(QObject *client);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
 
