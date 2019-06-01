@@ -727,7 +727,21 @@ bool Client::isMinimizable() const
 
 void Client::doMinimize()
 {
+    bool old_preview = hiddenPreview();
+
     updateVisibility();
+
+    // 如果在执行minimize/umminimize动作前后的窗口处于hiddenPreview状态，则无
+    // 论如何都更新窗口的WM_STATE属性。否则，当kwinrc配置项HiddenPreviews=6时
+    // 窗口最小化后未处于 Iconic 状态，将导致Qt对窗口状态的判断失效
+    if (old_preview || hiddenPreview()) {
+        if (isMinimized()) {
+            exportMappingState(IconicState);
+        } else {
+            exportMappingState(NormalState);
+        }
+    }
+
     updateAllowedActions();
     workspace()->updateMinimizedOfTransients(this);
     // Update states of all other windows in this group
