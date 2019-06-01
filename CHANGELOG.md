@@ -1,3 +1,21 @@
+<a name="0.0.8"></a>
+## 0.0.8 (2019-06-01)
+
+
+#### Features
+
+*   allow configuration items to override the default theme ([ce46a721](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/ce46a72163ce962b57d8983a37f2ffe063ec8068))
+*   add the "deepin-chameleon" window decoration for kwin ([59680022](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/596800228ece3778e6670a13fcc2c1f921758912))
+*   support get the shoutcut default value ([7e18ace3](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/7e18ace36573066d28bf80e9bba3c4315658ecd1))
+
+#### Bug Fixes
+
+*   correct the path to find translation files ([70e563e2](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/70e563e2990b78bf44ecf60ba33664874161004e))
+*   ignore the RuleBook::save function of kwin ([e0ab3f6d](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/e0ab3f6d09b63b1bff0460a6b29bed204a4f3fa1))
+*   execute dirname before setting the LD_PRELOAD environment ([41481b9e](https://github.com/linuxdeepin/dde-kwin/tree/master/commit/41481b9e30f78e64c53c13a4ba8692a268cf1d9e))
+
+
+
 <a name="0.0.7"></a>
 ## 0.0.7 (2019-05-23)
 
