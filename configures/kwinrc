@@ -1,57 +1,73 @@
-[Plugins]
-blurEnabled=true
-enforcedecoEnabled=false
-minimizeallEnabled=true
-kwin4_effect_dialogparentEnabled=false
-kwin4_effect_translucencyEnabled=false
-kwin4_effect_windowapertureEnabled=false
+[Compositing]
+AnimationSpeed=2
+Backend=OpenGL
+Enabled=true
+GLCore=true
+GLPreferBufferSwap=a
+GLTextureFilter=1
+HiddenPreviews=5
+OpenGLIsUnsafe=false
+WindowsBlockCompositing=true
+XRenderSmoothScale=false
 
 [Desktops]
-Name_2=工作区 2
+Name_1=1
+Name_2=2
 Number=2
 Rows=1
 
-[org.kde.kdecoration2]
-BorderSize=Normal
-ButtonsOnLeft=
-ButtonsOnRight=HIAX
-library=org.kde.kwin.aurorae
-theme=__aurorae__svg__deepin
-
-[Effect-FlipSwitch]
-TabBox=false
-TabBoxAlternative=false
+[Effect-Blur]
+BlurStrength=12
+NoiseStrength=7
 
 [Effect-CoverSwitch]
 TabBox=false
 TabBoxAlternative=false
-
-[TabBox]
-ActivitiesMode=1
-ApplicationsMode=0
-DesktopMode=1
-HighlightWindows=true
-LayoutName=thumbnail_grid
-MinimizedMode=0
-MultiScreenMode=0
-ShowDesktopMode=0
-ShowTabBox=true
-SwitchingMode=0
-BorderActivate=9
-BorderAlternativeActivate=9
 
 [Effect-Cube]
 BorderActivate=9
 BorderActivateCylinder=9
 BorderActivateSphere=9
 
+[Effect-CubeSlide]
+RotationDuration=800
+
 [Effect-DesktopGrid]
 BorderActivate=9
+
+[Effect-FlipSwitch]
+TabBox=false
+TabBoxAlternative=false
+
+[Effect-Glide]
+Duration=150
+
+[Effect-MagicLamp]
+AnimationDuration=300
 
 [Effect-PresentWindows]
 BorderActivate=9
 BorderActivateAll=9
 BorderActivateClass=9
+
+[Effect-Slide]
+Duration=700
+SlideBackground=false
+
+[Effect-Wobbly]
+AdvancedMode=true
+Drag=55
+MoveFactor=7
+ResizeWobble=false
+Stiffness=35
+
+[Effect-kwin4_effect_scale]
+Duration=400
+InScale=0.1
+OutScale=0.8
+
+[Effect-kwin4_effect_translucency]
+MoveResize=81
 
 [ElectricBorders]
 Bottom=None
@@ -63,23 +79,110 @@ Top=None
 TopLeft=None
 TopRight=None
 
-[Compositing]
-#窗口最小化后也保持map状态
-HiddenPreviews=6
+[MouseBindings]
+CommandActiveTitlebar1=Raise
+CommandActiveTitlebar2=Start window tab drag
+CommandActiveTitlebar3=Operations menu
+CommandAll1=Move
+CommandAll2=Toggle raise and lower
+CommandAll3=Resize
+CommandAllKey=Alt
+CommandAllWheel=Nothing
+CommandInactiveTitlebar1=Activate and raise
+CommandInactiveTitlebar2=Start window tab drag
+CommandInactiveTitlebar3=Operations menu
+CommandTitlebarWheel=Switch to Window Tab to the Left/Right
+CommandWindow1=Activate, raise and pass click
+CommandWindow2=Activate and pass click
+CommandWindow3=Activate and pass click
+CommandWindowWheel=Scroll
+
+[Plugins]
+blurEnabled=true
+closewindowactionEnabled=false
+colorpickerEnabled=false
+contrastEnabled=false
+ddelauncherEnabled=true
+ddeshortcutsEnabled=true
+desktopchangeosdEnabled=true
+desktopgridEnabled=false
+enforcedecoEnabled=false
+gtkframeEnabled=false
+highlightwindowEnabled=false
+kscreenEnabled=false
+kwin4_effect_cooleffectEnabled=false
+kwin4_effect_dialogparentEnabled=false
+kwin4_effect_morphingpopupsEnabled=false
+kwin4_effect_translucencyEnabled=false
+kwin4_effect_windowapertureEnabled[$d]
+minimizeallEnabled=true
+minimizeanimationEnabled=true
+presentwindowsEnabled=false
+runcommandactionEnabled=true
+screenshotEnabled=false
+slidingpopupsEnabled=false
+startupfeedbackEnabled=false
+synchronizeskipswitcherEnabled=false
+videowallEnabled=false
+windowgeometryEnabled=false
+
+[Script-closewindowaction]
+BorderActivate=
+
+[Script-desktopchangeosd]
+PopupHideDelay=700
+TextOnly=true
+
+[Script-runcommandaction]
+Border3Program=dbus-send --print-reply --dest=com.deepin.dde.ControlCenter /com/deepin/dde/ControlCenter com.deepin.dde.ControlCenter.Toggle
+BorderActivate=,3
+
+[TabBox]
+ActivitiesMode=1
+ApplicationsMode=0
+BorderActivate=9
+BorderAlternativeActivate=9
+DesktopMode=1
+HighlightWindows=true
+LayoutName=thumbnail_grid
+MinimizedMode=0
+MultiScreenMode=0
+ShowDesktopMode=0
+ShowTabBox=true
+SwitchingMode=0
 
 [Windows]
-#设置焦点检测策略为最低级，防止由于kwin在窗口获取焦点时比较的严格的检查而导致的窗口无法获取到焦点
-FocusStealingPreventionLevel=0
-#禁止在inactive时自动隐藏Utilty类型的窗口，如Qt::Tool/Qt::Drawer类型的Qt窗口
-#将导致窗口flags为
-#Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Drawer | Qt::WindowStaysOnTopHint
-#的窗口无法同时显示多个
-HideUtilityWindowsForInactive=false
+ActiveMouseScreen=false
+AutoRaise=false
+AutoRaiseInterval=750
+AutogroupInForeground=true
+AutogroupSimilarWindows=false
+BorderSnapZone=10
+CenterSnapZone=0
+ClickRaise=true
+DelayFocusInterval=300
+FocusPolicy=ClickToFocus
+FocusStealingPreventionLevel=1
+GeometryTip=false
+HideUtilityWindowsForInactive=true
+InactiveTabsSkipTaskbar=false
+MaximizeButtonLeftClickCommand=Maximize
+MaximizeButtonMiddleClickCommand=Maximize (vertical only)
+MaximizeButtonRightClickCommand=Maximize (horizontal only)
+NextFocusPrefersMouse=false
+Placement=Centered
+RollOverDesktops=true
+SeparateScreenFocus=false
+ShadeHover=false
+ShadeHoverInterval=250
+SnapOnlyWhenOverlapping=false
+TitlebarDoubleClickCommand=Maximize
+WindowSnapZone=10
 
-[MouseBindings]
-#禁用Alt+鼠标左键移动窗口
-CommandAll1=Nothing
-#禁用Alt+鼠标中键改变窗口层叠顺序的功能
-CommandAll2=Nothing
-#禁用Alt+鼠标右键绑定的改变窗口大小的功能
-CommandAll3=Nothing
+[org.kde.kdecoration2]
+BorderSize=Normal
+ButtonsOnLeft=
+ButtonsOnRight=HIAX
+CloseOnDoubleClickOnMenu=false
+library=org.kde.breeze
+theme=
