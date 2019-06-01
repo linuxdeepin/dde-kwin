@@ -84,8 +84,8 @@ public:
     typedef QExplicitlySharedDataPointer<const ConfigGroup> ConfigGroupPtr;
 
     static ChameleonTheme *instance();
-    static bool loadTheme(ConfigGroup *configs, ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList);
-    static ConfigGroupPtr getBaseConfig(ThemeType type, const QList<QDir> themeDirList);
+    static ConfigGroupPtr loadTheme(ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList);
+    static ConfigGroupPtr getBaseConfig(ThemeType type, const QList<QDir> &themeDirList);
     static QString typeString(ThemeType type);
     static ThemeType typeFromString(const QString &type);
 

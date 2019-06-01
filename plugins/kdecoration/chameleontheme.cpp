@@ -26,6 +26,7 @@
 #include <QDebug>
 
 #define BASE_THEME "deepin"
+#define BASE_THEME_DIR ":/deepin/themes"
 
 static QPair<qreal, qreal> takePair(const QVariant &value, const QPair<qreal, qreal> defaultValue)
 {
@@ -146,13 +147,21 @@ static void writeTitlebarConfig(const QSettings &setting, ChameleonTheme::TitleB
 static void writeConfig(QSettings &setting_decoration, QSettings &setting_titlebar, const QString &group,
                         ChameleonTheme::Config &config, const ChameleonTheme::Config *base = nullptr)
 {
-    setting_decoration.beginGroup(group);
-    writeDecorationConfig(setting_decoration, config.decoration, base ? &base->decoration : nullptr);
-    setting_decoration.endGroup();
+    if (base && !QFile::exists(setting_decoration.fileName())) {
+        config.decoration = base->decoration;
+    } else {
+        setting_decoration.beginGroup(group);
+        writeDecorationConfig(setting_decoration, config.decoration, base ? &base->decoration : nullptr);
+        setting_decoration.endGroup();
+    }
 
-    setting_titlebar.beginGroup(group);
-    writeTitlebarConfig(setting_titlebar, config.titlebar, base ? &base->titlebar : nullptr);
-    setting_titlebar.endGroup();
+    if (base && !QFile::exists(setting_titlebar.fileName())) {
+        config.titlebar = base->titlebar;
+    } else {
+        setting_titlebar.beginGroup(group);
+        writeTitlebarConfig(setting_titlebar, config.titlebar, base ? &base->titlebar : nullptr);
+        setting_titlebar.endGroup();
+    }
 }
 
 class _ChameleonTheme : public ChameleonTheme {
@@ -167,12 +176,12 @@ ChameleonTheme *ChameleonTheme::instance()
 }
 
 static bool loadTheme(ChameleonTheme::ConfigGroup *configs, const ChameleonTheme::ConfigGroup *base,
-                      ChameleonTheme::ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList)
+                      ChameleonTheme::ThemeType themeType, const QString &themeName, const QList<QDir> &themeDirList)
 {
     QDir theme_dir("/");
 
     for (const QDir &dir : themeDirList) {
-        for (const QFileInfo &info : dir.entryInfoList(QDir::Dirs)) {
+        for (const QFileInfo &info : dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot)) {
             if (info.fileName() == themeName) {
                 theme_dir.setPath(info.filePath());
                 break;
@@ -201,20 +210,37 @@ static bool loadTheme(ChameleonTheme::ConfigGroup *configs, const ChameleonTheme
     return true;
 }
 
-bool ChameleonTheme::loadTheme(ConfigGroup *configs, ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList)
+ChameleonTheme::ConfigGroupPtr ChameleonTheme::loadTheme(ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList)
 {
-    return ::loadTheme(configs, getBaseConfig(themeType, themeDirList).data(), themeType, themeName, themeDirList);
+    auto base = getBaseConfig(themeType, themeDirList);
+
+    if (themeName == BASE_THEME)
+        return base;
+
+    ConfigGroup *new_config = new ConfigGroup();
+    bool ok = ::loadTheme(new_config, base.data(), themeType, themeName, themeDirList);
+
+    if (ok) {
+        return ConfigGroupPtr(new_config);
+    } else {
+        delete new_config;
+    }
+
+    return ConfigGroupPtr(nullptr);
 }
 
-ChameleonTheme::ConfigGroupPtr ChameleonTheme::getBaseConfig(ChameleonTheme::ThemeType type, const QList<QDir> themeDirList)
+ChameleonTheme::ConfigGroupPtr ChameleonTheme::getBaseConfig(ChameleonTheme::ThemeType type, const QList<QDir> &themeDirList)
 {
     static ConfigGroupPtr base_configs[ThemeTypeCount];
 
     if (!base_configs[type]) {
+        ConfigGroup *base = new ConfigGroup();
+        // 先从默认路径加载最基本的主题
+        ::loadTheme(base, nullptr, type, BASE_THEME, {QDir(BASE_THEME_DIR)});
+        // 再尝试从其它路径加载主题，以允许基本主题中的值可以被外界覆盖
+        ::loadTheme(base, base, type, BASE_THEME, themeDirList);
         // 将对应类型的基础主题缓存
-        ConfigGroup *configs = new ConfigGroup();
-        ::loadTheme(configs, nullptr, type, BASE_THEME, themeDirList);
-        base_configs[type] = configs;
+        base_configs[type] = base;
     }
 
     return base_configs[type];
@@ -244,21 +270,15 @@ bool ChameleonTheme::setTheme(ThemeType type, const QString &theme)
     if (m_type == type && m_theme == theme)
         return true;
 
-    m_type = type;
-    m_theme = theme;
+    ConfigGroupPtr configs = loadTheme(type, theme, m_themeDirList);
 
-    if (m_theme == BASE_THEME) {
-        m_configGroup = getBaseConfig(type, m_themeDirList);
-
-        return true;
+    if (configs) {
+        m_type = type;
+        m_theme = theme;
+        m_configGroup = configs;
     }
 
-    ConfigGroup *configs = new ConfigGroup();
-
-    bool ok = loadTheme(configs, type, m_theme, m_themeDirList);
-    m_configGroup = configs;
-
-    return ok;
+    return configs;
 }
 
 ChameleonTheme::ConfigGroupPtr ChameleonTheme::getThemeConfig(WId windowId) const
@@ -269,7 +289,6 @@ ChameleonTheme::ConfigGroupPtr ChameleonTheme::getThemeConfig(WId windowId) cons
 }
 
 ChameleonTheme::ChameleonTheme()
-    : m_themeDirList({QDir(":/deepin/themes")})
 {
     for (const QString &data_path : QStandardPaths::locateAll(QStandardPaths::GenericDataLocation,
                                                               "deepin/themes",
