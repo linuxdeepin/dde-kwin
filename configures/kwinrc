@@ -15,8 +15,8 @@ Rows=1
 BorderSize=Normal
 ButtonsOnLeft=
 ButtonsOnRight=HIAX
-library=org.kde.kwin.aurorae
-theme=__aurorae__svg__deepin
+library=com.deepin.chameleon
+theme=
 
 [Effect-FlipSwitch]
 TabBox=false
