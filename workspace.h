@@ -307,6 +307,7 @@ public:
 
     void setShowingDesktop(bool showing);
     bool showingDesktop() const;
+    xcb_timestamp_t showingDesktopTimestamp() const;
 
     Q_SLOT void setPreviewClientList(const QList<AbstractClient *> &list);
     Q_SLOT bool previewingClientList() const;
@@ -577,6 +578,7 @@ private:
     QList<AbstractClient*> attention_chain;
 
     bool showing_desktop;
+    xcb_timestamp_t showing_desktop_timestamp;
     QList<AbstractClient*> previewClients;
 
     GroupList groups;
@@ -722,6 +724,11 @@ inline bool Workspace::sessionSaving() const
 inline bool Workspace::showingDesktop() const
 {
     return showing_desktop;
+}
+
+inline xcb_timestamp_t Workspace::showingDesktopTimestamp() const
+{
+    return showing_desktop_timestamp;
 }
 
 inline bool Workspace::globalShortcutsDisabled() const
