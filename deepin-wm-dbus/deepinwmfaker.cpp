@@ -153,6 +153,20 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
 
     QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface,
                                           "compositingToggled", "b", this, SLOT(wmCompositingEnabledChanged(bool)));
+
+    // 迁移旧的标题栏主题插件配置
+    KConfigGroup decoration_group(m_kwinConfig, "org.kde.kdecoration2");
+
+    if (decoration_group.readEntry("library", QString()) == "org.kde.kwin.aurorae") {
+        const QString &theme = decoration_group.readEntry("theme", QString());
+
+        // 自动将旧的主题更新为新的插件配置项
+        if (theme == "__aurorae__svg__deepin") {
+            SetDecorationDeepinTheme("light");
+        } else if (theme == "__aurorae__svg__deepin-dark") {
+            SetDecorationDeepinTheme("dark");
+        }
+    }
 }
 
 DeepinWMFaker::~DeepinWMFaker()
