@@ -310,8 +310,7 @@ void Workspace::activateClient(AbstractClient* c, bool force)
         --block_focus;
     }
 #endif
-    if (c->isMinimized())
-        c->unminimize();
+    c->unminimize();
 
     // ensure the window is really visible - could eg. be a hidden utility window, see bug #348083
     c->hideClient(false);

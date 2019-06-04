@@ -705,6 +705,9 @@ void AbstractClient::minimize(bool avoid_animation)
 
 void AbstractClient::unminimize(bool avoid_animation)
 {
+    // 清理预览窗口时设置的属性，防止在预览结束后窗口被最小化
+    setProperty("__deepin_kwin_minimized", QVariant());
+
     if (!isMinimized())
         return;
 

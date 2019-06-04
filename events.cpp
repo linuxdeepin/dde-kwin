@@ -599,8 +599,7 @@ bool Client::mapRequestEvent(xcb_map_request_event_t *e)
         return true; // no messing with frame etc.
     }
     // also copied in clientMessage()
-    if (isMinimized())
-        unminimize();
+    unminimize();
     if (isShade())
         setShade(ShadeNone);
     if (!isOnCurrentDesktop()) {
