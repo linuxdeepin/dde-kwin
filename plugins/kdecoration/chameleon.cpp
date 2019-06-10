@@ -32,6 +32,8 @@
 #include <KConfigCore/KConfig>
 #include <KConfigCore/KConfigGroup>
 
+#include <kwineffects.h>
+
 #include <QObject>
 #include <QPainter>
 #include <QDebug>
@@ -40,6 +42,7 @@
 
 Chameleon::Chameleon(QObject *parent, const QVariantList &args)
     : KDecoration2::Decoration(parent, args)
+    , m_client(parent)
 {
 
 }
@@ -52,7 +55,8 @@ void Chameleon::init()
     auto c = client().data();
 
 #ifndef DISBLE_DDE_KWIN_XCB
-    m_client = KWinUtils::findClient(KWinUtils::Predicate::WindowMatch, c->windowId());
+    if (!m_client)
+        m_client = KWinUtils::findClient(KWinUtils::Predicate::WindowMatch, c->windowId());
 #endif
     initButtons();
 
@@ -93,7 +97,8 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
     {
         qreal border_width = borderWidth();
 
-        if (!qIsNull(border_width)) {
+        // 支持alpha通道时在阴影上绘制border
+        if (!qIsNull(border_width) && !s->isAlphaChannelSupported()) {
             painter->setPen(QPen(m_config->decoration.borderColor, border_width, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
             painter->drawPath(m_borderPath);
         }
@@ -134,6 +139,11 @@ QMarginsF Chameleon::mouseInputAreaMargins() const
 QColor Chameleon::shadowColor() const
 {
     return m_config->decoration.shadowColor;
+}
+
+QColor Chameleon::borderColor() const
+{
+    return m_config->decoration.borderColor;
 }
 
 QIcon Chameleon::menuIcon() const
@@ -345,7 +355,8 @@ void Chameleon::updateTitleBarArea()
     m_titleBarAreaMargins.setRight(0);
     m_titleBarAreaMargins.setBottom(0);
 
-    qreal border_width = borderWidth();
+    // 支持alpha通道时在阴影上绘制边框，因此不需要关心边框宽度
+    qreal border_width = settings()->isAlphaChannelSupported() ? 0 : borderWidth();
     qreal titlebar_height = titleBarHeight();
 
     switch (m_config->titlebar.area) {
@@ -384,6 +395,13 @@ void Chameleon::updateTitleBarArea()
     updateButtonsGeometry();
 }
 
+enum EffectDataRole {
+    BaseRole = KWin::DataRole::LanczosCacheRole + 100,
+    WindowRadiusRole = BaseRole + 1,
+    WindowClipPathRole = BaseRole + 2,
+    WindowMaskTextureRole = BaseRole + 3
+};
+
 void Chameleon::updateBorderPath()
 {
     auto c = client().data();
@@ -392,12 +410,44 @@ void Chameleon::updateBorderPath()
     client_rect.moveTopLeft(QPointF(0, 0));
 
     QPainterPath path;
+    KWin::EffectWindow *effect = nullptr;
+
+    if (m_client) {
+        effect = m_client->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
+    }
 
     if (windowNeedRadius()) {
         auto window_radius = windowRadius();
         path.addRoundedRect(client_rect, window_radius.first, window_radius.second);
+
+        if (effect) {
+            const QVariant &effect_window_radius = effect->data(EffectDataRole::WindowRadiusRole);
+            bool need_update = true;
+
+            if (effect_window_radius.isValid()) {
+                auto old_window_radius = qvariant_cast<QPair<qreal, qreal>>(effect_window_radius);
+
+                if (old_window_radius == window_radius) {
+                    need_update = false;
+                }
+            }
+
+            if (need_update) {
+                // 清理已缓存的旧的窗口mask材质
+                effect->setData(EffectDataRole::WindowMaskTextureRole, QVariant());
+                // 设置新的窗口圆角
+                effect->setData(EffectDataRole::WindowRadiusRole, QVariant::fromValue(window_radius));
+            }
+        }
     } else {
         path.addRect(client_rect);
+
+        if (effect) {
+            // 清理已缓存的旧的窗口mask材质
+            effect->setData(EffectDataRole::WindowMaskTextureRole, QVariant());
+            // 清理窗口圆角的设置
+            effect->setData(EffectDataRole::WindowRadiusRole, QVariant());
+        }
     }
 
     m_borderPath = path;

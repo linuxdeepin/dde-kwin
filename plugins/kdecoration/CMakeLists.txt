@@ -5,9 +5,10 @@ add_definitions(-DTARGET_NAME=\\"${TARGET_NAME}\\")
 find_package(Qt5 CONFIG REQUIRED COMPONENTS Core)
 find_package(KF5CoreAddons REQUIRED)
 find_package(KF5Config REQUIRED)
+find_package(KF5WindowSystem REQUIRED)
 find_package(KDecoration2 REQUIRED)
 
-option(USE_LIB_KWIN_XCB "Use libkwin-xcb" OFF)
+option(DISABLE_LIB_KWIN_XCB "Don't use libkwin-xcb" OFF)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -30,13 +31,14 @@ target_link_libraries(
     KDecoration2::KDecoration
     KF5::CoreAddons
     KF5::ConfigCore
+    KF5::WindowSystem
 )
 
-if (USE_LIB_KWIN_XCB)
+if (DISABLE_LIB_KWIN_XCB)
+    add_definitions(-DDISBLE_DDE_KWIN_XCB)
+else()
     include_directories(../kwin-xcb/lib)
     target_link_libraries(${TARGET_NAME} kwin-xcb)
-else()
-    add_definitions(-DDISBLE_DDE_KWIN_XCB)
 endif()
 
 install(TARGETS ${TARGET_NAME} DESTINATION ${QT_INSTALL_PLUGINS}/org.kde.kdecoration2)

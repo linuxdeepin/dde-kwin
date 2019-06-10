@@ -49,6 +49,7 @@ public:
     QMarginsF mouseInputAreaMargins() const;
 
     QColor shadowColor() const;
+    QColor borderColor() const;
 
     QIcon menuIcon() const;
     QIcon minimizeIcon() const;
