@@ -18,15 +18,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "scissorwindow.h"
 
-#include "chameleon.h"
+class ScissorWindowPluginFactory : public KWin::EffectPluginFactory
+{
+    Q_OBJECT
+    Q_INTERFACES(KPluginFactory)
+    Q_PLUGIN_METADATA(IID KPluginFactory_iid FILE "scissor-window.json")
 
-#include <KPluginFactory>
+public:
+    explicit ScissorWindowPluginFactory();
+    ~ScissorWindowPluginFactory();
 
-K_PLUGIN_FACTORY_WITH_JSON(
-    ChameleonDecoFactory,
-    "chameleon.json",
-    registerPlugin<Chameleon>();
-)
+    KWin::Effect *createEffect() const {
+        return new ScissorWindow();
+    }
+};
+
+K_PLUGIN_FACTORY_DEFINITION(ScissorWindowPluginFactory, registerPlugin<ScissorWindow>();)
+K_EXPORT_PLUGIN_VERSION(KWIN_EFFECT_API_VERSION)
 
 #include "main.moc"

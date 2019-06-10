@@ -39,14 +39,17 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
     auto shadow_offset = client->shadowOffset();
     QColor shadow_color = client->shadowColor();
     int shadow_size = client->shadowRadius();
+    qreal border_width = client->borderWidth();
+    QColor border_color = client->borderColor();
 
     const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.first,
                                         shadow_size - shadow_offset.y() - window_radius.second,
                                         shadow_size - window_radius.first,
                                         shadow_size - window_radius.second);
-    const QString key = QString("%1_%2.%3_%4_%5_%6.%7").arg(qRound(window_radius.first)).arg(qRound(window_radius.second))
+    const QString key = QString("%1_%2.%3_%4_%5_%6.%7.%8.%9").arg(qRound(window_radius.first)).arg(qRound(window_radius.second))
                                                        .arg(paddings.left()).arg(paddings.top()).arg(paddings.right()).arg(paddings.bottom())
-                                                       .arg(shadow_color.name(QColor::HexArgb));
+                                                       .arg(shadow_color.name(QColor::HexArgb))
+                                                       .arg(border_width).arg(border_color.name());
     auto shadow = m_shadowCache.value(key);
 
     if (!shadow) {
@@ -89,6 +92,11 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
         painter.setPen(Qt::NoPen);
         painter.setBrush(Qt::black);
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+        painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+        // border
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.setPen(QPen(border_color, border_width));
+        painter.setBrush(Qt::NoBrush);
         painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
         painter.end();
 

@@ -18,15 +18,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef SCISSORWINDOW_H
+#define SCISSORWINDOW_H
 
-#include "chameleon.h"
+#include <kwineffects.h>
 
-#include <KPluginFactory>
+class ScissorWindow : public KWin::Effect
+{
+    Q_OBJECT
+public:
+    enum DataRole {
+        BaseRole = KWin::DataRole::LanczosCacheRole + 100,
+        WindowRadiusRole = BaseRole + 1,
+        WindowClipPathRole = BaseRole + 2,
+        WindowMaskTextureRole = BaseRole + 3,
+        WindowDepthRole = BaseRole + 4
+    };
 
-K_PLUGIN_FACTORY_WITH_JSON(
-    ChameleonDecoFactory,
-    "chameleon.json",
-    registerPlugin<Chameleon>();
-)
+    explicit ScissorWindow(QObject *parent = nullptr, const QVariantList &args = QVariantList());
 
-#include "main.moc"
+    void drawWindow(KWin::EffectWindow* w, int mask, QRegion region, KWin::WindowPaintData& data) override;
+
+private:
+    KWin::GLShader *m_shader = nullptr;
+    KWin::GLShader *m_fullMaskShader = nullptr;
+};
+
+#endif // SCISSORWINDOW_H

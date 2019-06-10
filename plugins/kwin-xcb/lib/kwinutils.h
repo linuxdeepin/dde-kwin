@@ -65,11 +65,13 @@ public:
     static QObjectList clientList();
     static QObject *findClient(Predicate predicate, quint32 window);
     static void clientUpdateCursor(QObject *client);
+    static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
 
     static QFunctionPointer resolve(const char *symbol);
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
+    static int getWindowDepth(const QObject *client);
 
     static uint virtualDesktopCount();
     static uint currentVirtualDesktop();

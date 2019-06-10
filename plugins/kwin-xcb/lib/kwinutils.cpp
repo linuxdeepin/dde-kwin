@@ -218,6 +218,7 @@ class KWinInterface
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ClientUpdateCursor)(void *);
+    typedef void (*ClientSetDepth)(void*, int);
     typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
     typedef KWin::Options::WindowOperation (*OptionsWindowOperation)(const QString &, bool);
@@ -228,6 +229,7 @@ public:
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
+        clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor12getX11CursorEN2Qt11CursorShapeE");
         optionsWindowOperation = (OptionsWindowOperation)KWinUtils::resolve("_ZN4KWin7Options15windowOperationERK7QStringb");
@@ -237,6 +239,7 @@ public:
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     ClientUpdateCursor clientUpdateCursor;
+    ClientSetDepth clientSetDepth;
     QuickTileWindow quickTileWindow;
     X11CursorGetCursor x11CursorGetCursor;
     OptionsWindowOperation optionsWindowOperation;
@@ -360,6 +363,13 @@ void KWinUtils::clientUpdateCursor(QObject *client)
     }
 }
 
+void KWinUtils::setClientDepth(QObject *client, int depth)
+{
+    if (interface->clientSetDepth) {
+        interface->clientSetDepth(client, depth);
+    }
+}
+
 void KWinUtils::defineWindowCursor(quint32 window, Qt::CursorShape cshape)
 {
     if (window == XCB_WINDOW_NONE)
@@ -393,6 +403,28 @@ qulonglong KWinUtils::getWindowId(const QObject *client, bool *ok)
 {
     // kwin class: Toplevel
     return client->property("windowId").toLongLong(ok);
+}
+
+int KWinUtils::getWindowDepth(const QObject *client)
+{
+    bool ok = false;
+    xcb_window_t win_id = getWindowId(client, &ok);
+
+    if (!ok)
+        return 0;
+
+    xcb_get_geometry_cookie_t cookit = xcb_get_geometry(QX11Info::connection(), win_id);
+    xcb_generic_error_t *error = nullptr;
+    xcb_get_geometry_reply_t *reply = xcb_get_geometry_reply(QX11Info::connection(), cookit, &error);
+
+    if (error) {
+        return 0;
+    }
+
+    int depth = reply->depth;
+    free(reply);
+
+    return depth;
 }
 
 uint KWinUtils::virtualDesktopCount()
