@@ -25,6 +25,7 @@
 #include <QDebug>
 #include <QX11Info>
 #include <QMargins>
+#include <QDateTime>
 
 // 为了访问 KWinEffects 的保护成员变量
 #define protected public
@@ -166,6 +167,26 @@ static xcb_atom_t internAtom(const char *name, bool only_if_exists)
     return atom;
 }
 
+static QByteArray atomName(xcb_atom_t atom)
+{
+    if (!atom)
+        return QByteArray();
+
+    xcb_generic_error_t *error = 0;
+    xcb_get_atom_name_cookie_t cookie = xcb_get_atom_name(QX11Info::connection(), atom);
+    xcb_get_atom_name_reply_t *reply = xcb_get_atom_name_reply(QX11Info::connection(), cookie, &error);
+    if (error) {
+        qWarning() << "atomName: bad Atom" << atom;
+        free(error);
+    }
+    if (reply) {
+        QByteArray result(xcb_get_atom_name_name(reply), xcb_get_atom_name_name_length(reply));
+        free(reply);
+        return result;
+    }
+    return QByteArray();
+}
+
 static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom)
 {
     QByteArray data;
@@ -194,6 +215,12 @@ static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom
     } while (remaining > 0);
 
     return data;
+}
+
+static void setWindowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom, int format, const QByteArray &data)
+{
+    xcb_connection_t* conn = QX11Info::connection();
+    xcb_change_property(conn, XCB_PROP_MODE_REPLACE, WId, propAtom, typeAtom, format, data.length() * 8 / format, data.constData());
 }
 
 static xcb_window_t getParentWindow(xcb_window_t WId)
@@ -248,8 +275,72 @@ public:
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
 
+class KWinUtilsPrivate
+{
+public:
+    KWinUtilsPrivate() {
+        _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
+    }
+
+    void updateWMSupported(xcb_atom_t remove) {
+        if (remove == XCB_NONE && wmSupportedList.isEmpty()) {
+            return;
+        }
+
+        QByteArray net_wm_atoms = windowProperty(QX11Info::appRootWindow(), _NET_SUPPORTED, XCB_ATOM_ATOM);
+        QVector<xcb_atom_t> atom_list;
+
+        atom_list.resize(net_wm_atoms.size() / sizeof(xcb_atom_t));
+        memcpy(atom_list.data(), net_wm_atoms.constData(), net_wm_atoms.size());
+
+        if (remove != XCB_NONE) {
+            if (atom_list.removeAll(remove) > 0) {
+                xcb_change_property(QX11Info::connection(), XCB_PROP_MODE_REPLACE, QX11Info::appRootWindow(),
+                                    _NET_SUPPORTED, XCB_ATOM_ATOM, 32, atom_list.size(), atom_list.constData());
+            }
+
+            return;
+        }
+
+        QVector<xcb_atom_t> new_atoms;
+
+        for (xcb_atom_t atom : wmSupportedList) {
+            if (!atom_list.contains(atom)) {
+                new_atoms.append(atom);;
+            }
+        }
+
+        if (!new_atoms.isEmpty()) {
+            xcb_change_property(QX11Info::connection(), XCB_PROP_MODE_APPEND, QX11Info::appRootWindow(),
+                                _NET_SUPPORTED, XCB_ATOM_ATOM, 32, new_atoms.size(), new_atoms.constData());
+        }
+    }
+
+    void _d_onPropertyChanged(long atom) {
+        if (atom != _NET_SUPPORTED)
+            return;
+
+        quint64 current_time = QDateTime::currentMSecsSinceEpoch();
+
+        // 防止被短时间内多次调用形成死循环
+        if (current_time - lastUpdateTime < 500) {
+            lastUpdateTime = current_time;
+            return;
+        } else {
+            lastUpdateTime = current_time;
+        }
+
+        updateWMSupported(XCB_NONE);
+    }
+
+    QList<xcb_atom_t> wmSupportedList;
+    xcb_atom_t _NET_SUPPORTED;
+    qint64 lastUpdateTime = 0;
+};
+
 KWinUtils::KWinUtils(QObject *parent)
     : QObject(parent)
+    , d(new KWinUtilsPrivate)
 {
 #ifdef KWIN_VERSION
     // 往右移动8位是为了排除 build version 字段
@@ -257,6 +348,10 @@ KWinUtils::KWinUtils(QObject *parent)
         qWarning() << QString("Build on kwin " KWIN_VERSION_STR " version, but run on kwin %1 version").arg(qApp->applicationVersion());
     }
 #endif
+
+    if (QObject *ws = workspace()) {
+        connect(ws, SIGNAL(propertyNotify(long)), this, SLOT(_d_onPropertyChanged(long)));
+    }
 }
 
 KWinUtils::~KWinUtils()
@@ -427,6 +522,30 @@ int KWinUtils::getWindowDepth(const QObject *client)
     return depth;
 }
 
+QByteArray KWinUtils::readWindowProperty(const QObject *client, quint32 atom, quint32 type)
+{
+    bool ok = false;
+    xcb_window_t wid = getWindowId(client, &ok);
+
+    if (!ok) {
+        return QByteArray();
+    }
+
+    return windowProperty(wid, atom, type);
+}
+
+void KWinUtils::setWindowProperty(const QObject *client, quint32 atom, quint32 type, int format, const QByteArray &data)
+{
+    bool ok = false;
+    xcb_window_t wid = getWindowId(client, &ok);
+
+    if (!ok) {
+        return;
+    }
+
+    ::setWindowProperty(wid, atom, type, format, data);
+}
+
 uint KWinUtils::virtualDesktopCount()
 {
     if (virtualDesktop()) {
@@ -546,6 +665,24 @@ QVariant KWinUtils::unmaximizeWindow(QObject *window) const
     }
 
     return Window::unmaximizeWindow(window);
+}
+
+void KWinUtils::addSupportedProperty(quint32 atom)
+{
+    if (d->wmSupportedList.contains(atom))
+        return;
+
+    d->wmSupportedList.append(atom);
+    d->updateWMSupported(XCB_NONE);
+}
+
+void KWinUtils::removeSupportedProperty(quint32 atom)
+{
+    if (!d->wmSupportedList.contains(atom))
+        return;
+
+    d->wmSupportedList.removeOne(atom);
+    d->updateWMSupported(atom);
 }
 
 void KWinUtils::WalkThroughWindows()
@@ -805,3 +942,5 @@ void KWinUtils::Window::performWindowOperation(QObject *window, const QString &o
     KWin::Options::WindowOperation op = interface->optionsWindowOperation(opName, restricted);
     QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::AbstractClient*, c), Q_ARG(KWin::Options::WindowOperation, op));
 }
+
+#include "moc_kwinutils.cpp"
