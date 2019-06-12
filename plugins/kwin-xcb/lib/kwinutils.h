@@ -29,6 +29,7 @@
 #define KWIN_VERSION KWIN_VERSION_CHECK(KWIN_VERSION_MAJ, KWIN_VERSION_MIN, KWIN_VERSION_PAT, KWIN_VERSION_BUI)
 #endif
 
+class KWinUtilsPrivate;
 class KWinUtils : public QObject
 {
     Q_OBJECT
@@ -72,6 +73,8 @@ public:
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
     static int getWindowDepth(const QObject *client);
+    static QByteArray readWindowProperty(const QObject *client, quint32 atom, quint32 type);
+    static void setWindowProperty(const QObject *client, quint32 atom, quint32 type, int format, const QByteArray &data);
 
     static uint virtualDesktopCount();
     static uint currentVirtualDesktop();
@@ -108,6 +111,9 @@ public:
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
     Q_INVOKABLE QVariant unmaximizeWindow(QObject *window) const;
 
+    Q_INVOKABLE void addSupportedProperty(quint32 atom);
+    Q_INVOKABLE void removeSupportedProperty(quint32 atom);
+
 public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();
@@ -119,6 +125,12 @@ public Q_SLOTS:
     void ShowWindowsView();
     void ResumeCompositor(int type);
     void SuspendCompositor(int type);
+
+protected:
+    KWinUtilsPrivate *d;
+
+private:
+    Q_PRIVATE_SLOT(d, void _d_onPropertyChanged(long))
 };
 
 #endif // KWINUTILS_H
