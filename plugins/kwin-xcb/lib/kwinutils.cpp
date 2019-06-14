@@ -220,7 +220,12 @@ static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom
 static void setWindowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom, int format, const QByteArray &data)
 {
     xcb_connection_t* conn = QX11Info::connection();
-    xcb_change_property(conn, XCB_PROP_MODE_REPLACE, WId, propAtom, typeAtom, format, data.length() * 8 / format, data.constData());
+
+    if (format == 0 && data.isEmpty()) {
+        xcb_delete_property(conn, WId, propAtom);
+    } else {
+        xcb_change_property(conn, XCB_PROP_MODE_REPLACE, WId, propAtom, typeAtom, format, data.length() * 8 / format, data.constData());
+    }
 }
 
 static xcb_window_t getParentWindow(xcb_window_t WId)
@@ -336,6 +341,7 @@ public:
     QList<xcb_atom_t> wmSupportedList;
     xcb_atom_t _NET_SUPPORTED;
     qint64 lastUpdateTime = 0;
+    bool initialized = false;
 };
 
 KWinUtils::KWinUtils(QObject *parent)
@@ -354,9 +360,26 @@ KWinUtils::KWinUtils(QObject *parent)
     }
 }
 
+void KWinUtils::setInitialized()
+{
+    if (d->initialized)
+        return;
+
+    d->initialized = true;
+
+    emit initialized();
+}
+
 KWinUtils::~KWinUtils()
 {
 
+}
+
+KWinUtils *KWinUtils::instance()
+{
+    static KWinUtils *self = new KWinUtils();
+
+    return self;
 }
 
 QObject *KWinUtils::findObjectByClassName(const QByteArray &name, const QObjectList &list)
@@ -420,6 +443,9 @@ class Client : public QObject
 
 QObjectList KWinUtils::clientList()
 {
+    if (!KWinUtils::scripting())
+        return {};
+
     const QObjectList scripting_children = KWinUtils::scripting()->children();
     QObject *jsWorkspaceWrapper = KWinUtils::findObjectByClassName(QByteArrayLiteral("KWin::QtScriptWorkspaceWrapper"), scripting_children);
 
@@ -683,6 +709,11 @@ void KWinUtils::removeSupportedProperty(quint32 atom)
 
     d->wmSupportedList.removeOne(atom);
     d->updateWMSupported(atom);
+}
+
+bool KWinUtils::isInitialized() const
+{
+    return d->initialized;
 }
 
 void KWinUtils::WalkThroughWindows()

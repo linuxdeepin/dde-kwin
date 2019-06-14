@@ -30,9 +30,11 @@
 #endif
 
 class KWinUtilsPrivate;
-class KWinUtils : public QObject
+class Q_DECL_EXPORT KWinUtils : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool initialized READ isInitialized)
+
 public:
     enum MaximizeMode {
         MaximizeRestore    = 0, ///< The window is not maximized in any direction.
@@ -49,9 +51,9 @@ public:
         InputIdMatch
     };
 
-    explicit KWinUtils(QObject *parent = nullptr);
     ~KWinUtils();
 
+    static KWinUtils *instance();
     static QObject *findObjectByClassName(const QByteArray &name, const QObjectList &list);
 
     static int kwinBuildVersion();
@@ -114,6 +116,8 @@ public:
     Q_INVOKABLE void addSupportedProperty(quint32 atom);
     Q_INVOKABLE void removeSupportedProperty(quint32 atom);
 
+    bool isInitialized() const;
+
 public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();
@@ -126,10 +130,18 @@ public Q_SLOTS:
     void ResumeCompositor(int type);
     void SuspendCompositor(int type);
 
+Q_SIGNALS:
+    void initialized();
+
 protected:
+    explicit KWinUtils(QObject *parent = nullptr);
+
     KWinUtilsPrivate *d;
 
 private:
+    void setInitialized();
+
+    friend class Mischievous;
     Q_PRIVATE_SLOT(d, void _d_onPropertyChanged(long))
 };
 

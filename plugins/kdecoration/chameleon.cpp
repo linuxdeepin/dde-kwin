@@ -21,6 +21,7 @@
 #include "chameleon.h"
 #include "chameleonshadow.h"
 #include "chameleonbutton.h"
+#include "chameleonconfig.h"
 #ifndef DISBLE_DDE_KWIN_XCB
 #include "kwinutils.h"
 #endif
@@ -60,10 +61,13 @@ void Chameleon::init()
 #endif
     initButtons();
 
+    // 要放到updateTheme调用之前初始化此对象
+    auto global_config = ChameleonConfig::instance();
+
     updateTheme();
     updateScreen();
 
-    connect(settings().data(), &KDecoration2::DecorationSettings::reconfigured, this, &Chameleon::updateTheme);
+    connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
     connect(settings().data(), &KDecoration2::DecorationSettings::alphaChannelSupportedChanged, this, &Chameleon::updateConfig);
     connect(c, &KDecoration2::DecoratedClient::activeChanged, this, &Chameleon::updateConfig);
     connect(c, &KDecoration2::DecoratedClient::widthChanged, this, &Chameleon::onClientWidthChanged);
@@ -103,6 +107,11 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
             painter->drawPath(m_borderPath);
         }
     }
+}
+
+const ChameleonTheme::Config *Chameleon::themeConfig() const
+{
+    return m_config;
 }
 
 qreal Chameleon::borderWidth() const
@@ -305,17 +314,6 @@ void Chameleon::updateScreenScale()
 void Chameleon::updateTheme()
 {
     auto c = client().data();
-
-    KConfig config("kwinrc", KConfig::SimpleConfig);
-    KConfigGroup group(&config, TARGET_NAME);
-
-    const QString &theme_info = group.readEntry("theme");
-    int split = theme_info.indexOf("/");
-
-    if (split > 0 && split < theme_info.size() - 1) {
-        ChameleonTheme::instance()->setTheme(ChameleonTheme::typeFromString(theme_info.left(split)), theme_info.mid(split + 1));
-    }
-
     auto config_group = ChameleonTheme::instance()->getThemeConfig(c->windowId());
 
     if (m_configGroup == config_group) {
@@ -457,8 +455,9 @@ void Chameleon::updateBorderPath()
 
 void Chameleon::updateShadow()
 {
-    if (settings()->isAlphaChannelSupported())
-        setShadow(ChameleonShadow::instance()->getShadow(this));
+    if (m_config && settings()->isAlphaChannelSupported()) {
+        setShadow(ChameleonShadow::instance()->getShadow(m_config, m_scale));
+    }
 }
 
 void Chameleon::onClientWidthChanged()

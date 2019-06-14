@@ -8,6 +8,9 @@ find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KDecoration2 REQUIRED)
 
+include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
+include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
+
 option(DISABLE_LIB_KWIN_XCB "Don't use libkwin-xcb" OFF)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -20,6 +23,7 @@ add_library(
     chameleontheme.cpp
     chameleonbutton.cpp
     chameleonshadow.cpp
+    chameleonconfig.cpp
     themes.qrc
 )
 
