@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "chameleonshadow.h"
+#include "chameleontheme.h"
 
 #include <QPainter>
 #include <QDebug>
@@ -33,14 +34,14 @@ ChameleonShadow *ChameleonShadow::instance()
     return _global_cs;
 }
 
-QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const Chameleon *client)
+QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const ChameleonTheme::Config *config, qreal scale)
 {
-    auto window_radius = client->windowRadius();
-    auto shadow_offset = client->shadowOffset();
-    QColor shadow_color = client->shadowColor();
-    int shadow_size = client->shadowRadius();
-    qreal border_width = client->borderWidth();
-    QColor border_color = client->borderColor();
+    auto window_radius = qMakePair(config->decoration.windowRadius.first * scale, config->decoration.windowRadius.second * scale);
+    auto shadow_offset = config->decoration.shadowOffset;
+    QColor shadow_color = config->decoration.shadowColor;
+    int shadow_size = config->decoration.shadowRadius;
+    qreal border_width = config->decoration.borderWidth;
+    QColor border_color = config->decoration.borderColor;
 
     const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.first,
                                         shadow_size - shadow_offset.y() - window_radius.second,
@@ -92,13 +93,26 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
         painter.setPen(Qt::NoPen);
         painter.setBrush(Qt::black);
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-        painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+
+        if (window_radius.first >0 && window_radius.second > 0) {
+            painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+        } else {
+            painter.drawRect(innerRect);
+        }
         // border
-        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.setPen(QPen(border_color, border_width));
-        painter.setBrush(Qt::NoBrush);
-        painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
-        painter.end();
+        if (border_width > 0 && border_color.alpha() != 0) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            painter.setPen(QPen(border_color, border_width));
+            painter.setBrush(Qt::NoBrush);
+
+            if (window_radius.first >0 && window_radius.second > 0) {
+                painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+            } else {
+                painter.drawRect(innerRect);
+            }
+
+            painter.end();
+        }
 
         shadow = QSharedPointer<KDecoration2::DecorationShadow>::create();
         shadow->setPadding(paddings);
@@ -109,6 +123,11 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
     }
 
     return shadow;
+}
+
+void ChameleonShadow::clearCache()
+{
+    m_shadowCache.clear();
 }
 
 ChameleonShadow::ChameleonShadow()

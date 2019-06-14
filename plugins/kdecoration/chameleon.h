@@ -41,6 +41,8 @@ public:
 
     void paint(QPainter *painter, const QRect &repaintArea) override;
 
+    const ChameleonTheme::Config *themeConfig() const;
+
     qreal borderWidth() const;
     qreal titleBarHeight() const;
     qreal shadowRadius() const;

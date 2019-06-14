@@ -52,7 +52,7 @@ void RegisterDDESession()
 }
 
 class Mischievous;
-class  Mischievous : public QObject
+class Mischievous : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QObject *workspace READ workspace)
@@ -75,9 +75,7 @@ public:
 
     KWinUtils *kwinUtils() const
     {
-        static KWinUtils *utils = new KWinUtils(const_cast<Mischievous*>(this));
-
-        return utils;
+        return KWinUtils::instance();
     }
 
     Q_INVOKABLE QObject *require(const QString &module)
@@ -238,6 +236,9 @@ public slots:
                 ts_fallback_file.clear();
             }
         }
+
+        // 通知程序初始化完成
+        emit kwinUtils()->setInitialized();
     }
 
     void onExec() {

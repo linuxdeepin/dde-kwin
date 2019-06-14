@@ -21,7 +21,7 @@
 #ifndef CHAMELEONSHADOW_H
 #define CHAMELEONSHADOW_H
 
-#include "chameleon.h"
+#include "chameleontheme.h"
 
 #include <KDecoration2/DecorationShadow>
 
@@ -32,7 +32,9 @@ class ChameleonShadow
 public:
     static ChameleonShadow *instance();
 
-    QSharedPointer<KDecoration2::DecorationShadow> getShadow(const Chameleon *client);
+    QSharedPointer<KDecoration2::DecorationShadow> getShadow(const ChameleonTheme::Config *config, qreal scale);
+
+    void clearCache();
 
 protected:
     ChameleonShadow();
