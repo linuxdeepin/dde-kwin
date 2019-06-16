@@ -287,8 +287,8 @@ public:
         _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
     }
 
-    void updateWMSupported(xcb_atom_t remove) {
-        if (remove == XCB_NONE && wmSupportedList.isEmpty()) {
+    void updateWMSupported() {
+        if (wmSupportedList.isEmpty() && removedWMSupportedList.isEmpty()) {
             return;
         }
 
@@ -298,13 +298,21 @@ public:
         atom_list.resize(net_wm_atoms.size() / sizeof(xcb_atom_t));
         memcpy(atom_list.data(), net_wm_atoms.constData(), net_wm_atoms.size());
 
-        if (remove != XCB_NONE) {
-            if (atom_list.removeAll(remove) > 0) {
+        if (!removedWMSupportedList.isEmpty()) {
+            bool removed = false;
+
+            for (xcb_atom_t atom : removedWMSupportedList) {
+                if (atom_list.removeAll(atom) > 0) {
+                    removed = true;
+                }
+            }
+
+            if (removed) {
                 xcb_change_property(QX11Info::connection(), XCB_PROP_MODE_REPLACE, QX11Info::appRootWindow(),
                                     _NET_SUPPORTED, XCB_ATOM_ATOM, 32, atom_list.size(), atom_list.constData());
             }
 
-            return;
+            removedWMSupportedList.clear();
         }
 
         QVector<xcb_atom_t> new_atoms;
@@ -335,10 +343,11 @@ public:
             lastUpdateTime = current_time;
         }
 
-        updateWMSupported(XCB_NONE);
+        updateWMSupported();
     }
 
     QList<xcb_atom_t> wmSupportedList;
+    QList<xcb_atom_t> removedWMSupportedList;
     xcb_atom_t _NET_SUPPORTED;
     qint64 lastUpdateTime = 0;
     bool initialized = false;
@@ -409,6 +418,11 @@ int KWinUtils::kwinRuntimeVersion()
 QObject *KWinUtils::workspace()
 {
     return KWin::Workspace::_self;
+}
+
+QObject *KWinUtils::compositor()
+{
+    return KWin::Compositor::s_compositor;
 }
 
 QObject *KWinUtils::scripting()
@@ -590,6 +604,22 @@ uint KWinUtils::currentVirtualDesktop()
     return 0;
 }
 
+bool KWinUtils::compositorIsActive()
+{
+    QObject *c = compositor();
+
+    if (!c)
+        return false;
+
+    QObject *c_dbus = findObjectByClassName("KWin::CompositorDBusInterface", c->children());
+
+    if (!c_dbus) {
+        return QX11Info::isCompositingManagerRunning();
+    }
+
+    return c_dbus->property("active").toBool();
+}
+
 quint32 KWinUtils::getXcbAtom(const QString &name, bool only_if_exists) const
 {
     return internAtom(name.toLatin1().constData(), only_if_exists);
@@ -693,22 +723,26 @@ QVariant KWinUtils::unmaximizeWindow(QObject *window) const
     return Window::unmaximizeWindow(window);
 }
 
-void KWinUtils::addSupportedProperty(quint32 atom)
+void KWinUtils::addSupportedProperty(quint32 atom, bool enforce)
 {
     if (d->wmSupportedList.contains(atom))
         return;
 
     d->wmSupportedList.append(atom);
-    d->updateWMSupported(XCB_NONE);
+
+    if (enforce) {
+        d->updateWMSupported();
+    }
 }
 
-void KWinUtils::removeSupportedProperty(quint32 atom)
+void KWinUtils::removeSupportedProperty(quint32 atom, bool enforce)
 {
-    if (!d->wmSupportedList.contains(atom))
-        return;
-
     d->wmSupportedList.removeOne(atom);
-    d->updateWMSupported(atom);
+    d->removedWMSupportedList.append(atom);
+
+    if (enforce) {
+        d->updateWMSupported();
+    }
 }
 
 bool KWinUtils::isInitialized() const

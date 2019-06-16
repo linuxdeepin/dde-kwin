@@ -56,6 +56,21 @@ ChameleonConfig *ChameleonConfig::instance()
     return self;
 }
 
+quint32 ChameleonConfig::atomDeepinChameleon() const
+{
+    return m_atom_deepin_chameleon;
+}
+
+quint32 ChameleonConfig::atomDeepinNoTitlebar() const
+{
+    return m_atom_deepin_no_titlebar;
+}
+
+quint32 ChameleonConfig::atomDeepinScissorWindow() const
+{
+    return m_atom_deepin_scissor_window;
+}
+
 bool ChameleonConfig::isActivated() const
 {
     return m_activated;
@@ -122,6 +137,24 @@ void ChameleonConfig::onClientAdded(KWin::Client *client)
     buildKWinX11Shadow(c);
 }
 
+void ChameleonConfig::onCompositingToggled(bool active)
+{
+#ifndef DISBLE_DDE_KWIN_XCB
+    if (active && isActivated()) {
+        KWinUtils::instance()->addSupportedProperty(m_atom_deepin_scissor_window);
+    } else {
+        KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_scissor_window);
+    }
+#endif
+}
+
+void ChameleonConfig::onWindowPropertyChanged(KWin::EffectWindow *window, long atom)
+{
+    if (atom == m_atom_deepin_no_titlebar) {
+        emit windowNoTitlebarPropertyChanged(window);
+    }
+}
+
 void ChameleonConfig::updateClientX11Shadow()
 {
     buildKWinX11Shadow(QObject::sender());
@@ -132,8 +165,12 @@ void ChameleonConfig::init()
 #ifndef DISBLE_DDE_KWIN_XCB
     connect(KWinUtils::workspace(), SIGNAL(configChanged()), this, SLOT(onConfigChanged()));
     connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::Client*)), this, SLOT(onClientAdded(KWin::Client*)));
+    connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
+    connect(KWin::effects, &KWin::EffectsHandler::propertyNotify, this, &ChameleonConfig::onWindowPropertyChanged);
 
     m_atom_deepin_chameleon = KWinUtils::instance()->getXcbAtom(_DEEPIN_CHAMELEON, false);
+    m_atom_deepin_no_titlebar = KWinUtils::instance()->getXcbAtom(_DEEPIN_NO_TITLEBAR, false);
+    m_atom_deepin_scissor_window = KWinUtils::instance()->getXcbAtom(_DEEPIN_SCISSOR_WINDOW, false);
 #endif
     m_atom_kde_net_wm_shadow = KWinUtils::instance()->getXcbAtom(_KDE_NET_WM_SHADOW, false);
 
@@ -149,14 +186,25 @@ void ChameleonConfig::setActivated(bool active)
 
     if (active) {
 #ifndef DISBLE_DDE_KWIN_XCB
-        KWinUtils::instance()->addSupportedProperty(m_atom_deepin_chameleon);
+        KWinUtils::instance()->addSupportedProperty(m_atom_deepin_chameleon, false);
+        KWinUtils::instance()->addSupportedProperty(m_atom_deepin_no_titlebar, false);
+
+        if (KWinUtils::compositorIsActive())
+            KWinUtils::instance()->addSupportedProperty(m_atom_deepin_scissor_window);
 #endif
     } else {
 #ifndef DISBLE_DDE_KWIN_XCB
-        KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_chameleon);
+        KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_chameleon, false);
+        KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_no_titlebar, false);
+
+        if (KWinUtils::compositorIsActive())
+            KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_scissor_window);
 #endif
         ChameleonShadow::instance()->clearCache();
     }
+
+    // 注册监听此属性变化
+    KWin::effects->registerPropertyType(m_atom_deepin_no_titlebar, active);
 
     emit activatedChanged(active);
 }

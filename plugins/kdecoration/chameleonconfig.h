@@ -24,10 +24,13 @@
 #include <QObject>
 
 #define _DEEPIN_CHAMELEON "_DEEPIN_CHAMELEON_THEME"
+#define _DEEPIN_NO_TITLEBAR "_DEEPIN_NO_TITLEBAR"
+#define _DEEPIN_SCISSOR_WINDOW "_DEEPIN_SCISSOR_WINDOW"
 #define _KDE_NET_WM_SHADOW "_KDE_NET_WM_SHADOW"
 
 namespace KWin {
 class Client;
+class EffectWindow;
 }
 
 class X11Shadow;
@@ -40,6 +43,10 @@ class ChameleonConfig : public QObject
 public:
     static ChameleonConfig *instance();
 
+    quint32 atomDeepinChameleon() const;
+    quint32 atomDeepinNoTitlebar() const;
+    quint32 atomDeepinScissorWindow() const;
+
     bool isActivated() const;
 
     QString theme() const;
@@ -50,6 +57,7 @@ public slots:
 signals:
     void activatedChanged(bool activated);
     void themeChanged(QString theme);
+    void windowNoTitlebarPropertyChanged(KWin::EffectWindow *window);
 
 protected:
     explicit ChameleonConfig(QObject *parent = nullptr);
@@ -57,6 +65,9 @@ protected:
 private slots:
     void onConfigChanged();
     void onClientAdded(KWin::Client *client);
+    void onCompositingToggled(bool active);
+    void onWindowPropertyChanged(KWin::EffectWindow *window, long atom);
+
     void updateClientX11Shadow();
 
 private:
@@ -72,6 +83,8 @@ private:
     QString m_theme;
 #ifndef DISBLE_DDE_KWIN_XCB
     quint32 m_atom_deepin_chameleon;
+    quint32 m_atom_deepin_no_titlebar;
+    quint32 m_atom_deepin_scissor_window;
 #endif
     quint32 m_atom_kde_net_wm_shadow;
     X11Shadow *m_x11ShadowCache[2] = {nullptr};
