@@ -190,6 +190,30 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         return Effect::drawWindow(w, mask, region, data);
     }
 
+    QRegion corner_region;
+
+    if (!mask_texture->customMask) {
+        const QRect window_rect = w->geometry();
+        QRect corner_rect(window_rect.topLeft(), mask_texture->size);
+
+        // top left
+        corner_region += corner_rect;
+        // top right
+        corner_rect.moveRight(window_rect.right());
+        corner_region += corner_rect;
+        // bottom right
+        corner_rect.moveBottom(window_rect.bottom());
+        corner_region += corner_rect;
+        // bottom left
+        corner_rect.moveLeft(window_rect.left());
+        corner_region += corner_rect;
+
+        // 本次绘制未包含圆角区域时则直接按原有的行为渲染
+        if ((region & corner_region).isEmpty()) {
+            return Effect::drawWindow(w, mask, region, data);
+        }
+    }
+
     KWin::WindowQuadList decoration_quad_list;
     KWin::WindowQuadList content_quad_list;
 
@@ -210,6 +234,19 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     // 此时只允许绘制窗口边框和阴影
     data.quads = decoration_quad_list;
     Effect::drawWindow(w, mask, region, data);
+
+    if (!corner_region.isEmpty()) {
+        QRegion new_region = region - corner_region;
+
+        // 先绘制未处于mask区域的窗口材质
+        if (!new_region.isEmpty()) {
+            data.quads = content_quad_list;
+            Effect::drawWindow(w, mask, new_region, data);
+        }
+
+        // 重新设置要绘制的区域
+        region = region - new_region;
+    }
 
     // 将mask材质绑定到第二个材质
     glActiveTexture(GL_TEXTURE1);
@@ -273,10 +310,12 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         SetWindowDepth set_depth(w, 32);
         Q_UNUSED(set_depth)
         Effect::drawWindow(w, mask, region, data);
-    }
-#else
-    Effect::drawWindow(w, mask, region, data);
+    } else
 #endif
+    {
+        Effect::drawWindow(w, mask, region, data);
+    }
+
     data.shader = old_shader;
 
     KWin::ShaderManager::instance()->popShader();
