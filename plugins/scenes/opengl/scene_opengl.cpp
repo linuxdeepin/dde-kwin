@@ -958,6 +958,8 @@ SceneOpenGL2::~SceneOpenGL2()
         delete m_lanczosFilter;
         m_lanczosFilter = nullptr;
     }
+    // SceneOpenGL2 被销毁时（可能发生在切换为2D模式）应该清理窗口阴影的材质缓存，否则在多次切换3D/2D后会导致窗口阴影绘制出现异常
+    DecorationShadowTextureCache::instance().clear();
 }
 
 QMatrix4x4 SceneOpenGL2::createProjectionMatrix() const
@@ -2008,6 +2010,7 @@ public:
     static DecorationShadowTextureCache &instance();
 
     void unregister(SceneOpenGLShadow *shadow);
+    void clear();
     QSharedPointer<GLTexture> getTexture(SceneOpenGLShadow *shadow);
 
 private:
@@ -2051,6 +2054,11 @@ void DecorationShadowTextureCache::unregister(SceneOpenGLShadow *shadow)
             it++;
         }
     }
+}
+
+void DecorationShadowTextureCache::clear()
+{
+    m_cache.clear();
 }
 
 QSharedPointer<GLTexture> DecorationShadowTextureCache::getTexture(SceneOpenGLShadow *shadow)
