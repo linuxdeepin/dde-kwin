@@ -33,8 +33,6 @@
 #include <KConfigCore/KConfig>
 #include <KConfigCore/KConfigGroup>
 
-#include <kwineffects.h>
-
 #include <QObject>
 #include <QPainter>
 #include <QDebug>
@@ -68,6 +66,7 @@ void Chameleon::init()
     updateScreen();
 
     connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
+    connect(global_config, &ChameleonConfig::windowNoTitlebarPropertyChanged, this, &Chameleon::onNoTitlebarPropertyChanged);
     connect(settings().data(), &KDecoration2::DecorationSettings::alphaChannelSupportedChanged, this, &Chameleon::updateConfig);
     connect(c, &KDecoration2::DecoratedClient::activeChanged, this, &Chameleon::updateConfig);
     connect(c, &KDecoration2::DecoratedClient::widthChanged, this, &Chameleon::onClientWidthChanged);
@@ -77,6 +76,7 @@ void Chameleon::init()
     connect(c, &KDecoration2::DecoratedClient::maximizedHorizontallyChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::maximizedVerticallyChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::captionChanged, this, &Chameleon::updateTitle);
+    connect(this, &Chameleon::noTitleBarChanged, this, &Chameleon::updateTitleBarArea);
 
     m_initialized = true;
 }
@@ -85,18 +85,20 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
 {
     auto s = settings().data();
 
-    if (windowNeedRadius()) {
-        painter->setClipPath(m_borderPath);
+    if (!noTitleBar()) {
+        if (windowNeedRadius()) {
+            painter->setClipPath(m_borderPath);
+        }
+
+        painter->fillRect(titleBar() & repaintArea, getBackgroundColor());
+        painter->setFont(s->font());
+        painter->setPen(getTextColor());
+        painter->drawText(m_titleArea, Qt::AlignCenter | Qt::TextWrapAnywhere, m_title);
+
+        // draw all buttons
+        m_leftButtons->paint(painter, repaintArea);
+        m_rightButtons->paint(painter, repaintArea);
     }
-
-    painter->fillRect(titleBar() & repaintArea, getBackgroundColor());
-    painter->setFont(s->font());
-    painter->setPen(getTextColor());
-    painter->drawText(m_titleArea, Qt::AlignCenter | Qt::TextWrapAnywhere, m_title);
-
-    // draw all buttons
-    m_leftButtons->paint(painter, repaintArea);
-    m_rightButtons->paint(painter, repaintArea);
 
     {
         qreal border_width = borderWidth();
@@ -112,6 +114,46 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
 const ChameleonTheme::Config *Chameleon::themeConfig() const
 {
     return m_config;
+}
+
+KWin::EffectWindow *Chameleon::effect() const
+{
+    if (m_effect)
+        return m_effect.data();
+
+    if (!m_client)
+        return nullptr;
+
+    Chameleon *self = const_cast<Chameleon*>(this);
+    self->m_effect = m_client->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
+    emit self->effectInitialized(m_effect.data());
+
+    return m_effect.data();
+}
+
+bool Chameleon::noTitleBar() const
+{
+    if (m_noTitleBar < 0) {
+        // 需要初始化
+        if (auto effect = this->effect()) {
+            const QByteArray &data = effect->readProperty(ChameleonConfig::instance()->atomDeepinNoTitlebar(), XCB_ATOM_CARDINAL, 8);
+
+            if (data.isEmpty())
+                return false;
+
+            quint8 no_titlebar = data.at(0);
+
+            if (no_titlebar != m_noTitleBar) {
+                const_cast<Chameleon*>(this)->m_noTitleBar = no_titlebar;
+
+                emit const_cast<Chameleon*>(this)->noTitleBarChanged(m_noTitleBar);
+            }
+        } else {
+            return false;
+        }
+    }
+
+    return m_noTitleBar;
 }
 
 qreal Chameleon::borderWidth() const
@@ -355,7 +397,7 @@ void Chameleon::updateTitleBarArea()
 
     // 支持alpha通道时在阴影上绘制边框，因此不需要关心边框宽度
     qreal border_width = settings()->isAlphaChannelSupported() ? 0 : borderWidth();
-    qreal titlebar_height = titleBarHeight();
+    qreal titlebar_height = noTitleBar() ? 0 : titleBarHeight();
 
     switch (m_config->titlebar.area) {
     case Qt::LeftEdge:
@@ -408,11 +450,7 @@ void Chameleon::updateBorderPath()
     client_rect.moveTopLeft(QPointF(0, 0));
 
     QPainterPath path;
-    KWin::EffectWindow *effect = nullptr;
-
-    if (m_client) {
-        effect = m_client->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
-    }
+    KWin::EffectWindow *effect = this->effect();
 
     if (windowNeedRadius()) {
         auto window_radius = windowRadius();
@@ -468,6 +506,15 @@ void Chameleon::onClientWidthChanged()
 void Chameleon::onClientHeightChanged()
 {
     updateTitleBarArea();
+}
+
+void Chameleon::onNoTitlebarPropertyChanged(KWin::EffectWindow *effect)
+{
+    if (effect != this->effect())
+        return;
+
+    // 标记为未初始化状态
+    m_noTitleBar = -1;
 }
 
 bool Chameleon::windowNeedRadius() const

@@ -60,6 +60,7 @@ public:
     static int kwinRuntimeVersion();
 
     static QObject *workspace();
+    static QObject *compositor();
     static QObject *scripting();
     static QObject *tabBox();
     static QObject *cursor();
@@ -80,6 +81,8 @@ public:
 
     static uint virtualDesktopCount();
     static uint currentVirtualDesktop();
+
+    static bool compositorIsActive();
 
     struct Window {
         static bool isFullMaximized(const QObject *window);
@@ -113,8 +116,10 @@ public:
     Q_INVOKABLE QVariant fullmaximizeWindow(QObject *window) const;
     Q_INVOKABLE QVariant unmaximizeWindow(QObject *window) const;
 
-    Q_INVOKABLE void addSupportedProperty(quint32 atom);
-    Q_INVOKABLE void removeSupportedProperty(quint32 atom);
+    // enforce为false时表示只把属性加入到待添加列表，但是不设置_NET_SUPPORTED属性
+    Q_INVOKABLE void addSupportedProperty(quint32 atom, bool enforce = true);
+    // enforce为false时表示只把属性标记为待删除，但是不设置_NET_SUPPORTED属性
+    Q_INVOKABLE void removeSupportedProperty(quint32 atom, bool enforce = true);
 
     bool isInitialized() const;
 

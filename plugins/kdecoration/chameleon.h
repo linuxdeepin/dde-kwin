@@ -26,6 +26,8 @@
 #include <KDecoration2/Decoration>
 #include <KDecoration2/DecorationButtonGroup>
 
+#include <kwineffects.h>
+
 #include <QVariant>
 #include <QDir>
 #include <QSettings>
@@ -42,6 +44,8 @@ public:
     void paint(QPainter *painter, const QRect &repaintArea) override;
 
     const ChameleonTheme::Config *themeConfig() const;
+    KWin::EffectWindow *effect() const;
+    bool noTitleBar() const;
 
     qreal borderWidth() const;
     qreal titleBarHeight() const;
@@ -58,6 +62,10 @@ public:
     QIcon maximizeIcon() const;
     QIcon unmaximizeIcon() const;
     QIcon closeIcon() const;
+
+signals:
+    void noTitleBarChanged(bool noTitleBar);
+    void effectInitialized(KWin::EffectWindow *effect);
 
 protected:
     void init() override;
@@ -80,6 +88,7 @@ private:
 
     void onClientWidthChanged();
     void onClientHeightChanged();
+    void onNoTitlebarPropertyChanged(KWin::EffectWindow *effect);
 
     bool windowNeedRadius() const;
 
@@ -87,6 +96,7 @@ private:
     QColor getBackgroundColor() const;
 
     bool m_initialized = false;
+    qint8 m_noTitleBar = -1;
     QObject *m_client = nullptr;
     QPointer<QScreen> m_screen;
     qreal m_scale = 1.0;
@@ -101,6 +111,8 @@ private:
 
     KDecoration2::DecorationButtonGroup *m_leftButtons = nullptr;
     KDecoration2::DecorationButtonGroup *m_rightButtons = nullptr;
+
+    QPointer<KWin::EffectWindow> m_effect;
 };
 
 #endif // CHAMELEON_H
