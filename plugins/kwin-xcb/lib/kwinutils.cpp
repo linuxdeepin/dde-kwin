@@ -26,6 +26,7 @@
 #include <QX11Info>
 #include <QMargins>
 #include <QDateTime>
+#include <QAbstractNativeEventFilter>
 
 // 为了访问 KWinEffects 的保护成员变量
 #define protected public
@@ -280,10 +281,12 @@ public:
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
 
-class KWinUtilsPrivate
+class KWinUtilsPrivate : public QAbstractNativeEventFilter
 {
 public:
-    KWinUtilsPrivate() {
+    KWinUtilsPrivate(KWinUtils *utils)
+        : q(utils)
+    {
         _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
     }
 
@@ -346,16 +349,56 @@ public:
         updateWMSupported();
     }
 
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override {
+        Q_UNUSED(eventType)
+        Q_UNUSED(result)
+
+        xcb_generic_event_t *event = reinterpret_cast<xcb_generic_event_t*>(message);
+        uint response_type = event->response_type & ~0x80;
+
+        if (response_type == XCB_PROPERTY_NOTIFY) {
+            xcb_property_notify_event_t *ev = reinterpret_cast<xcb_property_notify_event_t*>(event);
+
+            if (monitorProperties.contains(ev->atom)) {
+                emit q->windowPropertyChanged(ev->window, ev->atom);
+            }
+        }
+
+        return false;
+    }
+
+    void ensureInstallFilter() {
+        if (filterInstalled)
+            return;
+
+        filterInstalled = true;
+        qApp->installNativeEventFilter(this);
+    }
+
+    void maybeRemoveFilter() {
+        if (!filterInstalled)
+            return;
+
+        if (monitorProperties.isEmpty()) {
+            filterInstalled = false;
+            qApp->removeNativeEventFilter(this);
+        }
+    }
+
+    KWinUtils *q;
+
     QList<xcb_atom_t> wmSupportedList;
     QList<xcb_atom_t> removedWMSupportedList;
+    QSet<xcb_atom_t> monitorProperties;
     xcb_atom_t _NET_SUPPORTED;
     qint64 lastUpdateTime = 0;
     bool initialized = false;
+    bool filterInstalled = false;
 };
 
 KWinUtils::KWinUtils(QObject *parent)
     : QObject(parent)
-    , d(new KWinUtilsPrivate)
+    , d(new KWinUtilsPrivate(this))
 {
 #ifdef KWIN_VERSION
     // 往右移动8位是为了排除 build version 字段
@@ -743,6 +786,18 @@ void KWinUtils::removeSupportedProperty(quint32 atom, bool enforce)
     if (enforce) {
         d->updateWMSupported();
     }
+}
+
+void KWinUtils::addWindowPropertyMonitor(quint32 property_atom)
+{
+    d->monitorProperties.insert(property_atom);
+    d->ensureInstallFilter();
+}
+
+void KWinUtils::removeWindowPropertyMonitor(quint32 property_atom)
+{
+    d->monitorProperties.remove(property_atom);
+    d->maybeRemoveFilter();
 }
 
 bool KWinUtils::isInitialized() const

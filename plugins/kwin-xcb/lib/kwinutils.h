@@ -121,6 +121,9 @@ public:
     // enforce为false时表示只把属性标记为待删除，但是不设置_NET_SUPPORTED属性
     Q_INVOKABLE void removeSupportedProperty(quint32 atom, bool enforce = true);
 
+    Q_INVOKABLE void addWindowPropertyMonitor(quint32 property_atom);
+    Q_INVOKABLE void removeWindowPropertyMonitor(quint32 property_atom);
+
     bool isInitialized() const;
 
 public Q_SLOTS:
@@ -137,6 +140,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void initialized();
+    void windowPropertyChanged(quint32 windowId, quint32 property_atom);
 
 protected:
     explicit KWinUtils(QObject *parent = nullptr);

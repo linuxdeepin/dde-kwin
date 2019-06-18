@@ -57,7 +57,7 @@ public slots:
 signals:
     void activatedChanged(bool activated);
     void themeChanged(QString theme);
-    void windowNoTitlebarPropertyChanged(KWin::EffectWindow *window);
+    void windowNoTitlebarPropertyChanged(quint32 windowId);
 
 protected:
     explicit ChameleonConfig(QObject *parent = nullptr);
@@ -66,7 +66,7 @@ private slots:
     void onConfigChanged();
     void onClientAdded(KWin::Client *client);
     void onCompositingToggled(bool active);
-    void onWindowPropertyChanged(KWin::EffectWindow *window, long atom);
+    void onWindowPropertyChanged(quint32 windowId, quint32 atom);
 
     void updateClientX11Shadow();
 

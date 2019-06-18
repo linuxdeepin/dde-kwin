@@ -148,10 +148,10 @@ void ChameleonConfig::onCompositingToggled(bool active)
 #endif
 }
 
-void ChameleonConfig::onWindowPropertyChanged(KWin::EffectWindow *window, long atom)
+void ChameleonConfig::onWindowPropertyChanged(quint32 windowId, quint32 atom)
 {
     if (atom == m_atom_deepin_no_titlebar) {
-        emit windowNoTitlebarPropertyChanged(window);
+        emit windowNoTitlebarPropertyChanged(windowId);
     }
 }
 
@@ -166,7 +166,7 @@ void ChameleonConfig::init()
     connect(KWinUtils::workspace(), SIGNAL(configChanged()), this, SLOT(onConfigChanged()));
     connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::Client*)), this, SLOT(onClientAdded(KWin::Client*)));
     connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
-    connect(KWin::effects, &KWin::EffectsHandler::propertyNotify, this, &ChameleonConfig::onWindowPropertyChanged);
+    connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);
 
     m_atom_deepin_chameleon = KWinUtils::instance()->getXcbAtom(_DEEPIN_CHAMELEON, false);
     m_atom_deepin_no_titlebar = KWinUtils::instance()->getXcbAtom(_DEEPIN_NO_TITLEBAR, false);
@@ -203,8 +203,8 @@ void ChameleonConfig::setActivated(bool active)
         ChameleonShadow::instance()->clearCache();
     }
 
-    // 注册监听此属性变化
-    KWin::effects->registerPropertyType(m_atom_deepin_no_titlebar, active);
+    // 监听此属性变化
+    KWinUtils::instance()->addWindowPropertyMonitor(m_atom_deepin_no_titlebar);
 
     emit activatedChanged(active);
 }
