@@ -88,7 +88,7 @@ private:
 
     void onClientWidthChanged();
     void onClientHeightChanged();
-    void onNoTitlebarPropertyChanged(KWin::EffectWindow *effect);
+    void onNoTitlebarPropertyChanged(quint32 windowId);
 
     bool windowNeedRadius() const;
 

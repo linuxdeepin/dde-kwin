@@ -508,9 +508,9 @@ void Chameleon::onClientHeightChanged()
     updateTitleBarArea();
 }
 
-void Chameleon::onNoTitlebarPropertyChanged(KWin::EffectWindow *effect)
+void Chameleon::onNoTitlebarPropertyChanged(quint32 windowId)
 {
-    if (effect != this->effect())
+    if (client().data()->windowId() != windowId)
         return;
 
     // 标记为未初始化状态
