@@ -79,11 +79,12 @@ public:
             if (path.isEmpty())
                 return TextureData();
 
-            QImage mask(w->size(), QImage::Format_Alpha8);
+            QImage mask(w->size(), QImage::Format_ARGB32);
             mask.fill(Qt::transparent);
             QPainter pa(&mask);
             pa.setRenderHint(QPainter::Antialiasing);
-            pa.fillPath(path, Qt::black);
+            // 必须填充为白色，在着色器中运算时会使用rgb三个通道相乘
+            pa.fillPath(path, Qt::white);
             pa.end();
 
             // 先从缓存中查找材质
@@ -123,7 +124,7 @@ public:
         }
 
         if (!texture) {
-            QImage mask(QSize(window_radius.first, window_radius.second), QImage::Format_Alpha8);
+            QImage mask(QSize(window_radius.first, window_radius.second), QImage::Format_ARGB32);
             mask.fill(Qt::transparent);
             QPainter pa(&mask);
             pa.setRenderHint(QPainter::Antialiasing);
@@ -132,7 +133,8 @@ public:
             path.arcTo(0, 0, window_radius.first * 2,  window_radius.second * 2, 90, 90);
             path.lineTo(window_radius.first, window_radius.second);
             path.closeSubpath();
-            pa.fillPath(path, Qt::black);
+            // 必须填充为白色，在着色器中运算时会使用rgb三个通道相乘
+            pa.fillPath(path, Qt::white);
 
             texture = new Texture(mask, false);
             texture->setFilter(GL_NEAREST);
@@ -180,7 +182,9 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
 
 void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, KWin::WindowPaintData &data)
 {
-    if (!w->isPaintingEnabled()) {
+    // 工作区特效会使用PAINT_WINDOW_LANCZOS绘制，此时不支持多次调用Effect::drawWindow，
+    // 否则只会显示第一次调用绘制的内容, 因此在这种模式下禁用掉窗口裁剪特效
+    if (!w->isPaintingEnabled() || (mask & PAINT_WINDOW_LANCZOS)) {
         return Effect::drawWindow(w, mask, region, data);
     }
 
@@ -211,6 +215,12 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         // 本次绘制未包含圆角区域时则直接按原有的行为渲染
         if ((region & corner_region).isEmpty()) {
             return Effect::drawWindow(w, mask, region, data);
+        }
+
+        // 窗口发生几何转换时不能拆分绘制窗口的区域，否则会导致两个区域不契合，例如开启wobbly windows窗口特效,
+        // 移动窗口时会导致窗口圆角出现毛刺
+        if (mask & PAINT_WINDOW_TRANSFORMED) {
+            corner_region = QRegion();
         }
     }
 
@@ -267,10 +277,8 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     KWin::ShaderManager::instance()->pushShader(shader);
     shader->setUniform("mask", 1);
 
-    // 小于140版本的着色器需要手动设置材质大小
-    if (!mask_texture->customMask && KWin::GLPlatform::instance()->glslVersion() < KWin::kVersionNumber(1, 40)) {
-        shader->setUniform("mask_size", QVector2D(mask_texture->size.width(), mask_texture->size.height()));
-        shader->setUniform("sampler_size", QVector2D(w->width(), w->height()));
+    if (!mask_texture->customMask) {
+        shader->setUniform("scale", QVector2D(w->width() / qreal(mask_texture->size.width()), w->height() / qreal(mask_texture->size.height())));
     }
 
     // 此时只允许绘制窗口内容
