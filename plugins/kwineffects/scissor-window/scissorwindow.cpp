@@ -72,8 +72,9 @@ public:
 
         // 先查看窗口有没有自定义设置裁剪图片
         const QVariant &data_clip_path = w->data(ScissorWindow::WindowClipPathRole);
+        static int path_type = qMetaTypeId<QPainterPath>();
 
-        if (data_clip_path.userType() == qMetaTypeId<QPainterPath>()) {
+        if (data_clip_path.userType() == path_type) {
             const QPainterPath path = qvariant_cast<QPainterPath>(data_clip_path);
 
             if (path.isEmpty())
@@ -108,14 +109,14 @@ public:
         if (!data_radius.isValid())
             return TextureData();
 
-        const QPair<qreal, qreal> &window_radius = qvariant_cast<QPair<qreal, qreal>>(data_radius);
+        const QPointF &window_radius = data_radius.toPointF();
 
         // 排除无效的数据
-        if (qIsNull(window_radius.first) || qIsNull(window_radius.second))
+        if (qIsNull(window_radius.x()) || qIsNull(window_radius.y()))
             return TextureData();
 
         // 用于获取材质缓存key的key
-        auto to_cache_key_key = window_radius;
+        auto to_cache_key_key = (qRound(window_radius.x()) << 16) | qRound(window_radius.y());
 
         Texture *texture = nullptr;
 
@@ -124,14 +125,14 @@ public:
         }
 
         if (!texture) {
-            QImage mask(QSize(window_radius.first, window_radius.second), QImage::Format_ARGB32);
+            QImage mask(QSize(window_radius.x(), window_radius.y()), QImage::Format_ARGB32);
             mask.fill(Qt::transparent);
             QPainter pa(&mask);
             pa.setRenderHint(QPainter::Antialiasing);
             QPainterPath path;
-            path.moveTo(window_radius.first, window_radius.second);
-            path.arcTo(0, 0, window_radius.first * 2,  window_radius.second * 2, 90, 90);
-            path.lineTo(window_radius.first, window_radius.second);
+            path.moveTo(window_radius);
+            path.arcTo(0, 0, window_radius.x() * 2,  window_radius.y() * 2, 90, 90);
+            path.lineTo(window_radius);
             path.closeSubpath();
             // 必须填充为白色，在着色器中运算时会使用rgb三个通道相乘
             pa.fillPath(path, Qt::white);
@@ -156,7 +157,7 @@ private:
     }
 
     QHash<qint64, Texture*> m_cache;
-    QMap<QPair<qreal, qreal>, qint64> m_radiusToCacheKey;
+    QMap<int, qint64> m_radiusToCacheKey;
 
     friend class Texture;
 };

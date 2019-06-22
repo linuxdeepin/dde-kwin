@@ -34,23 +34,40 @@ ChameleonShadow *ChameleonShadow::instance()
     return _global_cs;
 }
 
-QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const ChameleonTheme::Config *config, qreal scale)
+QString ChameleonShadow::buildShadowCacheKey(const ChameleonTheme::DecorationConfig *config, qreal scale)
 {
-    auto window_radius = qMakePair(config->decoration.windowRadius.first * scale, config->decoration.windowRadius.second * scale);
-    auto shadow_offset = config->decoration.shadowOffset;
-    QColor shadow_color = config->decoration.shadowColor;
-    int shadow_size = config->decoration.shadowRadius;
-    qreal border_width = config->decoration.borderWidth;
-    QColor border_color = config->decoration.borderColor;
+    auto window_radius = config->windowRadius * scale;
+    auto shadow_offset = config->shadowOffset;
+    QColor shadow_color = config->shadowColor;
+    int shadow_size = config->shadowRadius;
+    qreal border_width = config->borderWidth;
+    QColor border_color = config->borderColor;
 
-    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.first,
-                                        shadow_size - shadow_offset.y() - window_radius.second,
-                                        shadow_size - window_radius.first,
-                                        shadow_size - window_radius.second);
-    const QString key = QString("%1_%2.%3_%4_%5_%6.%7.%8.%9").arg(qRound(window_radius.first)).arg(qRound(window_radius.second))
-                                                       .arg(paddings.left()).arg(paddings.top()).arg(paddings.right()).arg(paddings.bottom())
-                                                       .arg(shadow_color.name(QColor::HexArgb))
-                                                       .arg(border_width).arg(border_color.name());
+    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.x(),
+                                        shadow_size - shadow_offset.y() - window_radius.y(),
+                                        shadow_size - window_radius.x(),
+                                        shadow_size - window_radius.y());
+
+    return QString("%1_%2.%3_%4_%5_%6.%7.%8.%9").arg(qRound(window_radius.x())).arg(qRound(window_radius.y()))
+                                                .arg(paddings.left()).arg(paddings.top()).arg(paddings.right()).arg(paddings.bottom())
+                                                .arg(shadow_color.name(QColor::HexArgb))
+                                                .arg(border_width).arg(border_color.name());
+}
+
+QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const ChameleonTheme::DecorationConfig *config, qreal scale)
+{
+    auto window_radius = config->windowRadius * scale;
+    auto shadow_offset = config->shadowOffset;
+    QColor shadow_color = config->shadowColor;
+    int shadow_size = config->shadowRadius;
+    qreal border_width = config->borderWidth;
+    QColor border_color = config->borderColor;
+
+    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.x(),
+                                        shadow_size - shadow_offset.y() - window_radius.y(),
+                                        shadow_size - window_radius.x(),
+                                        shadow_size - window_radius.y());
+    const QString key = buildShadowCacheKey(config, scale);
     auto shadow = m_shadowCache.value(key);
 
     if (!shadow) {
@@ -84,18 +101,18 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
         painter.fillRect(image.rect(), radialGradient);
 
         // contrast pixel
-        QRectF innerRect = QRectF(shadow_size - shadow_offset.x() - window_radius.first,
-                                  shadow_size - shadow_offset.y() - window_radius.second,
-                                  shadow_offset.x() + window_radius.first + window_radius.second,
-                                  shadow_offset.y() + window_radius.first + window_radius.second);
+        QRectF innerRect = QRectF(shadow_size - shadow_offset.x() - window_radius.x(),
+                                  shadow_size - shadow_offset.y() - window_radius.y(),
+                                  shadow_offset.x() + window_radius.x() + window_radius.x(),
+                                  shadow_offset.y() + window_radius.y() + window_radius.y());
 
         // mask out inner rect
         painter.setPen(Qt::NoPen);
         painter.setBrush(Qt::black);
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
 
-        if (window_radius.first >0 && window_radius.second > 0) {
-            painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+        if (window_radius.x() >0 && window_radius.y() > 0) {
+            painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
         } else {
             painter.drawRect(innerRect);
         }
@@ -105,8 +122,8 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
             painter.setPen(QPen(border_color, border_width));
             painter.setBrush(Qt::NoBrush);
 
-            if (window_radius.first >0 && window_radius.second > 0) {
-                painter.drawRoundedRect(innerRect, 0.5 + window_radius.first, 0.5 + window_radius.second);
+            if (window_radius.x() >0 && window_radius.y() > 0) {
+                painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
             } else {
                 painter.drawRect(innerRect);
             }

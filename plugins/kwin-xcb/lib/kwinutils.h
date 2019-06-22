@@ -48,7 +48,8 @@ public:
         WindowMatch,
         WrapperIdMatch,
         FrameIdMatch,
-        InputIdMatch
+        InputIdMatch,
+        UnmanagedMatch
     };
 
     ~KWinUtils();
@@ -67,16 +68,20 @@ public:
     static QObject *virtualDesktop();
 
     static QObjectList clientList();
+    static QObjectList unmanagedList();
     static QObject *findClient(Predicate predicate, quint32 window);
     static void clientUpdateCursor(QObject *client);
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
+    static void clientCheckNoBorder(QObject *client);
 
     static QFunctionPointer resolve(const char *symbol);
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
     static int getWindowDepth(const QObject *client);
+    static QByteArray readWindowProperty(quint32 WId, quint32 atom, quint32 type);
     static QByteArray readWindowProperty(const QObject *client, quint32 atom, quint32 type);
+    static void setWindowProperty(quint32 WId, quint32 atom, quint32 type, int format, const QByteArray &data);
     static void setWindowProperty(const QObject *client, quint32 atom, quint32 type, int format, const QByteArray &data);
 
     static uint virtualDesktopCount();
@@ -107,6 +112,8 @@ public:
         static void performWindowOperation(QObject* window, const QString &opName, bool restricted = false);
     };
 
+    static quint32 internAtom(const QByteArray &name, bool only_if_exists);
+
     Q_INVOKABLE quint32 getXcbAtom(const QString &name, bool only_if_exists) const;
     Q_INVOKABLE bool isSupportedAtom(quint32 atom) const;
     Q_INVOKABLE QVariant getGtkFrame(const QObject *window) const;
@@ -124,8 +131,9 @@ public:
     Q_INVOKABLE void addWindowPropertyMonitor(quint32 property_atom);
     Q_INVOKABLE void removeWindowPropertyMonitor(quint32 property_atom);
 
-    bool isInitialized() const;
+    Q_INVOKABLE bool buildNativeSettings(QObject *baseObject, quint32 windowID);
 
+    bool isInitialized() const;
 public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();

@@ -24,6 +24,7 @@ add_library(
     chameleonbutton.cpp
     chameleonshadow.cpp
     chameleonconfig.cpp
+    chameleonwindowtheme.cpp
     themes.qrc
 )
 

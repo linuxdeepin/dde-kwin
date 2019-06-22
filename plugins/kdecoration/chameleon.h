@@ -34,12 +34,14 @@
 #include <QScreen>
 
 class Settings;
+class ChameleonWindowTheme;
 class Chameleon : public KDecoration2::Decoration
 {
     Q_OBJECT
 
 public:
     explicit Chameleon(QObject *parent = nullptr, const QVariantList &args = QVariantList());
+    ~Chameleon();
 
     void paint(QPainter *painter, const QRect &repaintArea) override;
 
@@ -51,7 +53,7 @@ public:
     qreal titleBarHeight() const;
     qreal shadowRadius() const;
     QPointF shadowOffset() const;
-    QPair<qreal, qreal> windowRadius() const;
+    QPointF windowRadius() const;
     QMarginsF mouseInputAreaMargins() const;
 
     QColor shadowColor() const;
@@ -77,18 +79,22 @@ private:
     void updateTitle();
     void updateTitleGeometry();
 
-    void updateScreen();
-    void updateScreenScale();
-
     void updateTheme();
     void updateConfig();
     void updateTitleBarArea();
     void updateBorderPath();
     void updateShadow();
+    void updateMouseInputAreaMargins();
 
     void onClientWidthChanged();
     void onClientHeightChanged();
     void onNoTitlebarPropertyChanged(quint32 windowId);
+
+    void onThemeWindowRadiusChanged();
+    void onThemeBorderWidthChanged();
+    void onThemeBorderColorChanged();
+    void onThemeShadowRadiusChanged();
+    void onThemeShadowOffsetChanged();
 
     bool windowNeedRadius() const;
 
@@ -98,13 +104,12 @@ private:
     bool m_initialized = false;
     qint8 m_noTitleBar = -1;
     QObject *m_client = nullptr;
-    QPointer<QScreen> m_screen;
-    qreal m_scale = 1.0;
 
     QMarginsF m_titleBarAreaMargins;
     QPainterPath m_borderPath;
     ChameleonTheme::ConfigGroupPtr m_configGroup;
-    const ChameleonTheme::Config *m_config = nullptr;
+    ChameleonTheme::Config *m_config = nullptr;
+    ChameleonWindowTheme *m_theme = nullptr;
 
     QString m_title;
     QRect m_titleArea;

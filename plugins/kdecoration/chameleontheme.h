@@ -48,7 +48,7 @@ public:
         qreal borderWidth;
         qreal shadowRadius;
         QPointF shadowOffset;
-        QPair<qreal, qreal> windowRadius;
+        QPointF windowRadius;
         QMarginsF mouseInputAreaMargins;
 
         QColor borderColor;
@@ -79,20 +79,29 @@ public:
         Config noAlphaNormal;
         Config inactive;
         Config noAlphaInactive;
+        Config unmanaged;
+        Config noAlphaUnmanaged;
     };
 
-    typedef QExplicitlySharedDataPointer<const ConfigGroup> ConfigGroupPtr;
+    static QPair<qreal, qreal> takePair(const QVariant &value, const QPair<qreal, qreal> defaultValue);
+    static QMarginsF takeMargins(const QVariant &value, const QMarginsF &defaultValue);
+    static QPointF takePos(const QVariant &value, const QPointF defaultValue);
+
+    typedef QSharedDataPointer<ConfigGroup> ConfigGroupPtr;
 
     static ChameleonTheme *instance();
+    static ConfigGroupPtr loadTheme(const QString &themeFullName, const QList<QDir> themeDirList);
     static ConfigGroupPtr loadTheme(ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList);
     static ConfigGroupPtr getBaseConfig(ThemeType type, const QList<QDir> &themeDirList);
     static QString typeString(ThemeType type);
     static ThemeType typeFromString(const QString &type);
 
     QString theme() const;
+    bool setTheme(const QString &themeFullName);
     bool setTheme(ThemeType type, const QString &theme);
 
-    ConfigGroupPtr getThemeConfig(WId windowId) const;
+    ConfigGroupPtr loadTheme(const QString &themeFullName);
+    ConfigGroupPtr themeConfig() const;
 
 protected:
     ChameleonTheme();
