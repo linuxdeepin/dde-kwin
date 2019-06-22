@@ -28,7 +28,7 @@
 #define BASE_THEME "deepin"
 #define BASE_THEME_DIR ":/deepin/themes"
 
-static QPair<qreal, qreal> takePair(const QVariant &value, const QPair<qreal, qreal> defaultValue)
+QPair<qreal, qreal> ChameleonTheme::takePair(const QVariant &value, const QPair<qreal, qreal> defaultValue)
 {
     if (!value.isValid()) {
         return defaultValue;
@@ -48,7 +48,7 @@ static QPair<qreal, qreal> takePair(const QVariant &value, const QPair<qreal, qr
     return ret;
 }
 
-static QMarginsF takeMargins(const QVariant &value, const QMarginsF &defaultValue)
+QMarginsF ChameleonTheme::takeMargins(const QVariant &value, const QMarginsF &defaultValue)
 {
     if (!value.isValid()) {
         return defaultValue;
@@ -79,6 +79,11 @@ static QColor takeColor(const QVariant &value, const QColor &defaultValue)
 static inline QPointF toPos(const QPair<qreal, qreal> &pair)
 {
     return QPointF(pair.first, pair.second);
+}
+
+QPointF ChameleonTheme::takePos(const QVariant &value, const QPointF defaultValue)
+{
+    return toPos(takePair(value, qMakePair(defaultValue.x(), defaultValue.y())));
 }
 
 static QIcon takeIcon(const QSettings &setting, QIcon base, const QString &key, QString defaultValue)
@@ -118,9 +123,9 @@ static void writeDecorationConfig(const QSettings &setting, ChameleonTheme::Deco
 {
     config.borderWidth = setting.value("borderWidth", base ? base->borderWidth : 1.0).toDouble();
     config.shadowRadius = setting.value("shadowRadius", base ? base->shadowRadius : 60.0).toDouble();
-    config.shadowOffset = toPos(takePair(setting.value("shadowOffset"), base ? qMakePair(base->shadowOffset.x(), base->shadowOffset.y()) : qMakePair(0.0, 16.0)));
-    config.windowRadius = takePair(setting.value("windowRadius"), base ? base->windowRadius : qMakePair(4.0, 4.0));
-    config.mouseInputAreaMargins = takeMargins(setting.value("mouseInputAreaMargins"), base ? base->mouseInputAreaMargins : QMarginsF(5, 5, 5, 5));
+    config.shadowOffset = ChameleonTheme::takePos(setting.value("shadowOffset"), base ? base->shadowOffset : QPointF(0.0, 16.0));
+    config.windowRadius = ChameleonTheme::takePos(setting.value("windowRadius"), base ? base->windowRadius : QPointF(4.0, 4.0));
+    config.mouseInputAreaMargins = ChameleonTheme::takeMargins(setting.value("mouseInputAreaMargins"), base ? base->mouseInputAreaMargins : QMarginsF(5, 5, 5, 5));
 
     // colors
     config.borderColor = takeColor(setting.value("borderColor"), base ? base->borderColor : QColor(0, 0, 0, 255 * 0.15));
@@ -144,23 +149,27 @@ static void writeTitlebarConfig(const QSettings &setting, ChameleonTheme::TitleB
     config.closeIcon = takeIcon(setting, base ? base->closeIcon : QIcon(), "closeIcon", ":/deepin/themes/deepin/light/icons/close");
 }
 
-static void writeConfig(QSettings &setting_decoration, QSettings &setting_titlebar, const QString &group,
+static void writeConfig(QSettings *setting_decoration, QSettings *setting_titlebar, const QString &group,
                         ChameleonTheme::Config &config, const ChameleonTheme::Config *base = nullptr)
 {
-    if (base && !QFile::exists(setting_decoration.fileName())) {
-        config.decoration = base->decoration;
-    } else {
-        setting_decoration.beginGroup(group);
-        writeDecorationConfig(setting_decoration, config.decoration, base ? &base->decoration : nullptr);
-        setting_decoration.endGroup();
+    if (setting_decoration) {
+        if (base && !QFile::exists(setting_decoration->fileName())) {
+            config.decoration = base->decoration;
+        } else {
+            setting_decoration->beginGroup(group);
+            writeDecorationConfig(*setting_decoration, config.decoration, base ? &base->decoration : nullptr);
+            setting_decoration->endGroup();
+        }
     }
 
-    if (base && !QFile::exists(setting_titlebar.fileName())) {
-        config.titlebar = base->titlebar;
-    } else {
-        setting_titlebar.beginGroup(group);
-        writeTitlebarConfig(setting_titlebar, config.titlebar, base ? &base->titlebar : nullptr);
-        setting_titlebar.endGroup();
+    if (setting_titlebar) {
+        if (base && !QFile::exists(setting_titlebar->fileName())) {
+            config.titlebar = base->titlebar;
+        } else {
+            setting_titlebar->beginGroup(group);
+            writeTitlebarConfig(*setting_titlebar, config.titlebar, base ? &base->titlebar : nullptr);
+            setting_titlebar->endGroup();
+        }
     }
 }
 
@@ -196,18 +205,48 @@ static bool loadTheme(ChameleonTheme::ConfigGroup *configs, const ChameleonTheme
     QSettings setting_titlebar(theme_dir.filePath(ChameleonTheme::typeString(themeType) + "/titlebar.ini"), QSettings::IniFormat);
 
     if (base) {
-        writeConfig(setting_decoration, setting_titlebar, "Active", configs->normal, &base->normal);
-        writeConfig(setting_decoration, setting_titlebar, "Inactive", configs->inactive, &base->inactive);
-        writeConfig(setting_decoration, setting_titlebar, "NoAlpha/Active", configs->noAlphaNormal, &base->noAlphaNormal);
-        writeConfig(setting_decoration, setting_titlebar, "NoAlpha/Inactive", configs->noAlphaInactive, &base->noAlphaInactive);
+        writeConfig(&setting_decoration, &setting_titlebar, "Active", configs->normal, &base->normal);
+        writeConfig(&setting_decoration, &setting_titlebar, "Inactive", configs->inactive, &base->inactive);
+        writeConfig(&setting_decoration, nullptr, "Unmanaged", configs->unmanaged, &base->unmanaged);
+        writeConfig(&setting_decoration, &setting_titlebar, "NoAlpha/Active", configs->noAlphaNormal, &base->noAlphaNormal);
+        writeConfig(&setting_decoration, &setting_titlebar, "NoAlpha/Inactive", configs->noAlphaInactive, &base->noAlphaInactive);
+        writeConfig(&setting_decoration, nullptr, "NoAlpha/Unmanaged", configs->noAlphaUnmanaged, &base->noAlphaUnmanaged);
     } else {
-        writeConfig(setting_decoration, setting_titlebar, "Active", configs->normal);
-        writeConfig(setting_decoration, setting_titlebar, "Inactive", configs->inactive, &configs->normal);
-        writeConfig(setting_decoration, setting_titlebar, "NoAlpha/Active", configs->noAlphaNormal, &configs->normal);
-        writeConfig(setting_decoration, setting_titlebar, "NoAlpha/Inactive", configs->noAlphaInactive, &configs->inactive);
+        writeConfig(&setting_decoration, &setting_titlebar, "Active", configs->normal);
+        writeConfig(&setting_decoration, &setting_titlebar, "Inactive", configs->inactive, &configs->normal);
+        writeConfig(&setting_decoration, nullptr, "Unmanaged", configs->unmanaged, &configs->normal);
+        writeConfig(&setting_decoration, &setting_titlebar, "NoAlpha/Active", configs->noAlphaNormal, &configs->normal);
+        writeConfig(&setting_decoration, &setting_titlebar, "NoAlpha/Inactive", configs->noAlphaInactive, &configs->inactive);
+        writeConfig(&setting_decoration, nullptr, "NoAlpha/Unmanaged", configs->noAlphaUnmanaged, &configs->unmanaged);
     }
 
     return true;
+}
+
+static bool formatThemeName(const QString &fullName, ChameleonTheme::ThemeType &type, QString &name)
+{
+    int split = fullName.indexOf("/");
+
+    if (split > 0 && split < fullName.size() - 1) {
+        type = ChameleonTheme::typeFromString(fullName.left(split));
+        name = fullName.mid(split + 1);
+
+        return true;
+    }
+
+    return false;
+}
+
+ChameleonTheme::ConfigGroupPtr ChameleonTheme::loadTheme(const QString &themeFullName, const QList<QDir> themeDirList)
+{
+    ThemeType type;
+    QString name;
+
+    if (!formatThemeName(themeFullName, type, name)) {
+        return ConfigGroupPtr();
+    }
+
+    return loadTheme(type, name, themeDirList);
 }
 
 ChameleonTheme::ConfigGroupPtr ChameleonTheme::loadTheme(ThemeType themeType, const QString &themeName, const QList<QDir> themeDirList)
@@ -265,6 +304,18 @@ QString ChameleonTheme::theme() const
     return m_theme;
 }
 
+bool ChameleonTheme::setTheme(const QString &themeFullName)
+{
+    ThemeType type;
+    QString name;
+
+    if (!formatThemeName(themeFullName, type, name)) {
+        return false;
+    }
+
+    return setTheme(type, name);
+}
+
 bool ChameleonTheme::setTheme(ThemeType type, const QString &theme)
 {
     if (m_type == type && m_theme == theme)
@@ -281,10 +332,13 @@ bool ChameleonTheme::setTheme(ThemeType type, const QString &theme)
     return configs;
 }
 
-ChameleonTheme::ConfigGroupPtr ChameleonTheme::getThemeConfig(WId windowId) const
+ChameleonTheme::ConfigGroupPtr ChameleonTheme::loadTheme(const QString &themeFullName)
 {
-    Q_UNUSED(windowId)
+    return loadTheme(themeFullName, m_themeDirList);
+}
 
+ChameleonTheme::ConfigGroupPtr ChameleonTheme::themeConfig() const
+{
     return m_configGroup;
 }
 

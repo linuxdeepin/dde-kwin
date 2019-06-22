@@ -21,7 +21,7 @@
 #include "kwinutils.h"
 
 #include <QLibrary>
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QDebug>
 #include <QX11Info>
 #include <QMargins>
@@ -34,6 +34,8 @@
 #undef protected
 
 #include <xcb/xcb.h>
+
+#include <functional>
 
 static int appVersion()
 {
@@ -149,6 +151,7 @@ class Options {
 public:
     enum WindowOperation {};
 };
+class Unmanaged;
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -252,10 +255,13 @@ class KWinInterface
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ClientUpdateCursor)(void *);
     typedef void (*ClientSetDepth)(void*, int);
+    typedef void (*ClientCheckNoBorder)(void*);
     typedef void (*QuickTileWindow) (void *, KWin::Workspace::QuickTileMode);
     typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
     typedef KWin::Options::WindowOperation (*OptionsWindowOperation)(const QString &, bool);
-    typedef QObject *(*WorkspaceFindClient)(KWinUtils::Predicate, xcb_window_t);
+    typedef QObject *(*WorkspaceFindClient)(void *, KWinUtils::Predicate, xcb_window_t);
+    typedef QObject *(*WorkspaceFindUnmanaged)(void *, xcb_window_t);
+    typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
 public:
     KWinInterface()
     {
@@ -263,20 +269,26 @@ public:
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
         clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
+        clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
-        x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor12getX11CursorEN2Qt11CursorShapeE");
+        x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor9x11CursorEN2Qt11CursorShapeE");
         optionsWindowOperation = (OptionsWindowOperation)KWinUtils::resolve("_ZN4KWin7Options15windowOperationERK7QStringb");
         findClient = (WorkspaceFindClient)KWinUtils::resolve("_ZNK4KWin9Workspace10findClientENS_9PredicateEj");
+        findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
+        findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
     }
 
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     ClientUpdateCursor clientUpdateCursor;
     ClientSetDepth clientSetDepth;
+    ClientCheckNoBorder clientCheckNoBorder;
     QuickTileWindow quickTileWindow;
     X11CursorGetCursor x11CursorGetCursor;
     OptionsWindowOperation optionsWindowOperation;
     WorkspaceFindClient findClient;
+    WorkspaceFindUnmanaged findUnmanaged;
+    WorkspaceFindUnmanagedByFunction findUnmanagedByFunction;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -526,12 +538,36 @@ QObjectList KWinUtils::clientList()
     return list;
 }
 
+QObjectList KWinUtils::unmanagedList()
+{
+    if (!interface->findUnmanagedByFunction)
+        return {};
+
+    QObjectList list;
+
+    // 在查找函数中将所有Unmanaged对象保存起来
+    auto get_all = [&list] (const KWin::Unmanaged *unmanaged) {
+        list << reinterpret_cast<QObject*>(const_cast<KWin::Unmanaged*>(unmanaged));
+        return false;
+    };
+    interface->findUnmanagedByFunction(workspace(), get_all);
+
+    return list;
+}
+
 QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
 {
+    if (predicate == Predicate::UnmanagedMatch) {
+        if (!interface->findUnmanaged)
+            return nullptr;
+
+        return interface->findUnmanaged(workspace(), window);
+    }
+
     if (!interface->findClient)
         return nullptr;
 
-    return interface->findClient(predicate, window);
+    return interface->findClient(workspace(), predicate, window);
 }
 
 void KWinUtils::clientUpdateCursor(QObject *client)
@@ -559,6 +595,13 @@ void KWinUtils::defineWindowCursor(quint32 window, Qt::CursorShape cshape)
 
     xcb_cursor_t cursor = interface->x11CursorGetCursor(cshape);
     xcb_change_window_attributes(QX11Info::connection(), window, XCB_CW_CURSOR, &cursor);
+}
+
+void KWinUtils::clientCheckNoBorder(QObject *client)
+{
+    if (interface->clientCheckNoBorder) {
+        interface->clientCheckNoBorder(client);
+    }
 }
 
 #if defined(Q_OS_LINUX) && !defined(QT_NO_DYNAMIC_LIBRARY) && !defined(QT_NO_LIBRARY)
@@ -605,6 +648,11 @@ int KWinUtils::getWindowDepth(const QObject *client)
     return depth;
 }
 
+QByteArray KWinUtils::readWindowProperty(quint32 WId, quint32 atom, quint32 type)
+{
+    return windowProperty(WId, atom, type);
+}
+
 QByteArray KWinUtils::readWindowProperty(const QObject *client, quint32 atom, quint32 type)
 {
     bool ok = false;
@@ -615,6 +663,11 @@ QByteArray KWinUtils::readWindowProperty(const QObject *client, quint32 atom, qu
     }
 
     return windowProperty(wid, atom, type);
+}
+
+void KWinUtils::setWindowProperty(quint32 WId, quint32 atom, quint32 type, int format, const QByteArray &data)
+{
+    ::setWindowProperty(WId, atom, type, format, data);
 }
 
 void KWinUtils::setWindowProperty(const QObject *client, quint32 atom, quint32 type, int format, const QByteArray &data)
@@ -663,9 +716,14 @@ bool KWinUtils::compositorIsActive()
     return c_dbus->property("active").toBool();
 }
 
+quint32 KWinUtils::internAtom(const QByteArray &name, bool only_if_exists)
+{
+    return ::internAtom(name.constData(), only_if_exists);
+}
+
 quint32 KWinUtils::getXcbAtom(const QString &name, bool only_if_exists) const
 {
-    return internAtom(name.toLatin1().constData(), only_if_exists);
+    return internAtom(name.toLatin1(), only_if_exists);
 }
 
 bool KWinUtils::isSupportedAtom(quint32 atom) const
@@ -798,6 +856,17 @@ void KWinUtils::removeWindowPropertyMonitor(quint32 property_atom)
 {
     d->monitorProperties.remove(property_atom);
     d->maybeRemoveFilter();
+}
+
+bool KWinUtils::buildNativeSettings(QObject *baseObject, quint32 windowID)
+{
+    static QFunctionPointer build_function = qApp->platformFunction("_d_buildNativeSettings");
+
+    if (!build_function) {
+        return false;
+    }
+
+    return reinterpret_cast<bool(*)(QObject*, quint32)>(build_function)(baseObject, windowID);
 }
 
 bool KWinUtils::isInitialized() const

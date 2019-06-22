@@ -23,13 +23,23 @@
 
 #include <QObject>
 
+#include <kwineffects.h>
+
+// 标记窗口当前是否正在使用变色龙窗口标题栏主题
 #define _DEEPIN_CHAMELEON "_DEEPIN_CHAMELEON_THEME"
+// 如果这个属性值为1，则表示此窗口的标题栏高度为0, 会隐藏标题栏
 #define _DEEPIN_NO_TITLEBAR "_DEEPIN_NO_TITLEBAR"
+// 强制对窗口开启边框修饰，对kde override类型的窗口，将会去除override标记。对unmanaged类型的窗口不生效
+#define _DEEPIN_FORCE_DECORATE "_DEEPIN_FORCE_DECORATE"
+// 设置窗口的裁剪区域，数据内容为QPainterPath导入到QDataStream
 #define _DEEPIN_SCISSOR_WINDOW "_DEEPIN_SCISSOR_WINDOW"
+// kwin窗口阴影属性，在没有窗口修饰器的窗口上会使用此属性绘制窗口阴影
 #define _KDE_NET_WM_SHADOW "_KDE_NET_WM_SHADOW"
+#define _NET_WM_WINDOW_TYPE "_NET_WM_WINDOW_TYPE"
 
 namespace KWin {
 class Client;
+class Unmanaged;
 class EffectWindow;
 }
 
@@ -41,6 +51,20 @@ class ChameleonConfig : public QObject
     Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY themeChanged)
 
 public:
+    enum EffectDataRole {
+        BaseRole = KWin::DataRole::LanczosCacheRole + 100,
+        WindowRadiusRole = BaseRole + 1,
+        WindowClipPathRole = BaseRole + 2,
+        WindowMaskTextureRole = BaseRole + 3
+    };
+
+    enum ShadowCacheType {
+        ActiveType,
+        InactiveType,
+        UnmanagedType,
+        ShadowCacheTypeCount
+    };
+
     static ChameleonConfig *instance();
 
     quint32 atomDeepinChameleon() const;
@@ -58,6 +82,9 @@ signals:
     void activatedChanged(bool activated);
     void themeChanged(QString theme);
     void windowNoTitlebarPropertyChanged(quint32 windowId);
+    void windowForceDecoratePropertyChanged(quint32 windowId);
+    void windowScissorWindowPropertyChanged(quint32 windowId);
+    void windowTypeChanged(QObject *window);
 
 protected:
     explicit ChameleonConfig(QObject *parent = nullptr);
@@ -65,29 +92,42 @@ protected:
 private slots:
     void onConfigChanged();
     void onClientAdded(KWin::Client *client);
+    // 针对X11BypassWindowManagerHint类型的窗口需要做一些特殊处理
+    void onUnmanagedAdded(KWin::Unmanaged *client);
     void onCompositingToggled(bool active);
     void onWindowPropertyChanged(quint32 windowId, quint32 atom);
 
+    void updateWindowNoBorderProperty(QObject *window);
     void updateClientX11Shadow();
+    void updateClientNoBorder(QObject *client, bool allowReset = true);
+    void updateClientWindowRadius(QObject *client);
+    void updateClientClipPath(QObject *client);
 
 private:
     void init();
 
-    void setActivated(bool active);
+    void setActivated(const bool active);
     void buildKWinX11Shadow(QObject *client);
     void buildKWinX11ShadowForNoBorderWindows();
     void clearKWinX11ShadowForWindows();
     void clearX11ShadowCache();
+    // 处理所有额外支持的窗口属性，比如_DEEPIN_SCISSOR_WINDOW、_DEEPIN_FORCE_DECORATE
+    // 第二个参数表示这个调用是否由属性变化引起
+    void enforceWindowProperties(QObject *client);
+    void enforcePropertiesForWindows(bool enable);
+    bool setWindowOverrideType(QObject *client, bool enable);
 
     bool m_activated = false;
     QString m_theme;
 #ifndef DISBLE_DDE_KWIN_XCB
     quint32 m_atom_deepin_chameleon;
     quint32 m_atom_deepin_no_titlebar;
+    quint32 m_atom_deepin_force_decorate;
     quint32 m_atom_deepin_scissor_window;
-#endif
     quint32 m_atom_kde_net_wm_shadow;
-    X11Shadow *m_x11ShadowCache[2] = {nullptr};
+    quint32 m_atom_net_wm_window_type;
+#endif
+    QMap<QString, X11Shadow*> m_x11ShadowCache;
 };
 
 #endif // CHAMELEONCONFIG_H

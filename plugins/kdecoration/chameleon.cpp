@@ -22,6 +22,7 @@
 #include "chameleonshadow.h"
 #include "chameleonbutton.h"
 #include "chameleonconfig.h"
+#include "chameleonwindowtheme.h"
 #ifndef DISBLE_DDE_KWIN_XCB
 #include "kwinutils.h"
 #endif
@@ -39,11 +40,22 @@
 #include <QScreen>
 #include <QGuiApplication>
 
+Q_DECLARE_METATYPE(QPainterPath)
+
 Chameleon::Chameleon(QObject *parent, const QVariantList &args)
     : KDecoration2::Decoration(parent, args)
     , m_client(parent)
 {
 
+}
+
+Chameleon::~Chameleon()
+{
+    if (KWin::EffectWindow *effect = this->effect()) {
+        // 清理窗口特效的数据
+        effect->setData(ChameleonConfig::WindowRadiusRole, QVariant());
+        effect->setData(ChameleonConfig::WindowMaskTextureRole, QVariant());
+    }
 }
 
 void Chameleon::init()
@@ -61,9 +73,9 @@ void Chameleon::init()
 
     // 要放到updateTheme调用之前初始化此对象
     auto global_config = ChameleonConfig::instance();
+    m_theme = new ChameleonWindowTheme(m_client, this);
 
     updateTheme();
-    updateScreen();
 
     connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
     connect(global_config, &ChameleonConfig::windowNoTitlebarPropertyChanged, this, &Chameleon::onNoTitlebarPropertyChanged);
@@ -77,6 +89,17 @@ void Chameleon::init()
     connect(c, &KDecoration2::DecoratedClient::maximizedVerticallyChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::captionChanged, this, &Chameleon::updateTitle);
     connect(this, &Chameleon::noTitleBarChanged, this, &Chameleon::updateTitleBarArea);
+    connect(m_theme, &ChameleonWindowTheme::themeChanged, this, &Chameleon::updateTheme);
+    connect(m_theme, &ChameleonWindowTheme::windowRadiusChanged, this, &Chameleon::updateBorderPath);
+    connect(m_theme, &ChameleonWindowTheme::windowRadiusChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::borderWidthChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::borderColorChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::shadowRadiusChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::shadowOffectChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::shadowColorChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::mouseInputAreaMarginsChanged, this, &Chameleon::updateMouseInputAreaMargins);
+    connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateShadow);
+    connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateTitleBarArea);
 
     m_initialized = true;
 }
@@ -105,7 +128,7 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
 
         // 支持alpha通道时在阴影上绘制border
         if (!qIsNull(border_width) && !s->isAlphaChannelSupported()) {
-            painter->setPen(QPen(m_config->decoration.borderColor, border_width, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
+            painter->setPen(QPen(borderColor(), border_width, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
             painter->drawPath(m_borderPath);
         }
     }
@@ -135,21 +158,16 @@ bool Chameleon::noTitleBar() const
 {
     if (m_noTitleBar < 0) {
         // 需要初始化
-        if (auto effect = this->effect()) {
-            const QByteArray &data = effect->readProperty(ChameleonConfig::instance()->atomDeepinNoTitlebar(), XCB_ATOM_CARDINAL, 8);
+        const QByteArray &data = KWinUtils::instance()->readWindowProperty(client().data()->windowId(),
+                                                                           ChameleonConfig::instance()->atomDeepinNoTitlebar(),
+                                                                           XCB_ATOM_CARDINAL);
 
-            if (data.isEmpty())
-                return false;
+        qint8 no_titlebar = !data.isEmpty() && data.at(0);
 
-            quint8 no_titlebar = data.at(0);
+        if (no_titlebar != m_noTitleBar) {
+            const_cast<Chameleon*>(this)->m_noTitleBar = no_titlebar;
 
-            if (no_titlebar != m_noTitleBar) {
-                const_cast<Chameleon*>(this)->m_noTitleBar = no_titlebar;
-
-                emit const_cast<Chameleon*>(this)->noTitleBarChanged(m_noTitleBar);
-            }
-        } else {
-            return false;
+            emit const_cast<Chameleon*>(this)->noTitleBarChanged(m_noTitleBar);
         }
     }
 
@@ -158,32 +176,54 @@ bool Chameleon::noTitleBar() const
 
 qreal Chameleon::borderWidth() const
 {
-    return client().data()->isMaximized() ? 0 : m_config->decoration.borderWidth;
+    if (client().data()->isMaximized())
+        return 0;
+
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderWidthProperty)) {
+        return m_theme->borderWidth();
+    }
+
+    return m_config->decoration.borderWidth;
 }
 
 qreal Chameleon::titleBarHeight() const
 {
-    return m_config->titlebar.height * m_scale;
+    return m_config->titlebar.height * m_theme->windowPixelRatio();
 }
 
 qreal Chameleon::shadowRadius() const
 {
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowRadiusProperty)) {
+        return m_theme->shadowRadius();
+    }
+
     return m_config->decoration.shadowRadius;
 }
 
 QPointF Chameleon::shadowOffset() const
 {
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowOffsetProperty)) {
+        return m_theme->shadowOffset();
+    }
+
     return m_config->decoration.shadowOffset;
 }
 
-QPair<qreal, qreal> Chameleon::windowRadius() const
+QPointF Chameleon::windowRadius() const
 {
-    return qMakePair(m_config->decoration.windowRadius.first * m_scale,
-                     m_config->decoration.windowRadius.second * m_scale);
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::WindowRadiusProperty)) {
+        return m_theme->windowRadius();
+    }
+
+    return m_config->decoration.windowRadius * m_theme->windowPixelRatio();
 }
 
 QMarginsF Chameleon::mouseInputAreaMargins() const
 {
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::MouseInputAreaMargins)) {
+        return m_theme->mouseInputAreaMargins();
+    }
+
     return m_config->decoration.mouseInputAreaMargins;
 }
 
@@ -305,58 +345,16 @@ void Chameleon::updateTitleGeometry()
     updateTitle();
 }
 
-void Chameleon::updateScreen()
-{
-    QScreen *screen = nullptr;
-
-    if (m_client) {
-        bool ok = false;
-        int screen_index = m_client->property("screen").toInt(&ok);
-
-        if (ok) {
-            screen = qGuiApp->screens().value(screen_index);
-        }
-    }
-
-    if (!screen) {
-        screen = qGuiApp->primaryScreen();
-    }
-
-    if (m_screen == screen) {
-        return;
-    }
-
-    if (m_screen) {
-        disconnect(m_screen, &QScreen::logicalDotsPerInchChanged, this, &Chameleon::updateScreenScale);
-        disconnect(m_screen, &QScreen::destroyed, this, &Chameleon::updateScreen);
-    }
-
-    m_screen = screen;
-
-    connect(m_screen, &QScreen::logicalDotsPerInchChanged, this, &Chameleon::updateScreenScale);
-    connect(m_screen, &QScreen::destroyed, this, &Chameleon::updateScreen);
-
-    updateScreenScale();
-}
-
-void Chameleon::updateScreenScale()
-{
-    qreal scale = m_screen->logicalDotsPerInch() / 96.0f;
-
-    if (qFuzzyCompare(scale, m_scale))
-        return;
-
-    m_scale = scale;
-
-    updateTitleBarArea();
-    updateShadow();
-    update();
-}
-
 void Chameleon::updateTheme()
 {
-    auto c = client().data();
-    auto config_group = ChameleonTheme::instance()->getThemeConfig(c->windowId());
+    const QString &theme_name = m_theme->theme();
+    ChameleonTheme::ConfigGroupPtr config_group;
+
+    if (!theme_name.isEmpty()) {
+        config_group = ChameleonTheme::instance()->loadTheme(theme_name);
+    } else {
+        config_group = ChameleonTheme::instance()->themeConfig();
+    }
 
     if (m_configGroup == config_group) {
         return;
@@ -379,8 +377,7 @@ void Chameleon::updateConfig()
         m_config = active ? &m_configGroup->noAlphaNormal : &m_configGroup->noAlphaInactive;
     }
 
-    setResizeOnlyBorders(m_config->decoration.mouseInputAreaMargins.toMargins());
-
+    updateMouseInputAreaMargins();
     updateTitleBarArea();
     updateShadow();
     update();
@@ -435,13 +432,6 @@ void Chameleon::updateTitleBarArea()
     updateButtonsGeometry();
 }
 
-enum EffectDataRole {
-    BaseRole = KWin::DataRole::LanczosCacheRole + 100,
-    WindowRadiusRole = BaseRole + 1,
-    WindowClipPathRole = BaseRole + 2,
-    WindowMaskTextureRole = BaseRole + 3
-};
-
 void Chameleon::updateBorderPath()
 {
     auto c = client().data();
@@ -454,14 +444,14 @@ void Chameleon::updateBorderPath()
 
     if (windowNeedRadius()) {
         auto window_radius = windowRadius();
-        path.addRoundedRect(client_rect, window_radius.first, window_radius.second);
+        path.addRoundedRect(client_rect, window_radius.x(), window_radius.y());
 
         if (effect) {
-            const QVariant &effect_window_radius = effect->data(EffectDataRole::WindowRadiusRole);
+            const QVariant &effect_window_radius = effect->data(ChameleonConfig::WindowRadiusRole);
             bool need_update = true;
 
             if (effect_window_radius.isValid()) {
-                auto old_window_radius = qvariant_cast<QPair<qreal, qreal>>(effect_window_radius);
+                auto old_window_radius = effect_window_radius.toPointF();
 
                 if (old_window_radius == window_radius) {
                     need_update = false;
@@ -470,9 +460,13 @@ void Chameleon::updateBorderPath()
 
             if (need_update) {
                 // 清理已缓存的旧的窗口mask材质
-                effect->setData(EffectDataRole::WindowMaskTextureRole, QVariant());
+                effect->setData(ChameleonConfig::WindowMaskTextureRole, QVariant());
                 // 设置新的窗口圆角
-                effect->setData(EffectDataRole::WindowRadiusRole, QVariant::fromValue(window_radius));
+                if (window_radius.isNull()) {
+                    effect->setData(ChameleonConfig::WindowRadiusRole, QVariant());
+                } else {
+                    effect->setData(ChameleonConfig::WindowRadiusRole, QVariant::fromValue(window_radius));
+                }
             }
         }
     } else {
@@ -480,9 +474,9 @@ void Chameleon::updateBorderPath()
 
         if (effect) {
             // 清理已缓存的旧的窗口mask材质
-            effect->setData(EffectDataRole::WindowMaskTextureRole, QVariant());
+            effect->setData(ChameleonConfig::WindowMaskTextureRole, QVariant());
             // 清理窗口圆角的设置
-            effect->setData(EffectDataRole::WindowRadiusRole, QVariant());
+            effect->setData(ChameleonConfig::WindowRadiusRole, QVariant());
         }
     }
 
@@ -494,8 +488,44 @@ void Chameleon::updateBorderPath()
 void Chameleon::updateShadow()
 {
     if (m_config && settings()->isAlphaChannelSupported()) {
-        setShadow(ChameleonShadow::instance()->getShadow(m_config, m_scale));
+        if (m_theme->validProperties() == ChameleonWindowTheme::PropertyFlags()) {
+            return setShadow(ChameleonShadow::instance()->getShadow(&m_config->decoration, m_theme->windowPixelRatio()));
+        }
+
+        ChameleonTheme::DecorationConfig config = m_config->decoration;
+        // 优先使用窗口自己设置的属性
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::WindowRadiusProperty)) {
+            config.windowRadius = m_theme->windowRadius();
+        }
+
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderWidthProperty)) {
+            config.borderWidth = m_theme->borderWidth();
+        }
+
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderColorProperty)) {
+            config.borderColor = m_theme->borderColor();
+        }
+
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowRadiusProperty)) {
+            config.shadowRadius = m_theme->shadowRadius();
+        }
+
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowOffsetProperty)) {
+            config.shadowOffset = m_theme->shadowOffset();
+        }
+
+        if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowColorProperty)) {
+            config.shadowColor = m_theme->shadowColor();
+        }
+
+        // 这里的数据是已经缩放过的，因此scale值需要为1
+        setShadow(ChameleonShadow::instance()->getShadow(&config, 1.0));
     }
+}
+
+void Chameleon::updateMouseInputAreaMargins()
+{
+    setResizeOnlyBorders(mouseInputAreaMargins().toMargins());
 }
 
 void Chameleon::onClientWidthChanged()
