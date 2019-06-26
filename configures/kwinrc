@@ -5,6 +5,16 @@ minimizeallEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_translucencyEnabled=false
 kwin4_effect_windowapertureEnabled=false
+#窗口打开和隐藏时的淡入淡出效果
+kwin4_effect_fadeEnabled=false
+#登录时淡入的效果
+kwin4_effect_loginEnabled=false
+#在Tool窗口或者通知窗口出现时的交叉淡入淡出的动画
+kwin4_effect_morphingpopupsEnabled=false
+#Popup类型窗口的展开动画
+slidingpopupsEnabled=false
+#Magnify the entrie desktop
+zoomEnabled=false
 
 [Desktops]
 Name_2=工作区 2
@@ -66,6 +76,8 @@ TopRight=None
 [Compositing]
 #窗口最小化后也保持map状态
 HiddenPreviews=6
+#动画速度调整为快
+AnimationSpeed=2
 
 [Windows]
 #设置焦点检测策略为最低级，防止由于kwin在窗口获取焦点时比较的严格的检查而导致的窗口无法获取到焦点
