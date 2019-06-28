@@ -347,7 +347,12 @@ void Chameleon::updateTitleGeometry()
 
 void Chameleon::updateTheme()
 {
-    const QString &theme_name = m_theme->theme();
+    QString theme_name;
+
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::ThemeProperty)) {
+        theme_name = m_theme->theme();
+    }
+
     ChameleonTheme::ConfigGroupPtr config_group;
 
     if (!theme_name.isEmpty()) {
