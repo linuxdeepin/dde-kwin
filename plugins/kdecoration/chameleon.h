@@ -97,6 +97,7 @@ private:
     void onThemeShadowOffsetChanged();
 
     bool windowNeedRadius() const;
+    bool windowNeedBorder() const;
 
     QColor getTextColor() const;
     QColor getBackgroundColor() const;
