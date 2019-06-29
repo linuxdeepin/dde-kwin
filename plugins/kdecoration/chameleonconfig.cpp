@@ -147,6 +147,7 @@ void ChameleonConfig::onClientAdded(KWin::Client *client)
     connect(c, SIGNAL(hasAlphaChanged()), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
+    connect(c, SIGNAL(geometryChanged()), this, SLOT(updateWindowSize()));
 
     enforceWindowProperties(c);
     buildKWinX11Shadow(c);
@@ -158,6 +159,7 @@ void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
 
     connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
+    connect(c, SIGNAL(geometryChanged()), this, SLOT(updateWindowSize()));
 
     enforceWindowProperties(c);
     buildKWinX11Shadow(c);
@@ -167,12 +169,17 @@ void ChameleonConfig::onCompositingToggled(bool active)
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     if (active && isActivated()) {
+        connect(KWin::effects, &KWin::EffectsHandler::windowDataChanged, this, &ChameleonConfig::onWindowDataChanged, Qt::UniqueConnection);
         KWinUtils::instance()->addSupportedProperty(m_atom_deepin_scissor_window);
 
         // 需要重设窗口的clip path特效数据
         for (QObject *client : KWinUtils::clientList()) {
             updateClientClipPath(client);
-            updateClientWindowRadius(client);
+        }
+
+        for (QObject *window : KWinUtils::unmanagedList()) {
+            updateClientClipPath(window);
+            updateClientWindowRadius(window);
         }
     } else {
         KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_scissor_window);
@@ -224,6 +231,19 @@ void ChameleonConfig::onWindowPropertyChanged(quint32 windowId, quint32 atom)
 #endif
 }
 
+void ChameleonConfig::onWindowDataChanged(KWin::EffectWindow *window, int role)
+{
+    switch (role) {
+    case KWin::WindowBlurBehindRole:
+    case WindowRadiusRole:
+    case WindowClipPathRole:
+        updateWindowBlurArea(window, role);
+        break;
+    default:
+        break;
+    }
+}
+
 void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
 {
     if (window->property(DDE_NEED_UPDATE_NOBORDER).toBool()) {
@@ -238,6 +258,131 @@ void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
             KWinUtils::instance()->clientCheckNoBorder(window);
         }
     }
+}
+
+// role 代表什么窗口属性的改变引起的函数调用
+void ChameleonConfig::updateWindowBlurArea(KWin::EffectWindow *window, int role)
+{
+    // 如果属性__dde__ignore_blur_behind_changed有效，且函数是因为WindowBlurBehindRole变化被调用
+    // 则表示这次变化是由updateWindowBlurArea本身引起的，应该忽略此次调用
+    if (role == KWin::WindowBlurBehindRole && window->property("__dde__ignore_blur_behind_changed").isValid()) {
+        // 清理标记的属性
+        window->setProperty("__dde__ignore_blur_behind_changed", QVariant());
+        return;
+    }
+
+    QVariant blur_area = window->data(KWin::WindowBlurBehindRole);
+
+    // 如果窗口设置的模糊区域没有改变，且窗口存在已经缓存的数据时使用已缓存的值
+    if (role != KWin::WindowBlurBehindRole) {
+        const QVariant &cache_blur_area = window->property("__dde__blur_behind_role");
+
+        if (cache_blur_area.isValid()) {
+            blur_area = cache_blur_area;
+        }
+    }
+
+    // 窗口模糊未启用时不用处理
+    if (!blur_area.isValid()) {
+        // 清理缓存的属性
+        window->setProperty("__dde__blur_behind_role", QVariant());
+        return;
+    }
+
+    const QVariant &window_clip = window->data(WindowClipPathRole);
+    const QVariant &window_radius = window->data(WindowRadiusRole);
+
+    QPainterPath path;
+    QPointF radius;
+
+    if (window_clip.isValid()) {
+        path = qvariant_cast<QPainterPath>(window_clip);
+    }
+
+    if (window_radius.isValid()) {
+        radius = window_radius.toPointF();
+    }
+
+    // 当窗口未设置圆角且未设置clip path时应该恢复窗口的模糊区域
+    if (path.isEmpty() && (qIsNull(radius.x()) || qIsNull(radius.y()))) {
+        const QVariant &blur_area = window->property("__dde__blur_behind_role");
+
+        if (blur_area.isValid()) {
+            // 先清理缓存的属性
+            window->setProperty("__dde__blur_behind_role", QVariant());
+            window->setData(KWin::WindowBlurBehindRole, blur_area);
+        }
+
+        return;
+    }
+
+    // 更新窗口的原始模糊数据, 用于后期的恢复
+    if (role == KWin::WindowBlurBehindRole
+            || !window->property("__dde__blur_behind_role").isValid()) {
+        window->setProperty("__dde__blur_behind_role", blur_area);
+    }
+
+    // 优先使用窗口裁剪区域，如裁剪区域无效时使用窗口圆角属性
+    if (path.isEmpty()) {
+        // 模糊区域的圆角处不会进行多采样，此处应该减小区域，防止和窗口border叠加处出现圆角锯齿
+        path.addRoundedRect(QRectF(window->rect()).adjusted(0.5, 0.5, -0.5, -0.5), radius.x() + 0.5, radius.y() + 0.5);
+    }
+
+    QPainterPath blur_path;
+    QRegion blur_region = qvariant_cast<QRegion>(blur_area);
+
+    if (!blur_region.isEmpty()) {
+        blur_path.addRegion(blur_region);
+
+        if ((blur_path - path).isEmpty()) {
+            // 模糊区域未超出窗口有效区域时不做任何处理
+            return;
+        }
+
+        // 将模糊区域限制在窗口的裁剪区域内
+        blur_path &= path;
+    } else {
+        blur_path = path;
+    }
+
+    blur_region = QRegion(blur_path.toFillPolygon().toPolygon());
+    // 标记应该忽略本次窗口模糊区域的变化，防止循环调用
+    window->setProperty("__dde__ignore_blur_behind_changed", true);
+    window->setData(KWin::WindowBlurBehindRole, blur_region);
+}
+
+// 当窗口设置了radius，且未设置clip path时应该在resize时更新窗口的模糊区域
+void ChameleonConfig::updateWindowSize()
+{
+    QObject *window = QObject::sender();
+
+    if (!window)
+        return;
+
+    const QSize &old_size = window->property("__dde__old_size").toSize();
+    const QSize &size = window->property("size").toSize();
+
+    if (old_size == size)
+        return;
+
+    window->setProperty("__dde_old_size", size);
+
+    KWin::EffectWindow *effect = window->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
+
+    if (!effect) {
+        return;
+    }
+
+    if (!effect->data(KWin::WindowBlurBehindRole).isValid())
+        return;
+
+    if (effect->data(WindowClipPathRole).isValid())
+        return;
+
+    if (!effect->data(WindowRadiusRole).isValid())
+        return;
+
+    updateWindowBlurArea(effect, 0);
 }
 
 void ChameleonConfig::updateClientX11Shadow()
@@ -297,6 +442,7 @@ static ChameleonWindowTheme *buildWindowTheme(QObject *window)
 }
 
 // 针对未被管理的窗口，且设置了强制开启窗口修饰时，更新其窗口圆角状态
+// 已被管理的窗口会强制开启窗口修饰，其radius属性将由对应的Chameleon对象设置
 void ChameleonConfig::updateClientWindowRadius(QObject *client)
 {
     if (client->property("managed").toBool()) {
@@ -364,14 +510,13 @@ void ChameleonConfig::updateClientWindowRadius(QObject *client)
 
 void ChameleonConfig::updateClientClipPath(QObject *client)
 {
-#ifndef DISBLE_DDE_KWIN_XCB
     KWin::EffectWindow *effect = client->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
 
     if (!effect)
         return;
 
     QPainterPath path;
-    const QByteArray &clip_data = KWinUtils::instance()->readWindowProperty(client, m_atom_deepin_scissor_window, m_atom_deepin_scissor_window);
+    const QByteArray &clip_data = effect->readProperty(m_atom_deepin_scissor_window, m_atom_deepin_scissor_window, 8);
 
     if (!clip_data.isEmpty()) {
         QDataStream ds(clip_data);
@@ -383,7 +528,6 @@ void ChameleonConfig::updateClientClipPath(QObject *client)
     } else {
         effect->setData(WindowClipPathRole, QVariant::fromValue(path));
     }
-#endif
 }
 
 void ChameleonConfig::init()
@@ -424,8 +568,11 @@ void ChameleonConfig::setActivated(const bool active)
 
 #ifndef DISBLE_DDE_KWIN_XCB
     if (active) {
-        if (KWinUtils::compositorIsActive())
+        if (KWinUtils::compositorIsActive()) {
+            connect(KWin::effects, &KWin::EffectsHandler::windowDataChanged, this, &ChameleonConfig::onWindowDataChanged, Qt::UniqueConnection);
+
             KWinUtils::instance()->addSupportedProperty(m_atom_deepin_scissor_window, false);
+        }
 
         KWinUtils::instance()->addSupportedProperty(m_atom_deepin_chameleon, false);
         KWinUtils::instance()->addSupportedProperty(m_atom_deepin_no_titlebar, false);
@@ -437,6 +584,10 @@ void ChameleonConfig::setActivated(const bool active)
         KWinUtils::instance()->addWindowPropertyMonitor(m_atom_deepin_scissor_window);
         KWinUtils::instance()->addWindowPropertyMonitor(m_atom_net_wm_window_type);
     } else {
+        if (KWin::effects) {
+            disconnect(KWin::effects, &KWin::EffectsHandler::windowDataChanged, this, &ChameleonConfig::onWindowDataChanged);
+        }
+
         KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_scissor_window, false);
         KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_chameleon, false);
         KWinUtils::instance()->removeSupportedProperty(m_atom_deepin_no_titlebar, false);
