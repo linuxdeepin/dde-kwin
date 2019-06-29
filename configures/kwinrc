@@ -13,8 +13,6 @@ kwin4_effect_loginEnabled=false
 kwin4_effect_morphingpopupsEnabled=false
 #Popup类型窗口的展开动画
 slidingpopupsEnabled=false
-#Magnify the entrie desktop
-zoomEnabled=false
 
 [Desktops]
 Name_2=工作区 2
