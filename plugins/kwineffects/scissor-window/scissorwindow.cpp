@@ -242,9 +242,12 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         }
     }
 
-    // 此时只允许绘制窗口边框和阴影
-    data.quads = decoration_quad_list;
-    Effect::drawWindow(w, mask, region, data);
+    if (!mask_texture->customMask) {
+        // 此时只允许绘制窗口边框和阴影
+        // 针对设置了自定义裁剪的窗口，则不绘制标题栏和阴影
+        data.quads = decoration_quad_list;
+        Effect::drawWindow(w, mask, region, data);
+    }
 
     if (!corner_region.isEmpty()) {
         QRegion new_region = region - corner_region;
