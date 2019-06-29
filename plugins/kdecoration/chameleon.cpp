@@ -123,13 +123,17 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
         m_rightButtons->paint(painter, repaintArea);
     }
 
-    {
+    if (windowNeedBorder()) {
         qreal border_width = borderWidth();
 
         // 支持alpha通道时在阴影上绘制border
-        if (!qIsNull(border_width) && !s->isAlphaChannelSupported()) {
-            painter->setPen(QPen(borderColor(), border_width, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));
-            painter->drawPath(m_borderPath);
+        if (!qIsNull(border_width)) {
+            if (noTitleBar()) {
+                painter->fillPath(m_borderPath, borderColor());
+            } else {
+                // 绘制path是沿着路径外圈绘制，所以此处应该+1才能把border绘制到窗口边缘
+                painter->strokePath(m_borderPath, QPen(borderColor(), border_width + 1));
+            }
         }
     }
 }
@@ -176,9 +180,6 @@ bool Chameleon::noTitleBar() const
 
 qreal Chameleon::borderWidth() const
 {
-    if (client().data()->isMaximized())
-        return 0;
-
     if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderWidthProperty)) {
         return m_theme->borderWidth();
     }
@@ -229,11 +230,19 @@ QMarginsF Chameleon::mouseInputAreaMargins() const
 
 QColor Chameleon::shadowColor() const
 {
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::ShadowColorProperty)) {
+        return m_theme->shadowColor();
+    }
+
     return m_config->decoration.shadowColor;
 }
 
 QColor Chameleon::borderColor() const
 {
+    if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderColorProperty)) {
+        return m_theme->borderColor();
+    }
+
     return m_config->decoration.borderColor;
 }
 
@@ -397,8 +406,7 @@ void Chameleon::updateTitleBarArea()
     m_titleBarAreaMargins.setRight(0);
     m_titleBarAreaMargins.setBottom(0);
 
-    // 支持alpha通道时在阴影上绘制边框，因此不需要关心边框宽度
-    qreal border_width = settings()->isAlphaChannelSupported() ? 0 : borderWidth();
+    qreal border_width = windowNeedBorder() ? borderWidth() : 0;
     qreal titlebar_height = noTitleBar() ? 0 : titleBarHeight();
 
     switch (m_config->titlebar.area) {
@@ -498,9 +506,12 @@ void Chameleon::updateShadow()
         }
 
         ChameleonTheme::DecorationConfig config = m_config->decoration;
+        qreal scale = m_theme->windowPixelRatio();
         // 优先使用窗口自己设置的属性
         if (m_theme->propertyIsValid(ChameleonWindowTheme::WindowRadiusProperty)) {
             config.windowRadius = m_theme->windowRadius();
+            // 这里的数据是已经缩放过的，因此scale值需要为1
+            scale = 1.0;
         }
 
         if (m_theme->propertyIsValid(ChameleonWindowTheme::BorderWidthProperty)) {
@@ -523,8 +534,7 @@ void Chameleon::updateShadow()
             config.shadowColor = m_theme->shadowColor();
         }
 
-        // 这里的数据是已经缩放过的，因此scale值需要为1
-        setShadow(ChameleonShadow::instance()->getShadow(&config, 1.0));
+        setShadow(ChameleonShadow::instance()->getShadow(&config, scale));
     }
 }
 
@@ -557,6 +567,19 @@ bool Chameleon::windowNeedRadius() const
     auto c = client().data();
 
     return c->adjacentScreenEdges() == Qt::Edges();
+}
+
+bool Chameleon::windowNeedBorder() const
+{
+    if (client().data()->isMaximized())
+        return false;
+
+    // 开启窗口混成时可以在阴影图片中绘制窗口边框
+    if (settings()->isAlphaChannelSupported()) {
+        return false;
+    }
+
+    return true;
 }
 
 QColor Chameleon::getTextColor() const

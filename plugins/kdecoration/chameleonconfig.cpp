@@ -690,9 +690,8 @@ public:
         }
 
         shadowOffset << shadow->paddingTop()
-                     // 不知道为什么，显示出的阴影效果中多偏移了1px，因此在此处减去1px的偏移
-                     << shadow->paddingRight() - 1
-                     << shadow->paddingBottom() - 1
+                     << shadow->paddingRight()
+                     << shadow->paddingBottom()
                      << shadow->paddingLeft();
 
         valid = true;

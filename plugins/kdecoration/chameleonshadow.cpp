@@ -43,10 +43,11 @@ QString ChameleonShadow::buildShadowCacheKey(const ChameleonTheme::DecorationCon
     qreal border_width = config->borderWidth;
     QColor border_color = config->borderColor;
 
-    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.x(),
-                                        shadow_size - shadow_offset.y() - window_radius.y(),
-                                        shadow_size - window_radius.x(),
-                                        shadow_size - window_radius.y());
+    const QPointF shadow_overlap(qMax(window_radius.x(), 3.0), qMax(window_radius.y(), 3.0));
+    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - shadow_overlap.x(),
+                                        shadow_size - shadow_offset.y() - shadow_overlap.y(),
+                                        shadow_size - shadow_overlap.x(),
+                                        shadow_size - shadow_overlap.y());
 
     return QString("%1_%2.%3_%4_%5_%6.%7.%8.%9").arg(qRound(window_radius.x())).arg(qRound(window_radius.y()))
                                                 .arg(paddings.left()).arg(paddings.top()).arg(paddings.right()).arg(paddings.bottom())
@@ -63,10 +64,11 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
     qreal border_width = config->borderWidth;
     QColor border_color = config->borderColor;
 
-    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - window_radius.x(),
-                                        shadow_size - shadow_offset.y() - window_radius.y(),
-                                        shadow_size - window_radius.x(),
-                                        shadow_size - window_radius.y());
+    const QPointF shadow_overlap(qMax(window_radius.x(), 3.0), qMax(window_radius.y(), 3.0));
+    const QMargins &paddings = QMargins(shadow_size - shadow_offset.x() - shadow_overlap.x(),
+                                        shadow_size - shadow_offset.y() - shadow_overlap.y(),
+                                        shadow_size - shadow_overlap.x(),
+                                        shadow_size - shadow_overlap.y());
     const QString key = buildShadowCacheKey(config, scale);
     auto shadow = m_shadowCache.value(key);
 
@@ -101,34 +103,33 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
         painter.fillRect(image.rect(), radialGradient);
 
         // contrast pixel
-        QRectF innerRect = QRectF(shadow_size - shadow_offset.x() - window_radius.x(),
-                                  shadow_size - shadow_offset.y() - window_radius.y(),
-                                  shadow_offset.x() + window_radius.x() + window_radius.x(),
-                                  shadow_offset.y() + window_radius.y() + window_radius.y());
+        QRectF innerRect = QRectF(shadow_size - shadow_offset.x() - shadow_overlap.x(),
+                                  shadow_size - shadow_offset.y() - shadow_overlap.y(),
+                                  shadow_offset.x() + 2 * shadow_overlap.x(),
+                                  shadow_offset.y() + 2 * shadow_overlap.y());
+
+        if (border_width > 0 && border_color.alpha() != 0) {
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            // 绘制path是沿着路径外圈绘制，所以此处应该+1才能把border绘制到窗口边缘
+            painter.setPen(QPen(border_color, border_width + 1));
+            painter.setBrush(Qt::NoBrush);
+
+            if (window_radius.x() > 0 && window_radius.y() > 0) {
+                painter.drawRoundedRect(innerRect, window_radius.x(), window_radius.y());
+            } else {
+                painter.drawRect(innerRect);
+            }
+        }
 
         // mask out inner rect
         painter.setPen(Qt::NoPen);
         painter.setBrush(Qt::black);
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
 
-        if (window_radius.x() >0 && window_radius.y() > 0) {
-            painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
+        if (window_radius.x() > 0 && window_radius.y() > 0) {
+            painter.drawRoundedRect(innerRect, window_radius.x(), window_radius.y());
         } else {
             painter.drawRect(innerRect);
-        }
-        // border
-        if (border_width > 0 && border_color.alpha() != 0) {
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            painter.setPen(QPen(border_color, border_width));
-            painter.setBrush(Qt::NoBrush);
-
-            if (window_radius.x() >0 && window_radius.y() > 0) {
-                painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
-            } else {
-                painter.drawRect(innerRect);
-            }
-
-            painter.end();
         }
 
         shadow = QSharedPointer<KDecoration2::DecorationShadow>::create();
