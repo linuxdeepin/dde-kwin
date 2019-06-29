@@ -96,8 +96,11 @@ private slots:
     void onUnmanagedAdded(KWin::Unmanaged *client);
     void onCompositingToggled(bool active);
     void onWindowPropertyChanged(quint32 windowId, quint32 atom);
+    void onWindowDataChanged(KWin::EffectWindow *window, int role);
 
     void updateWindowNoBorderProperty(QObject *window);
+    void updateWindowBlurArea(KWin::EffectWindow *window, int role);
+    void updateWindowSize();
     void updateClientX11Shadow();
     void updateClientNoBorder(QObject *client, bool allowReset = true);
     void updateClientWindowRadius(QObject *client);
