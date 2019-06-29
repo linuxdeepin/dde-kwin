@@ -180,17 +180,30 @@ void ChameleonConfig::onCompositingToggled(bool active)
 #endif
 }
 
+static QObject *findWindow(xcb_window_t xid)
+{
+    // 先从普通窗口中查找
+    QObject *obj = KWinUtils::instance()->findClient(KWinUtils::Predicate::WindowMatch, xid);
+
+    if (!obj) // 再从unmanaged类型窗口中查找
+        obj = KWinUtils::instance()->findClient(KWinUtils::Predicate::UnmanagedMatch, xid);
+
+    return obj;
+}
+
 void ChameleonConfig::onWindowPropertyChanged(quint32 windowId, quint32 atom)
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     if (atom == m_atom_deepin_no_titlebar) {
         emit windowNoTitlebarPropertyChanged(windowId);
     } else if (atom == m_atom_deepin_force_decorate) {
-        updateClientNoBorder(KWinUtils::instance()->findClient(KWinUtils::Predicate::WindowMatch, windowId));
+        if (QObject *obj = findWindow(windowId))
+            updateClientNoBorder(obj);
 
         emit windowForceDecoratePropertyChanged(windowId);
     } else if (atom == m_atom_deepin_scissor_window) {
-        updateClientClipPath(KWinUtils::instance()->findClient(KWinUtils::Predicate::WindowMatch, windowId));
+        if (QObject *obj = findWindow(windowId))
+            updateClientClipPath(obj);
 
         emit windowScissorWindowPropertyChanged(windowId);
     } else if (atom == m_atom_net_wm_window_type) {
@@ -235,7 +248,6 @@ void ChameleonConfig::updateClientX11Shadow()
 void ChameleonConfig::updateClientNoBorder(QObject *client, bool allowReset)
 {
 #ifndef DISBLE_DDE_KWIN_XCB
-    // 不要直接调用updateClientNoBorder
     const QByteArray &force_decorate = KWinUtils::instance()->readWindowProperty(client, m_atom_deepin_force_decorate, XCB_ATOM_CARDINAL);
     bool managed = client->property("managed").toBool();
 
