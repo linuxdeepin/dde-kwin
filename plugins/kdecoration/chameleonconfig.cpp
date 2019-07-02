@@ -165,6 +165,26 @@ void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
     buildKWinX11Shadow(c);
 }
 
+static bool canForceSetBorder(const QObject *window)
+{
+    if (!window->property("managed").toBool())
+        return false;
+
+    switch (window->property("windowType").toInt()) {
+    case NET::Desktop:
+    case NET::Dock:
+    case NET::TopMenu:
+    case NET::Splash:
+    case NET::Notification:
+    case NET::OnScreenDisplay:
+        return false;
+    default:
+        break;
+    }
+
+    return true;
+}
+
 void ChameleonConfig::onCompositingToggled(bool active)
 {
 #ifndef DISBLE_DDE_KWIN_XCB
@@ -175,6 +195,10 @@ void ChameleonConfig::onCompositingToggled(bool active)
         // 需要重设窗口的clip path特效数据
         for (QObject *client : KWinUtils::clientList()) {
             updateClientClipPath(client);
+
+            if (!canForceSetBorder(client)) {
+                updateClientWindowRadius(client);
+            }
         }
 
         for (QObject *window : KWinUtils::unmanagedList()) {
@@ -394,11 +418,11 @@ void ChameleonConfig::updateClientNoBorder(QObject *client, bool allowReset)
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     const QByteArray &force_decorate = KWinUtils::instance()->readWindowProperty(client, m_atom_deepin_force_decorate, XCB_ATOM_CARDINAL);
-    bool managed = client->property("managed").toBool();
+    bool set_border = canForceSetBorder(client);
 
     if (!force_decorate.isEmpty() && force_decorate.at(0)) {
-        // 对于未被管理的窗口，必处于noBorder状态
-        if (managed) {
+        // 对于不可设置noBorder属性的窗口，必处于noBorder状态
+        if (set_border) {
             if (client->property("noBorder").toBool()) {
                 // 窗口包含override类型时不可立即设置noBorder属性，需要在窗口类型改变的事件中再进行设置
                 if (setWindowOverrideType(client, false)) {
@@ -431,21 +455,25 @@ void ChameleonConfig::updateClientNoBorder(QObject *client, bool allowReset)
 
 static ChameleonWindowTheme *buildWindowTheme(QObject *window)
 {
-    ChameleonWindowTheme *window_theme = window->findChild<ChameleonWindowTheme*>(QString(), Qt::FindDirectChildrenOnly);
-
-    // 构建窗口主题设置对象
-    if (!window_theme) {
-        window_theme = new ChameleonWindowTheme(window, window);
+    for (QObject *child : window->children()) {
+        // 对于ChameleonWindowTheme类型的对象，由于其调用了buildNativeSettings，因此会导致其QMetaObject对象被更改
+        // 无法使用QMetaObject::cast，因此不能使用QObject::findChild等接口查找子类，也不能使用qobject_cast转换对象指针类型
+        // 此处只能根据类名判断来查找ChameleonWindowTheme对象
+        if (strcmp(child->metaObject()->className(), ChameleonWindowTheme::staticMetaObject.className()) == 0) {
+            return static_cast<ChameleonWindowTheme*>(child);
+        }
     }
 
-    return window_theme;
+    // 构建窗口主题设置对象
+    return new ChameleonWindowTheme(window, window);
 }
 
 // 针对未被管理的窗口，且设置了强制开启窗口修饰时，更新其窗口圆角状态
 // 已被管理的窗口会强制开启窗口修饰，其radius属性将由对应的Chameleon对象设置
 void ChameleonConfig::updateClientWindowRadius(QObject *client)
 {
-    if (client->property("managed").toBool()) {
+    // 对于可以强制设置为有border的窗口不用处理
+    if (canForceSetBorder(client)) {
         return;
     }
 
@@ -732,7 +760,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
         force_decorate = true;
     }
 
-    if (window->property("managed").toBool()) {
+    if (canForceSetBorder(window)) {
         // 有边框或者无边框但透明的窗口不创建阴影
         if (!window->property("noBorder").toBool() || window->property("alpha").toBool()) {
             return;
@@ -758,7 +786,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
 
     ShadowCacheType shadow_type;
 
-    if (window->property("managed").toBool()) {
+    if (canForceSetBorder(window)) {
         shadow_type = window->property("active").toBool() ? ActiveType : InactiveType;
     } else {
         shadow_type = UnmanagedType;
