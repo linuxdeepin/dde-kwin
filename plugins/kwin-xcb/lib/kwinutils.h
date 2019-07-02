@@ -131,6 +131,8 @@ public:
     Q_INVOKABLE void addWindowPropertyMonitor(quint32 property_atom);
     Q_INVOKABLE void removeWindowPropertyMonitor(quint32 property_atom);
 
+    // Warning: 调用 buildNativeSettings，会导致baseObject的QMetaObject对象被更改
+    // 无法使用QMetaObject::cast，不能使用QObject::findChild等接口查找子类，也不能使用qobject_cast转换对象指针类型
     Q_INVOKABLE bool buildNativeSettings(QObject *baseObject, quint32 windowID);
 
     bool isInitialized() const;

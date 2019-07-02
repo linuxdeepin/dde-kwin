@@ -34,7 +34,11 @@ QPair<qreal, qreal> ChameleonTheme::takePair(const QVariant &value, const QPair<
         return defaultValue;
     }
 
-    const QStringList &l = value.toStringList();
+    QStringList l = value.toStringList();
+
+    if (l.isEmpty()) {
+        l = value.toString().split(",");
+    }
 
     if (l.count() < 2) {
         return defaultValue;
@@ -54,7 +58,11 @@ QMarginsF ChameleonTheme::takeMargins(const QVariant &value, const QMarginsF &de
         return defaultValue;
     }
 
-    const QStringList &l = value.toStringList();
+    QStringList l = value.toStringList();
+
+    if (l.isEmpty()) {
+        l = value.toString().split(",");
+    }
 
     if (l.count() < 4) {
         return defaultValue;
