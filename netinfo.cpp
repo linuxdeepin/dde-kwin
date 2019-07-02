@@ -168,6 +168,11 @@ void RootInfo::changeActiveWindow(xcb_window_t w, NET::RequestSource src, xcb_ti
         if (src == NET::FromTool)
             workspace->activateClient(c, true);   // force
         else if (c == workspace->mostRecentlyActivatedClient()) {
+            // 如果请求active的窗口已经是active的，则不应该直接返回，当前的窗口焦点可能是在active client的子窗口中，所以应该调用setInputFocus将输入焦点转移给client
+            if (c == workspace->activeClient() && c->wantsInput()) {
+                Xcb::setInputFocus(w, XCB_INPUT_FOCUS_PARENT, timestamp);
+            }
+
             return; // WORKAROUND? With > 1 plasma activities, we cause this ourselves. bug #240673
         } else { // NET::FromApplication
             Client* c2;
