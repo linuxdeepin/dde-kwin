@@ -60,7 +60,8 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
     auto window_radius = config->windowRadius * scale;
     auto shadow_offset = config->shadowOffset;
     QColor shadow_color = config->shadowColor;
-    int shadow_size = config->shadowRadius;
+    // 因为阴影区域会抹除窗口圆角区域，所以阴影大小需要额外加上窗口圆角大小
+    int shadow_size = config->shadowRadius + window_radius.x() + window_radius.y();
     qreal border_width = config->borderWidth;
     QColor border_color = config->borderColor;
 

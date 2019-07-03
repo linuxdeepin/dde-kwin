@@ -509,7 +509,7 @@ void ChameleonConfig::updateClientWindowRadius(QObject *client)
     } else if (window_theme->propertyIsValid(ChameleonWindowTheme::ThemeProperty)) {
         // 如果窗口自定义了使用哪个主题
         if (auto config_group = ChameleonTheme::instance()->loadTheme(window_theme->theme())) {
-            window_radius = config_group->unmanaged.decoration.windowRadius;
+            window_radius = config_group->unmanaged.decoration.windowRadius * window_theme->windowPixelRatio();
         }
     }
 
@@ -761,8 +761,8 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
     }
 
     if (canForceSetBorder(window)) {
-        // 有边框或者无边框但透明的窗口不创建阴影
-        if (!window->property("noBorder").toBool() || window->property("alpha").toBool()) {
+        // 对于可以强制设置显示边框的窗口, "如果声明了边框强制修饰/当前有边框/无边框但透明"的窗口不创建阴影
+        if (force_decorate || !window->property("noBorder").toBool() || window->property("alpha").toBool()) {
             return;
         }
     } else if (!force_decorate) {
@@ -780,6 +780,10 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
         connect(window_theme, &ChameleonWindowTheme::shadowRadiusChanged, this, update);
         connect(window_theme, &ChameleonWindowTheme::shadowOffectChanged, this, update);
         connect(window_theme, &ChameleonWindowTheme::shadowColorChanged, this, update);
+        connect(window_theme, &ChameleonWindowTheme::windowRadiusChanged, this, update);
+        connect(window_theme, &ChameleonWindowTheme::borderColorChanged, this, update);
+        connect(window_theme, &ChameleonWindowTheme::borderWidthChanged, this, update);
+        connect(window_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, update);
         // 标记为已初始化信号链接
         window_theme->setProperty("__connected_for_shadow", true);
     }
