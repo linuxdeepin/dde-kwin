@@ -34,6 +34,7 @@
 #undef protected
 
 #include <xcb/xcb.h>
+#include <xcb/shape.h>
 
 #include <functional>
 
@@ -152,6 +153,14 @@ public:
     enum WindowOperation {};
 };
 class Unmanaged;
+
+namespace Xcb {
+class Extensions
+{
+public:
+    static Extensions *s_self;
+};
+}
 }
 
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
@@ -262,6 +271,7 @@ class KWinInterface
     typedef QObject *(*WorkspaceFindClient)(void *, KWinUtils::Predicate, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanaged)(void *, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
+    typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
 public:
     KWinInterface()
     {
@@ -276,6 +286,7 @@ public:
         findClient = (WorkspaceFindClient)KWinUtils::resolve("_ZNK4KWin9Workspace10findClientENS_9PredicateEj");
         findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
         findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
+        xcbExtensionsShapeNotifyEvent = (XcbExtensionsShapeNotifyEvent)KWinUtils::resolve("_ZNK4KWin3Xcb10Extensions16shapeNotifyEventEv");
     }
 
     ClientMaximizeMode clientMaximizeMode;
@@ -289,6 +300,7 @@ public:
     WorkspaceFindClient findClient;
     WorkspaceFindUnmanaged findUnmanaged;
     WorkspaceFindUnmanagedByFunction findUnmanagedByFunction;
+    XcbExtensionsShapeNotifyEvent xcbExtensionsShapeNotifyEvent;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -300,6 +312,19 @@ public:
         : q(utils)
     {
         _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
+    }
+
+    static bool isShapeNotifyEvent(int type)
+    {
+        if (!KWin::Xcb::Extensions::s_self) {
+            return false;
+        }
+
+        if (!interface->xcbExtensionsShapeNotifyEvent) {
+            return false;
+        }
+
+        return interface->xcbExtensionsShapeNotifyEvent(KWin::Xcb::Extensions::s_self) == type;
     }
 
     void updateWMSupported() {
@@ -374,6 +399,10 @@ public:
             if (monitorProperties.contains(ev->atom)) {
                 emit q->windowPropertyChanged(ev->window, ev->atom);
             }
+        } else if (isShapeNotifyEvent(response_type)) {
+            xcb_window_t window = reinterpret_cast<xcb_shape_notify_event_t*>(event)->affected_window;
+
+            emit q->windowShapeChanged(window);
         }
 
         return false;

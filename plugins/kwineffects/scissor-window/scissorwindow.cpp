@@ -29,6 +29,7 @@
 
 #include <QPainter>
 #include <QExplicitlySharedDataPointer>
+#include <QSignalBlocker>
 
 Q_DECLARE_METATYPE(QPainterPath)
 
@@ -296,6 +297,9 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         SetWindowDepth(KWin::EffectWindow *w, int depth)
             : m_window(w)
         {
+            // 此时正在进行窗口绘制，会有大量的调用，应当避免窗口发射hasAlphaChanged信号
+            QSignalBlocker blocker(w->parent());
+            Q_UNUSED(blocker)
             KWinUtils::setClientDepth(w->parent(), depth);
         }
 
@@ -310,6 +314,9 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
                 m_window->setData(WindowDepthRole, depth);
             }
 
+            // 此时正在进行窗口绘制，会有大量的调用，应当避免窗口发射hasAlphaChanged信号
+            QSignalBlocker blocker(client);
+            Q_UNUSED(blocker)
             KWinUtils::setClientDepth(client, depth);
         }
 
