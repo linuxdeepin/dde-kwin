@@ -39,6 +39,7 @@
 #include <QDebug>
 #include <QX11Info>
 #include <QGuiApplication>
+#include <QTimer>
 
 #include <xcb/xcb.h>
 #include <X11/Xlib.h>
@@ -145,7 +146,6 @@ void ChameleonConfig::onClientAdded(KWin::Client *client)
 
     connect(c, SIGNAL(activeChanged()), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(hasAlphaChanged()), this, SLOT(updateClientX11Shadow()));
-    connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(geometryChanged()), this, SLOT(updateWindowSize()));
 
@@ -157,7 +157,6 @@ void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
 {
     QObject *c = reinterpret_cast<QObject*>(client);
 
-    connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
     connect(c, SIGNAL(geometryChanged()), this, SLOT(updateWindowSize()));
 
@@ -266,6 +265,17 @@ void ChameleonConfig::onWindowDataChanged(KWin::EffectWindow *window, int role)
     default:
         break;
     }
+}
+
+void ChameleonConfig::onWindowShapeChanged(quint32 windowId)
+{
+    QObject *window = findWindow(windowId);
+
+    if (!window)
+        return;
+
+    // 避免短时间内大量触发其阴影的更新
+    buildKWinX11ShadowDelay(window);
 }
 
 void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
@@ -566,18 +576,17 @@ void ChameleonConfig::init()
     connect(KWinUtils::workspace(), SIGNAL(unmanagedAdded(KWin::Unmanaged*)), this, SLOT(onUnmanagedAdded(KWin::Unmanaged*)));
     connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
     connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);
+    connect(KWinUtils::instance(), &KWinUtils::windowShapeChanged, this, &ChameleonConfig::onWindowShapeChanged);
 #endif
 
     // 初始化链接客户端的信号
     for (QObject *c : KWinUtils::instance()->clientList()) {
         connect(c, SIGNAL(activeChanged()), this, SLOT(updateClientX11Shadow()));
         connect(c, SIGNAL(hasAlphaChanged()), this, SLOT(updateClientX11Shadow()));
-        connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
         connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
     }
 
     for (QObject *c : KWinUtils::instance()->unmanagedList()) {
-        connect(c, SIGNAL(geometryShapeChanged(KWin::Toplevel*, const QRect&)), this, SLOT(updateClientX11Shadow()));
         connect(c, SIGNAL(shapedChanged()), this, SLOT(updateClientX11Shadow()));
     }
 
@@ -754,15 +763,20 @@ private:
 void ChameleonConfig::buildKWinX11Shadow(QObject *window)
 {
     bool force_decorate = window->property(DDE_FORCE_DECORATE).toBool();
+    bool can_build_shadow = canForceSetBorder(window);
 
     // 应该强制为菜单类型的窗口创建阴影
     if (window->property("popupMenu").toBool()) {
-        force_decorate = true;
+        // 设置了 GTK_FRAME_EXTENTS 的窗口不接管其阴影
+        if (!window->property("clientSideDecorated").toBool())
+            can_build_shadow = true;
     }
 
-    if (canForceSetBorder(window)) {
+    if (can_build_shadow) {
         // 对于可以强制设置显示边框的窗口, "如果声明了边框强制修饰/当前有边框/无边框但透明"的窗口不创建阴影
-        if (force_decorate || !window->property("noBorder").toBool() || window->property("alpha").toBool()) {
+        if (force_decorate
+                || (window->property("noBorder").isValid() && !window->property("noBorder").toBool())
+                || window->property("alpha").toBool()) {
             return;
         }
     } else if (!force_decorate) {
@@ -892,6 +906,28 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
     KWinUtils::setWindowProperty(window, m_atom_kde_net_wm_shadow,
                                  XCB_ATOM_CARDINAL, 32,
                                  QByteArray((char*)property_data.constData(), property_data.size() * 4));
+}
+
+void ChameleonConfig::buildKWinX11ShadowDelay(QObject *client, int delay)
+{
+    // 窗口已经进入等待更新阴影的状态时，可以直接忽略本次请求
+    if (client->property("__dde__delay_build_shadow").toBool())
+        return;
+
+    QPointer<ChameleonConfig> self(this);
+    auto buildClientShadow = [client, self] {
+        if (!self) {
+            return;
+        }
+
+        // 清理标记的属性
+        client->setProperty("__dde__delay_build_shadow", QVariant());
+        self->buildKWinX11Shadow(client);
+    };
+
+    // 标记为正在等待更新阴影
+    client->setProperty("__dde__delay_build_shadow", true);
+    QTimer::singleShot(delay, client, buildClientShadow);
 }
 
 void ChameleonConfig::buildKWinX11ShadowForNoBorderWindows()

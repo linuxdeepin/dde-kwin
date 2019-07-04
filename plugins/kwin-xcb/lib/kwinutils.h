@@ -151,6 +151,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void initialized();
     void windowPropertyChanged(quint32 windowId, quint32 property_atom);
+    void windowShapeChanged(quint32 windowId);
 
 protected:
     explicit KWinUtils(QObject *parent = nullptr);
