@@ -39,12 +39,12 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Przejdź do obszaru roboczego w lewo</translation>
+        <translation>Przenieś na obszar roboczy po lewej</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Przejdź do obszaru roboczego w prawo</translation>
+        <translation>Przenieś na obszar roboczy po prawej</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>
