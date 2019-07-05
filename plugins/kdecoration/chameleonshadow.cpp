@@ -120,6 +120,10 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
 
         QPainter painter(&image);
 
+        if (window_radius.x() > 0 && window_radius.y() > 0) {
+            painter.setRenderHint(QPainter::Antialiasing, true);
+        }
+
         if (border_width > 0 && border_color.alpha() != 0) {
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
             // 绘制path是沿着路径外圈绘制，所以此处应该+1才能把border绘制到窗口边缘
@@ -127,7 +131,7 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
             painter.setBrush(Qt::NoBrush);
 
             if (window_radius.x() > 0 && window_radius.y() > 0) {
-                painter.drawRoundedRect(innerRect, window_radius.x(), window_radius.y());
+                painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
             } else {
                 painter.drawRect(innerRect);
             }
@@ -140,7 +144,7 @@ QSharedPointer<KDecoration2::DecorationShadow> ChameleonShadow::getShadow(const 
             painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
 
             if (window_radius.x() > 0 && window_radius.y() > 0) {
-                painter.drawRoundedRect(innerRect, window_radius.x(), window_radius.y());
+                painter.drawRoundedRect(innerRect, 0.5 + window_radius.x(), 0.5 + window_radius.y());
             } else {
                 painter.drawRect(innerRect);
             }
