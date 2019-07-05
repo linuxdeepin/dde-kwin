@@ -76,6 +76,8 @@ TopRight=None
 HiddenPreviews=6
 #动画速度调整为快
 AnimationSpeed=2
+#使用XRender渲染后端(避开opengl模式下的屏幕闪烁问题)
+Backend=XRender
 
 [Windows]
 #设置焦点检测策略为最低级，防止由于kwin在窗口获取焦点时比较的严格的检查而导致的窗口无法获取到焦点
