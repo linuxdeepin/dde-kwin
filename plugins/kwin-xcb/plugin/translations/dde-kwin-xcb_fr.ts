@@ -9,7 +9,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>Niveau inférieur</translation>
+        <translation>Relâcher</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>

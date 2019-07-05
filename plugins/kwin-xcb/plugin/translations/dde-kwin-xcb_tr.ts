@@ -9,7 +9,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>Büyüt</translation>
+        <translation>Önceki Boyut</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
@@ -24,7 +24,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
         <source>Resize</source>
-        <translation>Yeniden Boyutlandır</translation>
+        <translation>Boyutlandır</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
@@ -34,7 +34,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Her Zaman Çalışma Alanında Görünsün</translation>
+        <translation>Her Zaman Çalışma Alanında Görün</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
