@@ -42,7 +42,8 @@ ChameleonWindowTheme::ChameleonWindowTheme(QObject *window, QObject *parent)
         return;
 
     // 将ChameleonWindowTheme对象的属性绑定到对应x11窗口的settings属性
-    Q_ASSERT(KWinUtils::instance()->buildNativeSettings(this, window_id));
+    ok = KWinUtils::instance()->buildNativeSettings(this, window_id);
+    Q_ASSERT(ok);
 #endif
 
     updateScreen();
