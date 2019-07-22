@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "zccrs@live.com",
+                "Name": "zccrs"
+            }
+        ],
+        "Description": "Blur window background effect",
+        "Description[zh_CN]": "一个窗口背景模糊的特效实现",
+        "EnabledByDefault": true,
+        "Id": "com.deepin.blur",
+        "Name": "BlurWindow",
+        "Name[zh_CN]": "窗口模糊",
+        "ServiceTypes": [
+            "KWin/Effect"
+        ],
+        "org.kde.kwin.effect": {
+            "exclusiveGroup": "appearance"
+        }
+    }
+}

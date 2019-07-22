@@ -1,5 +1,6 @@
 [Plugins]
-blurEnabled=true
+#默认使用com.deepin.blur
+blurEnabled=false
 enforcedecoEnabled=false
 minimizeallEnabled=true
 kwin4_effect_dialogparentEnabled=false
