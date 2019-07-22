@@ -37,6 +37,41 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+if (NOT KWIN_VERSION)
+    find_package(KDecoration2 REQUIRED)
+    set(KWIN_VERSION ${KDecoration2_VERSION})
+endif()
+
+if (KWIN_VERSION)
+    message("kwin version: ${KWIN_VERSION}")
+    string(REPLACE "." ";" KWIN_VERSION_LIST ${KWIN_VERSION})
+    list(APPEND KWIN_VERSION_LIST 0 0 0 0)
+
+    if (NOT KWIN_VER_MAJ)
+        list(GET KWIN_VERSION_LIST 0 KWIN_VER_MAJ)
+    endif()
+
+    if (NOT KWIN_VER_MIN)
+        list(GET KWIN_VERSION_LIST 1 KWIN_VER_MIN)
+    endif()
+
+    if (NOT KWIN_VER_PAT)
+        list(GET KWIN_VERSION_LIST 2 KWIN_VER_PAT)
+    endif()
+
+    if (NOT KWIN_VER_BUI)
+        list(GET KWIN_VERSION_LIST 3 KWIN_VER_BUI)
+    endif()
+
+    add_definitions(
+        -DKWIN_VERSION_STR=\\"${KWIN_VERSION}\\"
+        -DKWIN_VERSION_MAJ=${KWIN_VER_MAJ}
+        -DKWIN_VERSION_MIN=${KWIN_VER_MIN}
+        -DKWIN_VERSION_PAT=${KWIN_VER_MIN}
+        -DKWIN_VERSION_BUI=${KWIN_VER_BUI}
+    )
+endif()
+
 add_subdirectory(configures)
 add_subdirectory(plugins)
 add_subdirectory(scripts)
