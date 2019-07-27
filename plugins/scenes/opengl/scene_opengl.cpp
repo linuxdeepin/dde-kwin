@@ -2141,6 +2141,9 @@ void SceneOpenGLShadow::buildQuads()
     const int width = shadowMargins.left() + std::max(top.width(), bottom.width()) + shadowMargins.right();
     const int height = shadowMargins.top() + std::max(left.height(), right.height()) + shadowMargins.bottom();
 
+    if (width == 0 || height == 0)
+        return;
+
     QRectF topLeftRect;
     if (!topLeft.isEmpty()) {
         topLeftRect = QRectF(outerRect.topLeft(), topLeft);
