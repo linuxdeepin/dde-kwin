@@ -396,8 +396,16 @@ public:
         if (response_type == XCB_PROPERTY_NOTIFY) {
             xcb_property_notify_event_t *ev = reinterpret_cast<xcb_property_notify_event_t*>(event);
 
-            if (monitorProperties.contains(ev->atom)) {
+            if (Q_UNLIKELY(monitorProperties.contains(ev->atom))) {
                 emit q->windowPropertyChanged(ev->window, ev->atom);
+            }
+
+            if (Q_LIKELY(monitorRootWindowProperty)) {
+                static long root = QX11Info::appRootWindow();
+
+                if (Q_UNLIKELY(ev->window == root)) {
+                    _d_onPropertyChanged(ev->atom);
+                }
             }
         } else if (isShapeNotifyEvent(response_type)) {
             xcb_window_t window = reinterpret_cast<xcb_shape_notify_event_t*>(event)->affected_window;
@@ -435,6 +443,7 @@ public:
     qint64 lastUpdateTime = 0;
     bool initialized = false;
     bool filterInstalled = false;
+    bool monitorRootWindowProperty = false;
 };
 
 KWinUtils::KWinUtils(QObject *parent)
@@ -449,7 +458,13 @@ KWinUtils::KWinUtils(QObject *parent)
 #endif
 
     if (QObject *ws = workspace()) {
-        connect(ws, SIGNAL(propertyNotify(long)), this, SLOT(_d_onPropertyChanged(long)));
+        // 无法从workspace对象获取事件时，则从时间过滤器中取
+
+        if (!connect(ws, SIGNAL(propertyNotify(long)), this, SLOT(_d_onPropertyChanged(long)))) {
+            d->monitorRootWindowProperty = true;
+
+            qDebug() << "KWinUtils: Ignore the 'propertyNotify' signal connect warning";
+        }
     }
 }
 
