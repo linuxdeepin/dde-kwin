@@ -167,8 +167,6 @@ public:
 
 public slots:
     void init() {
-        // 通知startdde kwin启动完成
-        RegisterDDESession();
 
         if (!KWinUtils::scripting())
             return;
@@ -238,7 +236,13 @@ public slots:
         }
 
         // 通知程序初始化完成
-        emit kwinUtils()->setInitialized();
+        kwinUtils()->setInitialized();
+
+        // 通知startdde kwin启动完成
+        //
+        // 必须在KWinUtils初始化之后，如果使用了chameleontheme，
+        // 其初始化必须在通知startdde之前完成
+        RegisterDDESession();
     }
 
     void onExec() {
