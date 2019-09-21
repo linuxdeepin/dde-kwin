@@ -951,6 +951,7 @@ void ChameleonConfig::clearKWinX11ShadowForWindows()
 void ChameleonConfig::clearX11ShadowCache()
 {
     qDeleteAll(m_x11ShadowCache);
+    m_x11ShadowCache.clear();
 }
 
 void ChameleonConfig::enforceWindowProperties(QObject *client)
