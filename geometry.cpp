@@ -3167,6 +3167,20 @@ void AbstractClient::handleMoveResize(int x, int y, int x_root, int y_root)
                 bool transposed = false;
                 int requiredPixels;
                 QRect bTitleRect = titleBarRect(transposed, requiredPixels);
+
+                // NOTE: make sure CSD windows won't be dragged below struts area
+                //
+                // There are two situations this'll be true:
+                // 1. no titlebar windows (e.g gedit)
+                // 2. DDE window (with titlebar exists, only height is 0)
+                if (bTitleRect.height() == 0) {
+                    bTitleRect.setHeight(40);
+                }
+
+                if (!requiredPixels) {
+                    requiredPixels = 4000;
+                }
+
                 for (;;) {
                     QRect moveResizeGeom = moveResizeGeometry();
                     const QRect titleRect(bTitleRect.translated(moveResizeGeom.topLeft()));
