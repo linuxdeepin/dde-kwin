@@ -3175,6 +3175,16 @@ void AbstractClient::handleMoveResize(int x, int y, int x_root, int y_root)
                 // 2. DDE window (with titlebar exists, only height is 0)
                 if (bTitleRect.height() == 0) {
                     bTitleRect.setHeight(40);
+
+                    // take care of old CSD windows
+                    // this contains old dde windows and deepin-terminal which have 
+                    // _GTK_FRAME_EXTENT attributes
+                    // 60 is a modest default value for frame height
+                    if (auto cli = qobject_cast<Client*>(this)) {
+                        if (cli->isClientSideDecorated()) {
+                            bTitleRect.setHeight(40 + 60);
+                        }
+                    }
                 }
 
                 if (!requiredPixels) {
