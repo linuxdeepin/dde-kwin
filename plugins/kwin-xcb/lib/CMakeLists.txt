@@ -2,6 +2,7 @@ set(TARGET_NAME "kwin-xcb")
 
 find_package(Qt5Core REQUIRED)
 find_package(Qt5X11Extras REQUIRED)
+find_package(Qt5Qml REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KF5CoreAddons REQUIRED)
@@ -27,6 +28,7 @@ set_target_properties(
 target_link_libraries(
     ${TARGET_NAME}
     Qt5::Core
+    Qt5::Qml
     Qt5::X11Extras
     KF5::ConfigCore
     KF5::WindowSystem

@@ -28,10 +28,14 @@
 #include <qpa/qplatformintegration.h>
 #include <private/qguiapplication_p.h>
 
+#include <DPlatformHandle>
+
 #include <QDebug>
 #include <QProcess>
 #include <QPluginLoader>
 #include <QDir>
+#include <QQuickItem>
+#include <QQuickWindow>
 #include <QDBusConnection>
 
 QT_BEGIN_NAMESPACE
@@ -76,6 +80,21 @@ public:
     KWinUtils *kwinUtils() const
     {
         return KWinUtils::instance();
+    }
+
+    Q_INVOKABLE void enableDxcb(QQuickItem *item)
+    {
+        QQuickWindow *window = item->window();
+        enableDxcbWindow(window);
+    }
+
+    Q_INVOKABLE void enableDxcbWindow(QQuickWindow *window)
+    {
+        if (!window)
+            return;
+
+        DPlatformHandle handle(window);
+        handle.setEnableBlurWindow(true);
     }
 
     Q_INVOKABLE QObject *require(const QString &module)
@@ -184,6 +203,8 @@ public slots:
         if (qmlWorkspaceWrapper) {
             qmlWorkspaceWrapper->setProperty("__dde__", QVariant::fromValue(this));
         }
+
+        KWinUtils::scriptingRegisterObject(QStringLiteral("dde"), this);
 
         // 注册 dbus 对象 提供更多的 kwin 相关接口
         new KWinAdaptor(kwinUtils());

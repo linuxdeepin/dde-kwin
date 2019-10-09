@@ -26,6 +26,8 @@
 #include <QX11Info>
 #include <QMargins>
 #include <QDateTime>
+#include <QQmlEngine>
+#include <QQmlContext>
 #include <QAbstractNativeEventFilter>
 
 // 为了访问 KWinEffects 的保护成员变量
@@ -536,6 +538,16 @@ QObject *KWinUtils::compositor()
 QObject *KWinUtils::scripting()
 {
     return KWin::Scripting::s_self;
+}
+
+void KWinUtils::scriptingRegisterObject(const QString& name, QObject* o)
+{
+    if (scripting()) {
+        auto engine = scripting()->findChild<QQmlEngine*>();
+        if (engine) {
+            engine->rootContext()->setContextProperty(name, o);
+        }
+    }
 }
 
 QObject *KWinUtils::tabBox()

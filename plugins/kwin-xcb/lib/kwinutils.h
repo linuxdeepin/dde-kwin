@@ -63,6 +63,7 @@ public:
     static QObject *workspace();
     static QObject *compositor();
     static QObject *scripting();
+    static void scriptingRegisterObject(const QString& name, QObject* o);
     static QObject *tabBox();
     static QObject *cursor();
     static QObject *virtualDesktop();

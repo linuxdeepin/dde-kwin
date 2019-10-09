@@ -3,9 +3,11 @@ set(TARGET_NAME "${PROJECT_NAME}-xcb")
 add_compile_options(-fno-tree-vrp)
 
 find_package(Qt5Core REQUIRED)
+find_package(Qt5Quick REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5DBus REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+find_package(DtkGui REQUIRED)
 
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
@@ -51,7 +53,9 @@ target_link_libraries(
     ${TARGET_NAME}
     Qt5::Core
     Qt5::DBus
+    Qt5::Quick
     Qt5::Widgets
+    ${DtkGui_LIBRARIES}
 )
 
 target_link_libraries(${TARGET_NAME} kwin-xcb)
