@@ -87,6 +87,11 @@ public:
     bool activatesForTouchGesture() const;
 
     /**
+     * DEEPIN: disable screen edges for good
+     **/
+    void setDisableScreenEdges(bool val);
+
+    /**
      * The window id of the native window representing the edge.
      * Default implementation returns @c 0, which means no window.
      **/
@@ -152,6 +157,7 @@ private:
     int m_lastApproachingFactor;
     bool m_blocked;
     bool m_pushBackBlocked;
+    bool m_screenEdgeDisabled;
     AbstractClient *m_client;
     SwipeGesture *m_gesture;
     QVector<QAction *> m_touchActions;
@@ -387,6 +393,7 @@ private:
     void deleteEdgeForClient(AbstractClient *client);
     bool m_desktopSwitching;
     bool m_desktopSwitchingMovingClients;
+    bool m_deepinDisableScreenEdges; // disable left, right, top, bottom Edge windows
     QSize m_cursorPushBackDistance;
     int m_timeThreshold;
     int m_reactivateThreshold;
