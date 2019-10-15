@@ -921,6 +921,7 @@ protected:
     bool isElectricBorderMaximizing() const {
         return m_electricMaximizing;
     }
+    bool checkTileConstraints(QuickTileMode mode);
     QRect electricBorderMaximizeGeometry(QPoint pos, int desktop);
     void updateQuickTileMode(QuickTileMode newMode) {
         m_quickTileMode = newMode;

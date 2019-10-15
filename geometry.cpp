@@ -3315,6 +3315,28 @@ void AbstractClient::setElectricBorderMode(QuickTileMode mode)
     m_electricMode = mode;
 }
 
+bool AbstractClient::checkTileConstraints(QuickTileMode mode)
+{
+    if (mode == QuickTileMode(QuickTileFlag::None))
+        return true;
+
+    QRect target_size = electricBorderMaximizeGeometry(Cursor::pos(), desktop());
+    if (mode == QuickTileMode(QuickTileFlag::Maximize)) {
+        if (maxSize().width() < target_size.width() || maxSize().height() < target_size.height())
+            return false;
+    }
+
+    if (target_size.width() < minSize().width() || target_size.width() > maxSize().width()) {
+        return false;
+    }
+
+    if (target_size.height() < minSize().height() || target_size.height() > maxSize().height()) {
+        return false;
+    }
+
+    return true;
+}
+
 void AbstractClient::setElectricBorderMaximizing(bool maximizing)
 {
     m_electricMaximizing = maximizing;

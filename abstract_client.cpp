@@ -1542,6 +1542,10 @@ void AbstractClient::checkQuickTilingMaximizationZones(int xroot, int yroot)
     }
     if (mode != electricBorderMode()) {
         setElectricBorderMode(mode);
+        if (!checkTileConstraints(mode)) {
+            setElectricBorderMode(QuickTileFlag::None);
+            return;
+        }
         if (innerBorder) {
             if (!m_electricMaximizingDelay) {
                 m_electricMaximizingDelay = new QTimer(this);
