@@ -91,6 +91,9 @@ public:
     static bool compositorIsActive();
 
     struct Window {
+        static bool isDesktop(const QObject *window);
+        static bool isDock(const QObject *window);
+
         static bool isFullMaximized(const QObject *window);
         static bool fullmaximizeWindow(QObject *window);
         static bool unmaximizeWindow(QObject *window);

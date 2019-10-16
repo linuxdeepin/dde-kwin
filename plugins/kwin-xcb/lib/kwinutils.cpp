@@ -271,6 +271,7 @@ class KWinInterface
     typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
     typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
     typedef void (*CompositorToggle)(void *, KWin::Compositor::SuspendReason);
+    typedef int (*ClientWindowType)(const void*, bool, int);
 public:
     KWinInterface()
     {
@@ -286,7 +287,6 @@ public:
         findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
         findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
         xcbExtensionsShapeNotifyEvent = (XcbExtensionsShapeNotifyEvent)KWinUtils::resolve("_ZNK4KWin3Xcb10Extensions16shapeNotifyEventEv");
-
         compositorSuspend = (CompositorToggle)KWinUtils::resolve("_ZN4KWin10Compositor7suspendENS0_13SuspendReasonE");
         if (!compositorSuspend) {
             compositorSuspend = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor7suspendENS0_13SuspendReasonE");
@@ -296,8 +296,10 @@ public:
         if (!compositorResume) {
             compositorResume = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor6resumeENS0_13SuspendReasonE");
         }
+        clientWindowType = (ClientWindowType)KWinUtils::resolve("_ZNK4KWin6Client10windowTypeEbi");
     }
 
+    ClientWindowType clientWindowType;
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     ClientUpdateCursor clientUpdateCursor;
@@ -1062,6 +1064,32 @@ void KWinUtils::ShowWindowsView()
     if (presentWindows) {
         QMetaObject::invokeMethod(presentWindows, "toggleActive");
     }
+}
+
+bool KWinUtils::Window::isDesktop(const QObject *window)
+{
+    if (!window) {
+        return false;
+    }
+
+    if (!interface->clientWindowType) {
+        return false;
+    }
+
+    return interface->clientWindowType(window, false, 0) == 1;
+}
+
+bool KWinUtils::Window::isDock(const QObject *window)
+{
+    if (!window) {
+        return false;
+    }
+
+    if (!interface->clientWindowType) {
+        return false;
+    }
+
+    return interface->clientWindowType(window, false, 0) == 2;
 }
 
 bool KWinUtils::Window::isFullMaximized(const QObject *window)

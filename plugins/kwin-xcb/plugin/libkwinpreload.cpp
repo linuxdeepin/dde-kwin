@@ -129,6 +129,10 @@ private:
 #ifdef USE_DBUS_MENU
 void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
 {
+    if (KWinUtils::Window::isDesktop(cl) || KWinUtils::Window::isDock(cl)) {
+        return;
+    }
+
     QDBusInterface manager_interface(MenuDBusService, MenuDBusPath);
     QDBusReply<QDBusObjectPath> menu_path = manager_interface.call("RegisterMenu");
 
@@ -209,6 +213,10 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
 
     _globalWindowMenu = &menu;
     _menuClient = cl.data();
+
+    if (KWinUtils::Window::isDesktop(_menuClient) || KWinUtils::Window::isDock(_menuClient)) {
+        return;
+    }
 
     for (const MenuItem &item : getMenuItemInfos(cl.data())) {
         QAction *action = menu.addAction(item.text);
