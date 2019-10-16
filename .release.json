@@ -1,0 +1,7 @@
+{
+        "commit": {
+                "quilt": false,
+                "pkgver": "git describe --tags",
+                "dist": "experimental"
+        }
+}
