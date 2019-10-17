@@ -1,7 +1,7 @@
 {
         "commit": {
                 "quilt": false,
-                "pkgver": "git describe --tags",
+                "pkgver": "git describe --tags|awk -F- '{print \"4:\"$1\"+r\"$2\"+\"$3}'",
                 "dist": "experimental"
         }
 }
