@@ -134,10 +134,6 @@ class Compositor : public QObject
 public:
     enum SuspendReason { NoReasonSuspend = 0, UserSuspend = 1<<0, BlockRuleSuspend = 1<<1, ScriptSuspend = 1<<2, AllReasonSuspend = 0xff };
     static Compositor *s_compositor;
-
-public Q_SLOTS:
-    void suspend(Compositor::SuspendReason reason);
-    void resume(Compositor::SuspendReason reason);
 };
 
 // 光标管理
@@ -272,6 +268,7 @@ class KWinInterface
     typedef QObject *(*WorkspaceFindUnmanaged)(void *, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
     typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
+    typedef void (*CompositorToggle)(void *, KWin::Compositor::SuspendReason);
 public:
     KWinInterface()
     {
@@ -287,6 +284,16 @@ public:
         findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
         findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
         xcbExtensionsShapeNotifyEvent = (XcbExtensionsShapeNotifyEvent)KWinUtils::resolve("_ZNK4KWin3Xcb10Extensions16shapeNotifyEventEv");
+
+        compositorSuspend = (CompositorToggle)KWinUtils::resolve("_ZN4KWin10Compositor7suspendENS0_13SuspendReasonE");
+        if (!compositorSuspend) {
+            compositorSuspend = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor7suspendENS0_13SuspendReasonE");
+        }
+
+        compositorResume = (CompositorToggle)KWinUtils::resolve("_ZN4KWin10Compositor6resumeENS0_13SuspendReasonE");
+        if (!compositorResume) {
+            compositorResume = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor6resumeENS0_13SuspendReasonE");
+        }
     }
 
     ClientMaximizeMode clientMaximizeMode;
@@ -301,6 +308,8 @@ public:
     WorkspaceFindUnmanaged findUnmanaged;
     WorkspaceFindUnmanagedByFunction findUnmanagedByFunction;
     XcbExtensionsShapeNotifyEvent xcbExtensionsShapeNotifyEvent;
+    CompositorToggle compositorSuspend;
+    CompositorToggle compositorResume;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -1011,18 +1020,18 @@ void KWinUtils::ShowWorkspacesView()
 
 void KWinUtils::ResumeCompositor(int type)
 {
-    if (!KWin::Compositor::s_compositor)
+    if (!KWin::Compositor::s_compositor || !interface->compositorResume)
         return;
 
-    KWin::Compositor::s_compositor->resume(static_cast<KWin::Compositor::SuspendReason>(type));
+    interface->compositorResume(KWin::Compositor::s_compositor, static_cast<KWin::Compositor::SuspendReason>(type));
 }
 
 void KWinUtils::SuspendCompositor(int type)
 {
-    if (!KWin::Compositor::s_compositor)
+    if (!KWin::Compositor::s_compositor || !interface->compositorSuspend)
         return;
 
-    KWin::Compositor::s_compositor->suspend(static_cast<KWin::Compositor::SuspendReason>(type));
+    interface->compositorSuspend(KWin::Compositor::s_compositor, static_cast<KWin::Compositor::SuspendReason>(type));
 }
 
 void KWinUtils::ShowAllWindowsView()
