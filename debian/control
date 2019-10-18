@@ -24,7 +24,9 @@ Build-Depends: debhelper (>=9),
  deepin-gettext-tools,
  extra-cmake-modules,
  libkdecorations2-dev,
- libkf5wayland-dev
+ libkf5wayland-dev,
+ qtdeclarative5-dev,
+ libdtkgui-dev
 Standards-Version: 3.9.8
 Homepage: https://github.com/linuxdeepin/dde-kwin
 
