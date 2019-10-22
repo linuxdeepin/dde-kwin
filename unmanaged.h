@@ -36,6 +36,7 @@ public:
     explicit Unmanaged();
     bool windowEvent(xcb_generic_event_t *e);
     bool track(Window w);
+    bool hasScheduledRelease() const;
     static void deleteUnmanaged(Unmanaged* c);
     virtual int desktop() const;
     virtual QStringList activities() const;
@@ -57,6 +58,8 @@ private:
     virtual ~Unmanaged(); // use release()
     // handlers for X11 events
     void configureNotifyEvent(xcb_configure_notify_event_t *e);
+
+    bool m_scheduledRelease;
 };
 
 } // namespace

@@ -36,6 +36,7 @@ namespace KWin
 
 Unmanaged::Unmanaged()
     : Toplevel()
+    , m_scheduledRelease(false)
 {
     ready_for_painting = false;
     connect(this, SIGNAL(geometryShapeChanged(KWin::Toplevel*,QRect)), SIGNAL(geometryChanged()));
@@ -111,6 +112,11 @@ void Unmanaged::release(ReleaseReason releaseReason)
 void Unmanaged::deleteUnmanaged(Unmanaged* c)
 {
     delete c;
+}
+
+bool Unmanaged::hasScheduledRelease() const
+{
+    return m_scheduledRelease;
 }
 
 int Unmanaged::desktop() const
