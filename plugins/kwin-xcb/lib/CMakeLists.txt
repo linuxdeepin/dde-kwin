@@ -61,7 +61,7 @@ install_files(
     kwinutils.h
 )
 
-configure_file(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc)
+configure_file(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc @ONLY)
 if (CMAKE_INSTALL_LIBDIR)
     install_files("/${CMAKE_INSTALL_LIBDIR}/pkgconfig" FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc)
 elseif (CMAKE_LIBRARY_OUTPUT_DIRECTORY)
