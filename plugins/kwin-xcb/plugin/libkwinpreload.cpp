@@ -209,36 +209,45 @@ bool UserActionsMenu::isMenuClient(const AbstractClient *c) const
 
 void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
 {
-    QMenu menu;
 
-    _globalWindowMenu = &menu;
     _menuClient = cl.data();
+
+    if (cl.isNull())
+        return;
+
+    if (isShown())
+        return;
 
     if (KWinUtils::Window::isDesktop(_menuClient) || KWinUtils::Window::isDock(_menuClient)) {
         return;
     }
 
-    for (const MenuItem &item : getMenuItemInfos(cl.data())) {
-        QAction *action = menu.addAction(item.text);
+    if (_globalWindowMenu.isNull()) {
+        _globalWindowMenu = new QMenu;
 
-        action->setProperty("id", item.id);
-        action->setCheckable(item.isCheckable);
-        action->setChecked(item.checked);
-        action->setEnabled(item.enable);
+        for (const MenuItem &item : getMenuItemInfos(cl.data())) {
+            QAction *action = _globalWindowMenu->addAction(item.text);
+
+            action->setProperty("id", item.id);
+            action->setCheckable(item.isCheckable);
+            action->setChecked(item.checked);
+            action->setEnabled(item.enable);
+        }
+
+        if (QStyle *s = QStyleFactory::create("dlight")) {
+            s->setParent(_globalWindowMenu);
+            _globalWindowMenu->setStyle(s);
+        }
+
+        connect(_globalWindowMenu, &QMenu::triggered, _globalWindowMenu, [] (const QAction *action) {
+            MenuSlot::onMenuItemInvoked(action->property("id").toString(), action->isChecked(), _menuClient);
+        });
     }
 
-    if (QStyle *s = QStyleFactory::create("dlight")) {
-        s->setParent(&menu);
-        menu.setStyle(s);
-    }
-
-    connect(&menu, &QMenu::triggered, &menu, [] (const QAction *action) {
-        MenuSlot::onMenuItemInvoked(action->property("id").toString(), action->isChecked(), _menuClient);
-    });
-
-    menu.exec(pos.topLeft());
+    _globalWindowMenu->exec(pos.topLeft());
     _menuClient = nullptr;
 }
+
 void UserActionsMenu::close()
 {
     if (_globalWindowMenu) {
