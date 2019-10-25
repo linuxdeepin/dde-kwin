@@ -283,7 +283,7 @@ void Chameleon::updateButtonsGeometry()
     auto c = client().data();
 
     // adjust button position
-    const int bHeight = titleBarHeight();
+    const int bHeight = noTitleBar() ? 0 : titleBarHeight();
     const int bWidth = bHeight;
 
     foreach (const QPointer<KDecoration2::DecorationButton> &button, m_leftButtons->buttons() + m_rightButtons->buttons()) {
