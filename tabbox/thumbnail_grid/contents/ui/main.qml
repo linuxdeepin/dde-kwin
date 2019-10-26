@@ -150,14 +150,67 @@ KWin.Switcher {
                         color: "#01bdff"
                         radius: 4
 
-                        x: dialog.visible ? itemsView.currentItem.x : 0
-                        y: dialog.visible ? itemsView.currentItem.y : 0
+                        x: itemsView.currentItem ? itemsView.currentItem.x : 0
+                        y: itemsView.currentItem ? itemsView.currentItem.y : 0
 
                         Behavior on x { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
                         Behavior on y { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
                     }
                 }
 
+                Component {
+                    id: desktopItem
+
+                    Rectangle {
+                        anchors.margins: constants.columnSpacing / 2
+                        anchors.fill: parent
+                        color: "transparent"
+
+                        // PlasmaCore.WindowThumbnail has problem to correctly render desktop thumb
+                        // so we use KWin.ThumbnailItem
+                        /*
+                        PlasmaCore.WindowThumbnail {
+                            winId: modelWId
+                            anchors.fill: parent
+                        }
+                        */
+                        KWin.ThumbnailItem {
+                            anchors.fill: parent
+                            wId: modelWId
+                        }
+                    }
+
+                }
+
+                Component {
+                    id: windowItem
+
+                    Rectangle {
+                        anchors.margins: constants.columnSpacing / 2
+                        anchors.fill: parent
+                        color: "transparent"
+
+                        QIconItem {
+                            id: iconItem
+                            //FIXME: this is not the icon we want, seems to be a bug of kwin
+                            icon: modelIcon
+                            clip: true
+                            anchors.fill: parent
+                            smooth: true
+                        }
+
+                        // shadow for icon
+                        DropShadow {
+                            anchors.fill: iconItem
+                            horizontalOffset: 0
+                            verticalOffset: 8
+                            radius: 8.0
+                            samples: 17
+                            color: "#32000000"
+                            source: iconItem
+                        }
+                    }
+                }
 
                 GridView {
                     id: itemsView
@@ -207,52 +260,21 @@ KWin.Switcher {
                             anchors.fill: parent
                             color: "transparent"
 
-                            //color: index == itemsView.currentIndex ? "#01bdff" : "transparent"
-                            //radius: 4
-
-                            /*
-                             Rectangle {
-                                 anchors.margins: 10
-                                 anchors.fill: parent
-                                 z: 1
-                                 color: "transparent"
-
-                                 PlasmaCore.WindowThumbnail {
-                                     z: 1
-                                     winId: windowId
-                                     clip: true
-                                     anchors.fill: parent
-                                 }
-                             }
-                             */
-
-                            Rectangle {
-                                anchors.margins: constants.columnSpacing / 2
+                            Loader {
                                 anchors.fill: parent
-                                z: 2
-                                color: "transparent"
 
-                                QIconItem {
-                                    id: iconItem
-                                    //FIXME: this is not the icon we want, seems to be a bug of kwin
-                                    icon: model.icon
-                                    clip: true
-                                    anchors.fill: parent
-                                    smooth: true
-                                    state: index == itemsView.currentIndex ? QIconItem.ActiveState : QIconItem.DefaultState
-                                }
+                                property int modelIndex: index
+                                property int modelWId: windowId
+                                property variant modelIcon: model.icon
+                                sourceComponent: {
+                                    if (index < 0) {
+                                        return undefined
+                                    }
 
-                                // shadow for icon
-                                DropShadow {
-                                    anchors.fill: iconItem
-                                    horizontalOffset: 0
-                                    verticalOffset: 8
-                                    radius: 8.0
-                                    samples: 17
-                                    color: "#32000000"
-                                    source: iconItem
+                                    return (index+1) == itemsView.count ? desktopItem: windowItem
                                 }
                             }
+
                         }
                     } // GridView.delegate
 
