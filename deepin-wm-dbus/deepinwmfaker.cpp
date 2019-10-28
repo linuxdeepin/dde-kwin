@@ -96,7 +96,7 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "maximize-horizontally", "Window Maximize Horizontal" },
     { "expose-all-windows", "ExposeAll" },
     { "expose-windows", "Expose" },
-    { "preview-workspace", "ShowDesktopGrid" },
+    { "preview-workspace", "ShowMultitasking" },
 };
 
 static const QMap<QString, QString> SpecialKeyMap = {

@@ -6,3 +6,4 @@ set(INSTALL_PATH "${QT_INSTALL_PLUGINS}/kwin/effects/plugins")
 
 add_subdirectory(scissor-window)
 add_subdirectory(blur)
+add_subdirectory(multitasking)

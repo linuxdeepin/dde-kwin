@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "yinshuiboy@gmail.com",
+                "Name": "sonald"
+            }
+        ],
+        "Description": "Deepin Multitasking View",
+        "Description[zh_CN]": "深度多任务视图",
+        "EnabledByDefault": true,
+        "Id": "com.deepin.multitasking",
+        "Name": "MultitaskingView",
+        "Name[zh_CN]": "多任务视图",
+        "ServiceTypes": [
+            "KWin/Effect"
+        ],
+        "org.kde.kwin.effect": {
+            "exclusiveGroup": "appearance"
+        }
+    }
+}

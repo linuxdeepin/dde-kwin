@@ -25,6 +25,7 @@ Build-Depends: debhelper (>=9),
  extra-cmake-modules,
  libkdecorations2-dev,
  libkf5wayland-dev,
+ libkf5i18n-dev,
  qtdeclarative5-dev,
  libdtkgui-dev
 Standards-Version: 3.9.8

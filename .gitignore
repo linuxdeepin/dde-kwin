@@ -39,3 +39,10 @@ Makefile*
 
 # QtCtreator CMake
 CMakeLists.txt.user
+
+# tmp files
+.vim-undo
+.*~
+compile_commands.json
+.zcache
+tags

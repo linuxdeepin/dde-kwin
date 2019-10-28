@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>thumbmanager.qml</file>
+    </qresource>
+</RCC>
