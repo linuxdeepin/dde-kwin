@@ -3,5 +3,22 @@
                 "quilt": false,
                 "pkgver": "git describe --tags|awk -F- '{print \"4:\"$1\"+r\"$2\"+\"$3}'",
                 "dist": "experimental"
+        },
+	        "release": {
+
+                "quilt": true,
+
+                "pkgver": "git describe --abbrev=0 --tags %(ref)s",
+
+                "dist": "unstable"
+
+        },
+
+        "release-candidate": {
+
+                "quilt": true,
+
+                "dist": "unstable"
+
         }
 }
