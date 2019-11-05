@@ -134,6 +134,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
         Q_EMIT WorkspaceSwitched(m_currentDesktop, to);
         m_currentDesktop = to;
     });
+    connect(m_windowSystem, &KWindowSystem::numberOfDesktopsChanged, this, &DeepinWMFaker::workspaceCountChanged);
     connect(_gsettings_dde_appearance, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEAppearanceChanged);
     connect(_gsettings_dde_zone, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEZoneChanged);
 

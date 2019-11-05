@@ -124,6 +124,8 @@ Q_SIGNALS:
     void wmCompositingEnabledChanged(bool compositingEnabled);
     // 只在由此DBus调用引起的窗管混成变化时发出
     void compositingEnabledChanged(bool compositingEnabled);
+    // 工作区个数
+    void workspaceCountChanged(int count);
 
 private:
     QAction *accelAction(const QString accelKid) const;

@@ -106,6 +106,9 @@
     <signal name="wmCompositingEnabledChanged">
         <arg type="b" name="enabled"/>
     </signal>
+    <signal name="workspaceCountChanged">
+        <arg type="i" name="count"/>
+    </signal>
 
     ${DEEPIN_WM_PREFIX}
     <method name="ChangeCurrentWorkspaceBackground">
