@@ -76,7 +76,6 @@ private:
     void initButtons();
     void updateButtonsGeometry();
 
-    void updateTitle();
     void updateTitleGeometry();
 
     void updateTheme();

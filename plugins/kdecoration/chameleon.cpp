@@ -87,7 +87,7 @@ void Chameleon::init()
     connect(c, &KDecoration2::DecoratedClient::adjacentScreenEdgesChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::maximizedHorizontallyChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::maximizedVerticallyChanged, this, &Chameleon::updateBorderPath);
-    connect(c, &KDecoration2::DecoratedClient::captionChanged, this, &Chameleon::updateTitle);
+    connect(c, &KDecoration2::DecoratedClient::captionChanged, this, &Chameleon::updateTitleGeometry);
     connect(this, &Chameleon::noTitleBarChanged, this, &Chameleon::updateTitleBarArea);
     connect(m_theme, &ChameleonWindowTheme::themeChanged, this, &Chameleon::updateTheme);
     connect(m_theme, &ChameleonWindowTheme::windowRadiusChanged, this, &Chameleon::updateBorderPath);
@@ -328,30 +328,59 @@ void Chameleon::updateButtonsGeometry()
     updateTitleGeometry();
 }
 
-void Chameleon::updateTitle()
-{
-    m_title = settings()->fontMetrics().elidedText(client().data()->caption(), Qt::ElideMiddle, qMax(m_titleArea.width(), m_titleArea.height()));
-
-    update();
-}
-
 void Chameleon::updateTitleGeometry()
 {
     auto s = settings();
 
     m_titleArea = titleBar();
 
-    int buttons_width = m_leftButtons->geometry().width() + m_rightButtons->geometry().width() + 2 * s->smallSpacing();
+    m_title = client().data()->caption();
+    int full_width = s->fontMetrics().width(m_title);
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
+        int buttons_width = m_leftButtons->geometry().width() 
+            + m_rightButtons->geometry().width() + 2 * s->smallSpacing();
+
         m_titleArea.setWidth(m_titleArea.width() - buttons_width);
+        m_titleArea.moveLeft(m_leftButtons->geometry().right() + s->smallSpacing());
+
+        if (full_width < (m_titleArea.right() - titleBar().center().x()) * 2) {
+            m_titleArea.setWidth(full_width);
+            m_titleArea.moveCenter(titleBar().center());
+
+        } else if (full_width > m_titleArea.width()) {
+            m_title = s->fontMetrics().elidedText(m_title,
+                    Qt::ElideRight, qMax(m_titleArea.width(), m_titleArea.height()));
+            m_titleArea.moveRight(m_rightButtons->geometry().left() + s->smallSpacing());
+
+        } else {
+            m_titleArea.setWidth(full_width);
+            m_titleArea.moveRight(m_rightButtons->geometry().left() + s->smallSpacing());
+        }
+
     } else  {
-        m_titleArea.setHeight(m_titleArea.height() - buttons_width);
+        int buttons_height = m_leftButtons->geometry().height() 
+            + m_rightButtons->geometry().height() + 2 * s->smallSpacing();
+
+        m_titleArea.setHeight(m_titleArea.height() - buttons_height);
+        m_titleArea.moveTop(m_leftButtons->geometry().bottom() + s->smallSpacing());
+
+        if (full_width < (m_titleArea.bottom() - titleBar().center().y()) * 2) {
+            m_titleArea.setHeight(full_width);
+            m_titleArea.moveCenter(titleBar().center());
+
+        } else if (full_width > m_titleArea.height()) {
+            m_title = s->fontMetrics().elidedText(m_title,
+                    Qt::ElideRight, qMax(m_titleArea.width(), m_titleArea.height()));
+            m_titleArea.moveBottom(m_rightButtons->geometry().top() + s->smallSpacing());
+
+        } else {
+            m_titleArea.setWidth(full_width);
+            m_titleArea.moveBottom(m_rightButtons->geometry().top() + s->smallSpacing());
+        }
     }
 
-    m_titleArea.moveCenter(titleBar().center());
-
-    updateTitle();
+    update();
 }
 
 void Chameleon::updateTheme()
