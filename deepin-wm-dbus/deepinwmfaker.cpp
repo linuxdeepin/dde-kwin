@@ -308,6 +308,11 @@ int DeepinWMFaker::GetCurrentWorkspace() const
     return m_windowSystem->currentDesktop();
 }
 
+int DeepinWMFaker::WorkspaceCount() const
+{
+    return m_windowSystem->numberOfDesktops();
+}
+
 void DeepinWMFaker::SetCurrentWorkspace(const int index)
 {
     // 切换工作区时关闭壁纸预览

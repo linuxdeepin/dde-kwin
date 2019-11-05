@@ -73,6 +73,7 @@ public Q_SLOTS:
 #endif
 
     int GetCurrentWorkspace() const;
+    int WorkspaceCount() const;
     void SetCurrentWorkspace(const int index);
     void NextWorkspace();
     void PreviousWorkspace();

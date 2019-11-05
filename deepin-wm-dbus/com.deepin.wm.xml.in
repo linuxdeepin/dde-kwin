@@ -58,6 +58,9 @@
     <method name="GetCurrentWorkspace">
         <arg type="i" name="index" direction="out"/>
     </method>
+    <method name="WorkspaceCount">
+        <arg type="i" name="count" direction="out"/>
+    </method>
     <method name="SetCurrentWorkspace">
         <arg type="i" name="index" direction="in"/>
     </method>
