@@ -266,12 +266,13 @@ KWin.Switcher {
                                 property int modelIndex: index
                                 property int modelWId: windowId
                                 property variant modelIcon: model.icon
+                                property bool isCloseable: closeable
                                 sourceComponent: {
                                     if (index < 0) {
                                         return undefined
                                     }
 
-                                    return (index+1) == itemsView.count ? desktopItem: windowItem
+                                    return !isCloseable && (index+1) == itemsView.count ? desktopItem: windowItem
                                 }
                             }
 
