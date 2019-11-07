@@ -12,4 +12,3 @@ install(
 )
 
 install_files("/bin" FILES ${CMAKE_CURRENT_BINARY_DIR}/kwin_no_scale)
-install_files("/share/applications" FILES kwin-wm-multitaskingview.desktop)
