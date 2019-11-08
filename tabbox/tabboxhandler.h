@@ -175,6 +175,11 @@ public:
     virtual void raiseClient(TabBoxClient* c) const = 0;
 
     /**
+    * activate client if minimized
+    */
+    virtual void activateCurrentClient() const = 0;
+
+    /**
      * @param c The client to be restacked
      * @param under The client the other one will be placed below
      */

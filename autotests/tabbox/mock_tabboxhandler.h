@@ -81,6 +81,8 @@ public:
     virtual void raiseClient(TabBox::TabBoxClient *c) const {
         Q_UNUSED(c)
     }
+    virtual void activateCurrentClient() const {
+    }
     virtual void restack(TabBox::TabBoxClient *c, TabBox::TabBoxClient *under) {
         Q_UNUSED(c)
         Q_UNUSED(under)

@@ -330,6 +330,11 @@ void TabBoxHandlerImpl::shadeClient(TabBoxClient *c, bool b) const
         cl->setShade(ShadeNormal);
 }
 
+void TabBoxHandlerImpl::activateCurrentClient() const
+{
+    m_tabBox->accept(false);
+}
+
 QWeakPointer<TabBoxClient> TabBoxHandlerImpl::desktopClient() const
 {
     foreach (Toplevel *toplevel, Workspace::self()->stackingOrder()) {
@@ -1499,8 +1504,8 @@ void TabBox::accept(bool closeTabBox)
     if (c) {
         Workspace::self()->activateClient(c);
         shadeActivate(c);
-        if (c->isDesktop())
-            Workspace::self()->setShowingDesktop(!Workspace::self()->showingDesktop());
+        if (c->isDesktop() && !Workspace::self()->showingDesktop())
+            Workspace::self()->setShowingDesktop(true);
     }
 }
 

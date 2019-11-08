@@ -69,6 +69,7 @@ public:
     virtual void raiseClient(TabBoxClient *client) const;
     virtual void restack(TabBoxClient *c, TabBoxClient *under);
     virtual void shadeClient(TabBoxClient *c, bool b) const;
+    virtual void activateCurrentClient() const;
     virtual QWeakPointer< TabBoxClient > clientToAddToList(KWin::TabBox::TabBoxClient* client, int desktop) const;
     virtual QWeakPointer< TabBoxClient > desktopClient() const;
     virtual void activateAndClose();
