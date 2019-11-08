@@ -25,6 +25,7 @@ KWin.Switcher {
         onVisibleChanged: {
             if (visible) {
                 dialogMainItem.calculateColumnCount();
+                dialogMainItem.composited = dde.kwinUtils.isCompositing();
             } else {
                 itemsView.highCount = 0;
             }
@@ -61,6 +62,8 @@ KWin.Switcher {
             antialiasing: true
             border.width: 1
             border.color: "#19000000"
+
+            property bool composited: true
 
             readonly property int maxWidth: tabBox.screenGeometry.width - constants.popupPadding * 2
             property int maxHeight: tabBox.screenGeometry.height * 0.7 
@@ -272,6 +275,7 @@ KWin.Switcher {
                                         return undefined
                                     }
 
+                                    if (!dialogMainItem.composited) return windowItem;
                                     return !isCloseable && (index+1) == itemsView.count ? desktopItem: windowItem
                                 }
                             }

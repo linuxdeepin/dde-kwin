@@ -87,6 +87,7 @@ public:
 public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
+    bool compositing() const;
 
 #if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 10, 95, 0)
     // kwin < 5.10.95
@@ -923,6 +924,16 @@ void KWinUtils::removeWindowPropertyMonitor(quint32 property_atom)
 {
     d->monitorProperties.remove(property_atom);
     d->maybeRemoveFilter();
+}
+
+bool KWinUtils::isCompositing()
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        return ws->compositing();
+    } else {
+        return compositorIsActive();
+    }
 }
 
 bool KWinUtils::buildNativeSettings(QObject *baseObject, quint32 windowID)
