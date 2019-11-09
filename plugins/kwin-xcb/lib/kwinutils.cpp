@@ -853,6 +853,36 @@ QVariant KWinUtils::getGtkFrame(const QObject *window) const
     return frame_margins;
 }
 
+bool KWinUtils::isDeepinOverride(const QObject *window) const
+{
+    bool ok = false;
+    qulonglong wid;
+    QByteArray data;
+
+    static xcb_atom_t property_atom = internAtom("_DEEPIN_OVERRIDE", true);
+    if (property_atom == XCB_ATOM_NONE) {
+        goto out;
+    }
+
+    if (!window) {
+        goto out;
+    }
+
+    wid = getWindowId(window, &ok);
+    if (!ok) {
+        goto out;
+    }
+
+    data = windowProperty(wid, property_atom, XCB_ATOM_CARDINAL);
+    if (data.size() != 4)
+        goto out;
+
+    return *reinterpret_cast<const int32_t*>(data.constData()) == 1;
+
+out:
+    return false;
+}
+
 QVariant KWinUtils::getParentWindow(const QObject *window) const
 {
     bool ok = false;

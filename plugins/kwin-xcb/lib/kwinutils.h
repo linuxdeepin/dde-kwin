@@ -121,6 +121,7 @@ public:
     Q_INVOKABLE quint32 getXcbAtom(const QString &name, bool only_if_exists) const;
     Q_INVOKABLE bool isSupportedAtom(quint32 atom) const;
     Q_INVOKABLE QVariant getGtkFrame(const QObject *window) const;
+    Q_INVOKABLE bool isDeepinOverride(const QObject *window) const;
 
     Q_INVOKABLE QVariant getParentWindow(const QObject *window) const;
     Q_INVOKABLE QVariant isFullMaximized(const QObject *window) const;

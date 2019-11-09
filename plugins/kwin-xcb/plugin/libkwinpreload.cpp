@@ -129,7 +129,9 @@ private:
 #ifdef USE_DBUS_MENU
 void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
 {
-    if (KWinUtils::Window::isDesktop(cl) || KWinUtils::Window::isDock(cl)) {
+    if (KWinUtils::Window::isDesktop(_menuClient) ||
+            KWinUtils::Window::isDock(_menuClient) ||
+            KWinUtils::instance()->isDeepinOverride(_menuClient)) {
         return;
     }
 
@@ -218,9 +220,12 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
     if (isShown())
         return;
 
-    if (KWinUtils::Window::isDesktop(_menuClient) || KWinUtils::Window::isDock(_menuClient)) {
+    if (KWinUtils::Window::isDesktop(_menuClient) ||
+            KWinUtils::Window::isDock(_menuClient) ||
+            KWinUtils::instance()->isDeepinOverride(_menuClient)) {
         return;
     }
+
 
     if (_globalWindowMenu.isNull()) {
         _globalWindowMenu = new QMenu;
