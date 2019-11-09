@@ -383,6 +383,7 @@ void ChameleonConfig::updateWindowBlurArea(KWin::EffectWindow *window, int role)
     // 标记应该忽略本次窗口模糊区域的变化，防止循环调用
     window->setProperty("__dde__ignore_blur_behind_changed", true);
     window->setData(KWin::WindowBlurBehindRole, blur_region);
+    window->setData(WindowMaskTextureRole, QVariant());
 }
 
 // 当窗口设置了radius，且未设置clip path时应该在resize时更新窗口的模糊区域
