@@ -594,8 +594,7 @@ void Chameleon::onNoTitlebarPropertyChanged(quint32 windowId)
 bool Chameleon::windowNeedRadius() const
 {
     auto c = client().data();
-
-    return c->adjacentScreenEdges() == Qt::Edges();
+    return KWinUtils::instance()->isCompositing() && c->adjacentScreenEdges() == Qt::Edges();
 }
 
 bool Chameleon::windowNeedBorder() const
