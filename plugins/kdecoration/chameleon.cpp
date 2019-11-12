@@ -116,7 +116,7 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
         painter->fillRect(titleBar() & repaintArea, getBackgroundColor());
         painter->setFont(s->font());
         painter->setPen(getTextColor());
-        painter->drawText(m_titleArea, Qt::AlignCenter | Qt::TextWrapAnywhere, m_title);
+        painter->drawText(m_titleArea, Qt::AlignCenter, m_title);
 
         // draw all buttons
         m_leftButtons->paint(painter, repaintArea);
