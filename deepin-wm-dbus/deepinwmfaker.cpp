@@ -673,6 +673,10 @@ void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
 
 void DeepinWMFaker::setCompositingEnabled(bool on)
 {
+    if (!m_kwinConfig->group("Compositing").readEntry("AllowSwitch", true)) {
+        return;
+    }
+
     m_kwinConfig->group("Compositing").writeEntry("Enabled", on);
     // 只同步配置文件，不要通知kwin重新加载配置
     m_kwinConfig->sync();
