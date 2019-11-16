@@ -31,7 +31,7 @@ public:
     ~BlurPluginFactory();
 
     KWin::Effect *createEffect() const {
-        return new BlurEffect();
+        return BlurEffect::supported() ? new BlurEffect() : nullptr;
     }
 };
 

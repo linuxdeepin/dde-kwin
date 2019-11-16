@@ -31,7 +31,7 @@ public:
     ~ScissorWindowPluginFactory();
 
     KWin::Effect *createEffect() const {
-        return new ScissorWindow();
+        return ScissorWindow::supported() ? new ScissorWindow() : nullptr;
     }
 };
 

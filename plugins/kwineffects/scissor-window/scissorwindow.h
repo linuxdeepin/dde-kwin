@@ -35,6 +35,8 @@ public:
         WindowDepthRole = BaseRole + 4
     };
 
+    static bool supported();
+
     explicit ScissorWindow(QObject *parent = nullptr, const QVariantList &args = QVariantList());
 
     void drawWindow(KWin::EffectWindow* w, int mask, QRegion region, KWin::WindowPaintData& data) override;

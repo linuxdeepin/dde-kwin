@@ -165,6 +165,13 @@ private:
 
 Q_DECLARE_METATYPE(MaskCache::TextureData)
 
+bool ScissorWindow::supported()
+{
+    bool supported = KWin::effects->isOpenGLCompositing() && KWin::GLRenderTarget::supported() && KWin::GLRenderTarget::blitSupported();
+
+    return supported;
+}
+
 ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     : Effect()
 {
