@@ -193,6 +193,8 @@ public:
         return 10;
     }
 
+    void updateHighlightWindow(EffectWindow* w);
+
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {
@@ -214,6 +216,8 @@ private:
 
     // close animation finished
     void cleanup();
+
+    void updateWindowStates(QMouseEvent* me);
 
     // borrowed from PresentWindows effect
     void calculateWindowTransformationsNatural(EffectWindowList windowlist, int screen,
@@ -238,6 +242,7 @@ private:
     // Window data
     QVector<WindowMotionManager> m_motionManagers;
     WindowMotionManager m_thumbMotion;
+    EffectWindow* m_highlightWindow {nullptr};
 
     // Shortcut - needed to toggle the effect
     QList<QKeySequence> shortcut;

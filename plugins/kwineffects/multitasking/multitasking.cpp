@@ -110,47 +110,6 @@ void DesktopThumbnailManager::resizeEvent(QResizeEvent* re)
     emit containerSizeChanged();
 }
 
-/*
-public void start_fade_in_animation ()
-{
-    var animation = new TransitionGroup ();
-    animation.duration = DeepinMultitaskingView.WORKSPACE_FADE_DURATION + 50;
-    animation.remove_on_complete = true;
-    animation.progress_mode = DeepinMultitaskingView.WORKSPACE_FADE_MODE;
-
-    GLib.Value[] scales = {0.0f, 1.0f};
-    double[] keyframes = {0.0, 1.0};
-
-    var opacity_transition = new PropertyTransition ("opacity");
-    opacity_transition.set_from_value (0);
-    opacity_transition.set_to_value (255);
-
-    var scale_x_transition = new KeyframeTransition ("scale-x");
-    scale_x_transition.set_from_value (0.0);
-    scale_x_transition.set_to_value (1.0);
-    scale_x_transition.set_key_frames (keyframes);
-    scale_x_transition.set_values (scales);
-
-    var scale_y_transition = new KeyframeTransition ("scale-y");
-    scale_y_transition.set_from_value (0.0);
-    scale_y_transition.set_to_value (1.0);
-    scale_y_transition.set_key_frames (keyframes);
-    scale_y_transition.set_values (scales);
-
-    animation.add_transition (opacity_transition);
-    animation.add_transition (scale_x_transition);
-    animation.add_transition (scale_y_transition);
-
-    thumb_clone.set_pivot_point (0.5f, 0.5f);
-    thumb_clone.add_transition ("fade-in", animation);
-
-    animation.stopped.connect(() => {
-        thumb_clone.opacity = 255;
-        thumb_clone.set_scale (1.0f, 1.0f);
-    });
-}
-*/
-
 void DesktopThumbnailManager::reflow()
 {
 }
@@ -238,8 +197,8 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::windowDeleted, this, &MultitaskingEffect::onWindowDeleted);
     connect(effects, &EffectsHandler::windowClosed, this, &MultitaskingEffect::onWindowClosed);
 
-    //connect(effects, SIGNAL(numberDesktopsChanged(uint)), this, SLOT(slotNumberDesktopsChanged(uint)));
-    //connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)), this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
+    //connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)),
+    //    this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
     //connect(effects, &EffectsHandler::numberScreensChanged, this, &DesktopGridEffect::setup);
 
     // Load all other configuration details
@@ -253,17 +212,14 @@ MultitaskingEffect::~MultitaskingEffect()
 
 void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
 {
-    qDebug() << "-!! " << __func__ << w;
 }
 
 void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
 {
-    qDebug() << "-!! " << __func__ << w;
 }
 
 void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
 {
-    qDebug() << "-!! " << __func__ << w;
     if (m_thumbManager && w == m_thumbManager->effectWindow()) {
         m_thumbManager->setEffectWindow(nullptr);
     }
@@ -364,7 +320,9 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 {
     data.mask |= PAINT_WINDOW_TRANSFORMED;
 
-    if (w->isDesktop()) {
+    w->enablePainting(EffectWindow::PAINT_DISABLED);
+    if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) && (w != m_thumbManager->effectWindow())) {
+        w->disablePainting(EffectWindow::PAINT_DISABLED);
     }
 
     effects->prePaintWindow(w, data, time);
@@ -414,8 +372,16 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
         } else if (!w->isDesktop()) {
             auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
+
+            if (m_highlightWindow == w) {
+                auto center = geo.center();
+                geo.setWidth(geo.width() * 1.05f);
+                geo.setHeight(geo.height() * 1.05f);
+                geo.moveCenter(center);
+            }
+
             d += QPoint(qRound(geo.x() - w->x()), qRound(geo.y() - w->y()));
-            d.setXScale((float)geo.width() / w->width()); d.setYScale((float)geo.height() / w->height());
+            d.setScale(QVector2D((float)geo.width() / w->width(), (float)geo.height() / w->height()));
             
             //qDebug() << "--------- window " << w->geometry() << geo;
             effects->paintWindow(w, mask, area, d);
@@ -481,13 +447,57 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
             return;
         }
     }
+
+    updateWindowStates(me);
+}
+
+void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
+{
+    auto prev_hlwindow = m_highlightWindow;
+
+    EffectWindow* target = nullptr;
+    WindowMotionManager& mm = m_motionManagers[m_targetDesktop-1];
+    auto windows = mm.managedWindows();
+    for (auto win: windows) {
+        auto geom = mm.transformedGeometry(win);
+        if (geom.contains(me->pos())) {
+            target = win;
+            break;
+        }
+    }
+
+    updateHighlightWindow(target);
+
     switch (me->type()) {
         case QEvent::MouseMove:
+            break;
         case QEvent::MouseButtonPress:
+            break;
         case QEvent::MouseButtonRelease:
+            if (target) {
+                effects->activateWindow(target);
+            }
+            setActive(false);
             break;
 
         default: break;
+    }
+}
+
+void MultitaskingEffect::updateHighlightWindow(EffectWindow* w)
+{
+    if (w == m_highlightWindow) return;
+
+    qDebug() << __func__;
+    if (m_highlightWindow) {
+        effects->setElevatedWindow(m_highlightWindow, false);
+        m_highlightWindow->addRepaintFull();
+    }
+
+    m_highlightWindow = w;
+    if (w) {
+        effects->setElevatedWindow(m_highlightWindow, true);
+        m_highlightWindow->addRepaintFull();
     }
 }
 
