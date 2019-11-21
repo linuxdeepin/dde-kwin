@@ -148,6 +148,7 @@ signals:
     // internal
     void switchDesktop(int left, int right);
     void requestChangeCurrentDesktop(int d);
+    void requestAppendDesktop();
 
 private:
     EffectWindow* m_effectWindow {nullptr};
@@ -201,6 +202,8 @@ public Q_SLOTS:
     void onWindowAdded(KWin::EffectWindow*);
     void onWindowClosed(KWin::EffectWindow*);
     void onWindowDeleted(KWin::EffectWindow*);
+
+    void appendDesktop();
 
     void changeCurrentDesktop(int d);
 

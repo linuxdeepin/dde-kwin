@@ -17,6 +17,7 @@ Rectangle {
     property bool animateLayouting: false
 
     signal qmlRequestChangeDesktop(int to)
+    signal qmlRequestAppendDesktop()
 
     Component.onCompleted: {
         initDesktops();
@@ -49,7 +50,7 @@ Rectangle {
             }
 
             Behavior on x {
-                enabled: animateLayouting
+                //enabled: animateLayouting
                 PropertyAnimation { duration: 300; easing.type: Easing.Linear }
             }
 
@@ -71,6 +72,7 @@ Rectangle {
         id: plus
         visible: manager.showPlusButton
         enabled: visible
+        color: "#33ffffff"
 
         x: 0
         y: 0
@@ -83,6 +85,11 @@ Rectangle {
             id: background
             source: backgroundManager.defaultNewDesktopURI
             anchors.fill: parent
+
+            opacity: 0.0
+            Behavior on opacity {
+                PropertyAnimation { duration: 200; easing.type: Easing.InOutCubic }
+            }
 
             layer.enabled: true
             layer.effect: OpacityMask {
@@ -103,7 +110,7 @@ Rectangle {
                 var ctx = getContext("2d");
                 var plus_size = 45.0
                 ctx.lineWidth = 2
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
 
                 ctx.beginPath();
                 ctx.moveTo((width - plus_size)/2, height/2);
@@ -124,17 +131,31 @@ Rectangle {
             anchors.fill: parent
             hoverEnabled: true
             onClicked: {
-                console.log('---------------- click PLUS')
+                qmlRequestAppendDesktop()
             }
             onEntered: {
-                console.log('---------------- enter PLUS')
                 backgroundManager.shuffleDefaultBackgroundURI()
+                background.opacity = 0.6
+            }
+
+            onExited: {
+                background.opacity = 0.0
             }
         }
     }
 
     function handleAppendDesktop() {
         console.log('--------------- handleAppendDesktop')
+
+        var id = manager.desktopCount
+
+        var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
+        'property int componentDesktop: ' + id + '}';
+        var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
+        var r = manager.calculateDesktopThumbRect(id-1);
+        obj.x = r.x
+        obj.y = r.y
+        thumbs.append({'obj': obj});
     }
 
     function handleDesktopRemoved() {
@@ -146,6 +167,12 @@ Rectangle {
         var r = manager.calculateDesktopThumbRect(manager.desktopCount);
         plus.x = r.x
         plus.y = r.y
+
+        for (var i = 0; i < thumbs.count; i++) {
+            var r = manager.calculateDesktopThumbRect(i);
+            thumbs.get(i).obj.x = r.x
+            thumbs.get(i).obj.y = r.y
+        }
 
         // rearrange thumbs
         if (manager.desktopCount > thumbs.count) {

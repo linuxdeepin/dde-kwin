@@ -95,7 +95,7 @@ void BackgroundManager::shuffleDefaultBackgroundURI()
                 ++p;
             }
 
-            qDebug() << m_preinstalledWallpapers;
+            //qDebug() << m_preinstalledWallpapers;
         }
     }
 

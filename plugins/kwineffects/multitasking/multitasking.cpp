@@ -65,14 +65,14 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
 
     // relay QML signals
     connect(root, SIGNAL(qmlRequestChangeDesktop(int)), this, SIGNAL(requestChangeCurrentDesktop(int)));
+    connect(root, SIGNAL(qmlRequestAppendDesktop()), this, SIGNAL(requestAppendDesktop()));
 
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
-    emit layoutChanged();
 }
 
 void DesktopThumbnailManager::onDesktopsChanged()
 {
-    emit desktopCountChanged();
+    //emit desktopCountChanged();
     emit layoutChanged();
     emit showPlusButtonChanged();
 }
@@ -519,6 +519,10 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
     }
 }
 
+void MultitaskingEffect::appendDesktop()
+{
+    effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
+}
 
 bool MultitaskingEffect::isActive() const
 {
@@ -589,6 +593,8 @@ void MultitaskingEffect::setActive(bool active)
             m_thumbManager->setGeometry(0, 0, effects->workspaceWidth(), height);
             connect(m_thumbManager, &DesktopThumbnailManager::requestChangeCurrentDesktop,
                     this, &MultitaskingEffect::changeCurrentDesktop);
+            connect(m_thumbManager, &DesktopThumbnailManager::requestAppendDesktop,
+                    this, &MultitaskingEffect::appendDesktop);
         }
         m_thumbManager->move(0, -height);
         m_thumbManager->show();
