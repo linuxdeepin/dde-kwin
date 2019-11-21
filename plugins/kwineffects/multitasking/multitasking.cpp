@@ -453,7 +453,7 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
 
 void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 {
-    auto prev_hlwindow = m_highlightWindow;
+    if (!m_activated) return;
 
     EffectWindow* target = nullptr;
     WindowMotionManager& mm = m_motionManagers[m_targetDesktop-1];
@@ -635,6 +635,7 @@ void MultitaskingEffect::setActive(bool active)
             ++p;
         }
 
+        updateHighlightWindow(nullptr);
     }
 
     effects->addRepaintFull();
