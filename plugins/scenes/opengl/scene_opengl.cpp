@@ -951,17 +951,6 @@ SceneOpenGL2::SceneOpenGL2(OpenGLBackend *backend, QObject *parent)
     init_ok = true;
 }
 
-SceneOpenGL2::~SceneOpenGL2()
-{
-    if (m_lanczosFilter) {
-        makeOpenGLContextCurrent();
-        delete m_lanczosFilter;
-        m_lanczosFilter = nullptr;
-    }
-    // SceneOpenGL2 被销毁时（可能发生在切换为2D模式）应该清理窗口阴影的材质缓存，否则在多次切换3D/2D后会导致窗口阴影绘制出现异常
-    DecorationShadowTextureCache::instance().clear();
-}
-
 QMatrix4x4 SceneOpenGL2::createProjectionMatrix() const
 {
     // Create a perspective projection with a 60° field-of-view,
@@ -2059,6 +2048,17 @@ void DecorationShadowTextureCache::unregister(SceneOpenGLShadow *shadow)
 void DecorationShadowTextureCache::clear()
 {
     m_cache.clear();
+}
+
+SceneOpenGL2::~SceneOpenGL2()
+{
+    if (m_lanczosFilter) {
+        makeOpenGLContextCurrent();
+        delete m_lanczosFilter;
+        m_lanczosFilter = nullptr;
+    }
+    // SceneOpenGL2 被销毁时（可能发生在切换为2D模式）应该清理窗口阴影的材质缓存，否则在多次切换3D/2D后会导致窗口阴影绘制出现异常
+    DecorationShadowTextureCache::instance().clear();
 }
 
 QSharedPointer<GLTexture> DecorationShadowTextureCache::getTexture(SceneOpenGLShadow *shadow)
