@@ -31,6 +31,7 @@
 #include <QWindow>
 #include <QTimeLine>
 #include <kwineffects.h>
+#include <KF5/KWindowSystem/KWindowSystem>
 
 #include "background.h"
 
@@ -41,6 +42,7 @@ class DesktopThumbnail: public QQuickPaintedItem
     Q_OBJECT
     Q_PROPERTY(int desktop READ desktop WRITE setDesktop NOTIFY desktopChanged)
     Q_PROPERTY(float radius READ radius WRITE setRadius NOTIFY radiusChanged)
+    Q_PROPERTY(QVariant windows READ windows NOTIFY windowsChanged)
 public:
     DesktopThumbnail(QQuickItem* parent = 0): QQuickPaintedItem(parent) {
         setRenderTarget(QQuickPaintedItem::FramebufferObject);
@@ -56,6 +58,17 @@ public:
                 m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
             }
             emit desktopChanged(); 
+
+            QList<WId> vl;
+            for (auto wid: KWindowSystem::self()->windows()) {
+                KWindowInfo info(wid, NET::WMDesktop);
+                if (info.valid() && info.desktop() == d) {
+                    vl.append(wid);
+                }
+            }
+            setWindows(vl);
+
+            update();
         }
     }
 
@@ -66,6 +79,16 @@ public:
             emit radiusChanged(); 
         }
     }
+
+    QVariant windows() const { return QVariant::fromValue(m_windows); }
+    void setWindows(QList<WId> ids) {
+        m_windows.clear();
+        for (auto id: ids) {
+            m_windows.append(id);
+        }
+        emit windowsChanged();
+    }
+
 
     void paint(QPainter* p) override {
         QRect rect(0, 0, width(), height());
@@ -91,10 +114,12 @@ protected:
 signals:
     void desktopChanged();
     void radiusChanged();
+    void windowsChanged();
 
 private:
     int m_desktop {0};
     float m_radius {0};
+    QVariantList m_windows;
     QPixmap m_bg;
 };
 
@@ -127,10 +152,9 @@ public:
     QSize containerSize() const;
 
     Q_INVOKABLE QRect calculateDesktopThumbRect(int index);
+    Q_INVOKABLE QVariantList windowsFor(int desktop);
 
 protected slots:
-    void appendDesktop();
-    void reflow();
     void onDesktopsChanged();
 
 protected:
@@ -144,11 +168,13 @@ signals:
     void containerSizeChanged();
     void thumbSizeChanged();
     void layoutChanged();
+    void desktopRemoved(QVariant id);
 
     // internal
     void switchDesktop(int left, int right);
     void requestChangeCurrentDesktop(int d);
     void requestAppendDesktop();
+    void requestDeleteDesktop(int);
 
 private:
     EffectWindow* m_effectWindow {nullptr};
@@ -206,8 +232,13 @@ public Q_SLOTS:
     void onWindowDeleted(KWin::EffectWindow*);
 
     void appendDesktop();
+    void removeDesktop(int d);
 
     void changeCurrentDesktop(int d);
+
+private slots:
+    void onNumberDesktopsChanged(int old);
+    void onCurrentDesktopChanged();
 
 private:
     bool isRelevantWithPresentWindows(EffectWindow *w) const;

@@ -32,6 +32,26 @@
 #define ACTION_NAME  "ShowMultitasking"
 
 
+namespace KWin {
+
+class KWIN_EXPORT VirtualDesktop : public QObject
+{
+};
+
+class VirtualDesktopManager: public QObject {
+    public:
+        static VirtualDesktopManager* self() { return s_manager; }
+        void removeVirtualDesktop(const QByteArray& id);
+        VirtualDesktop *desktopForX11Id(uint id) const;
+        VirtualDesktop *desktopForId(const QByteArray &id) const;
+    public:
+        QVector<VirtualDesktop*> m_desktops;
+
+    private:
+        static VirtualDesktopManager* s_manager;
+};
+}
+
 DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     :QWidget(0),
     m_effectWindow(nullptr),
@@ -42,7 +62,8 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
 
-    connect(h, &EffectsHandler::numberDesktopsChanged, this, &DesktopThumbnailManager::onDesktopsChanged);
+    connect(h, &EffectsHandler::numberDesktopsChanged, this, &DesktopThumbnailManager::onDesktopsChanged,
+            Qt::QueuedConnection);
 
 
     m_view = new QQuickWidget(this);
@@ -60,26 +81,71 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     m_view->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
 
     auto root = m_view->rootObject();
-    connect(this, SIGNAL(layoutChanged()), root, SLOT(handleLayoutChanged()));
-    connect(this, SIGNAL(desktopCountChanged()), root, SLOT(handleDesktopCountChanged()));
+    connect(this, SIGNAL(layoutChanged()), root, SLOT(handleLayoutChanged()), Qt::QueuedConnection);
+    connect(this, SIGNAL(desktopRemoved(QVariant)), root, SLOT(handleDesktopRemoved(QVariant)),
+            Qt::QueuedConnection);
 
     // relay QML signals
     connect(root, SIGNAL(qmlRequestChangeDesktop(int)), this, SIGNAL(requestChangeCurrentDesktop(int)));
     connect(root, SIGNAL(qmlRequestAppendDesktop()), this, SIGNAL(requestAppendDesktop()));
+    connect(root, SIGNAL(qmlRequestDeleteDesktop(int)), this, SIGNAL(requestDeleteDesktop(int)));
 
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
+
+    auto vds = VirtualDesktopManager::self();
+    QList<VirtualDesktop*> ds;
+    for (auto o: vds->children()) {
+        if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
+            ds.append(dynamic_cast<VirtualDesktop*>(o));
+        }
+    }
+
+    for (auto vd: ds) {
+        qDebug() << "~~~~~~~~~~~~~~~~~~~~ " 
+            << vd->property("id")
+            << vd->property("x11DesktopNumber") 
+            << vd->property("name");
+    }
+}
+
+//FIXME: performance!
+QVariantList DesktopThumbnailManager::windowsFor(int desktop)
+{
+    QVariantList vl;
+    for (auto wid: KWindowSystem::self()->windows()) {
+        KWindowInfo info(wid, NET::WMDesktop);
+        if (info.valid() && info.desktop() == desktop) {
+            vl.append(wid);
+        }
+    }
+    return vl;
 }
 
 void DesktopThumbnailManager::onDesktopsChanged()
 {
-    //emit desktopCountChanged();
+    //NOTE: VirtualDesktop is lazy destroyed, so this may contain stale VD
+    auto vds = VirtualDesktopManager::self();
+    QList<VirtualDesktop*> ds;
+    for (auto o: vds->children()) {
+        if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
+            ds.append(dynamic_cast<VirtualDesktop*>(o));
+        }
+    }
+
+    for (auto vd: ds) {
+        qDebug() << "~~~~~~~~~~~~~~~~~~~~ " << __func__
+            << vd->property("id")
+            << vd->property("x11DesktopNumber") 
+            << vd->property("name");
+    }
+    emit desktopCountChanged();
     emit layoutChanged();
     emit showPlusButtonChanged();
 }
 
 bool DesktopThumbnailManager::showPlusButton() const
 {
-    return m_handler->numberOfDesktops() < 7;
+    return m_handler->numberOfDesktops() < 4;
 }
 
 QSize DesktopThumbnailManager::containerSize() const
@@ -108,18 +174,6 @@ void DesktopThumbnailManager::resizeEvent(QResizeEvent* re)
     QWidget::resizeEvent(re);
     m_view->resize(re->size());
     emit containerSizeChanged();
-}
-
-void DesktopThumbnailManager::reflow()
-{
-}
-
-void DesktopThumbnailManager::appendDesktop()
-{
-    if (m_handler) {
-        qDebug() << "################ " << __func__;
-        m_handler->setNumberOfDesktops(m_handler->numberOfDesktops() + 1);
-    }
 }
 
 void DesktopThumbnailManager::windowInputMouseEvent(QMouseEvent* e)
@@ -197,6 +251,8 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::windowDeleted, this, &MultitaskingEffect::onWindowDeleted);
     connect(effects, &EffectsHandler::windowClosed, this, &MultitaskingEffect::onWindowClosed);
 
+    connect(effects, &EffectsHandler::numberDesktopsChanged, this, &MultitaskingEffect::onNumberDesktopsChanged);
+    connect(effects, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SLOT(onCurrentDesktopChanged()));
     //connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)),
     //    this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
     //connect(effects, &EffectsHandler::numberScreensChanged, this, &DesktopGridEffect::setup);
@@ -231,6 +287,40 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
     }
 }
 
+void MultitaskingEffect::onNumberDesktopsChanged(int old)
+{
+    if (old < effects->numberOfDesktops()) {
+        // add new
+        for (int i = old+1; i <= effects->numberOfDesktops(); i++) {
+            WindowMotionManager wmm;
+            for (const auto& w: effects->stackingOrder()) {
+                if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
+                    wmm.manage(w);
+                }
+            }
+
+            calculateWindowTransformations(wmm.managedWindows(), wmm);
+            m_motionManagers.append(wmm);
+        }
+
+    } else {
+        while (m_motionManagers.size() > effects->numberOfDesktops()) {
+            m_motionManagers.last().unmanageAll();
+            m_motionManagers.removeLast();
+        }
+    }
+
+    effects->addRepaintFull();
+}
+
+void MultitaskingEffect::onCurrentDesktopChanged()
+{
+    qDebug() << "------------- " << __func__;
+    if (m_targetDesktop != effects->currentDesktop()) {
+        m_targetDesktop = effects->currentDesktop();
+        effects->addRepaintFull();
+    }
+}
 
 void MultitaskingEffect::reconfigure(ReconfigureFlags)
 {
@@ -266,7 +356,9 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
 
         data.mask |= PAINT_SCREEN_TRANSFORMED;
 
-        m_motionManagers[m_targetDesktop-1].calculate(time);
+        for (auto& mm: m_motionManagers) {
+            mm.calculate(time);
+        }
 
         if (m_thumbManager->effectWindow()) {
             m_thumbMotion.calculate(time);
@@ -517,7 +609,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 break;
 
             case Qt::Key_Right: 
-                changeCurrentDesktop(qMin(m_targetDesktop + 1, 7));
+                changeCurrentDesktop(qMin(m_targetDesktop + 1, 4));
                 break;
 
             case Qt::Key_Left: 
@@ -527,11 +619,6 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             default: break;
         }
     }
-}
-
-void MultitaskingEffect::appendDesktop()
-{
-    effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
 }
 
 bool MultitaskingEffect::isActive() const
@@ -558,6 +645,34 @@ void MultitaskingEffect::cleanup()
         m_motionManagers.first().unmanageAll();
         m_motionManagers.removeFirst();
     }
+}
+
+void MultitaskingEffect::appendDesktop()
+{
+    effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
+}
+
+
+void MultitaskingEffect::removeDesktop(int d)
+{
+    auto vds = VirtualDesktopManager::self();
+    for (auto o: vds->children()) {
+        if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
+            auto vd = dynamic_cast<VirtualDesktop*>(o);
+            if (vd->property("x11DesktopNumber").toInt() == d) {
+                qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " 
+                    << vd->property("id")
+                    << vd->property("x11DesktopNumber") 
+                    << vd->property("name");
+                vds->removeVirtualDesktop(vd->property("id").toByteArray());
+
+                emit m_thumbManager->desktopRemoved(QVariant(d));
+                break;
+            }
+
+        }
+    }
+
 }
 
 void MultitaskingEffect::changeCurrentDesktop(int d)
@@ -605,6 +720,8 @@ void MultitaskingEffect::setActive(bool active)
                     this, &MultitaskingEffect::changeCurrentDesktop);
             connect(m_thumbManager, &DesktopThumbnailManager::requestAppendDesktop,
                     this, &MultitaskingEffect::appendDesktop);
+            connect(m_thumbManager, &DesktopThumbnailManager::requestDeleteDesktop,
+                    this, &MultitaskingEffect::removeDesktop);
         }
         m_thumbManager->move(0, -height);
         m_thumbManager->show();

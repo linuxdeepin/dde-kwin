@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import com.deepin.kwin 1.0
 import QtGraphicalEffects 1.0
+import org.kde.plasma.core 2.0 as PlasmaCore
 
 Rectangle {
     id: root
@@ -18,6 +19,7 @@ Rectangle {
 
     signal qmlRequestChangeDesktop(int to)
     signal qmlRequestAppendDesktop()
+    signal qmlRequestDeleteDesktop(int id)
 
     Component.onCompleted: {
         initDesktops();
@@ -28,40 +30,127 @@ Rectangle {
         id: desktopItem
 
         Rectangle {
+            id: thumbRoot
             color: "transparent"
 
             width: manager.thumbSize.width
             height: manager.thumbSize.height
+            property int desktop: componentDesktop
 
-            radius: manager.currentDesktop == thumb.desktop ? 8 : 6
+            radius: manager.currentDesktop == desktop ? 8 : 6
             //inactive border: solid 1px rgba(0, 0, 0, 0.1);
             //active border: solid 3px rgba(36, 171, 255, 1.0);
-            border.width: manager.currentDesktop == thumb.desktop ? 3 : 1
-            border.color: manager.currentDesktop == thumb.desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
-            
+            border.width: manager.currentDesktop == desktop ? 3 : 1
+            border.color: manager.currentDesktop == desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
 
+            Drag.keys: ["thumbTarget"]
+
+            MouseArea {
+                anchors.fill: parent
+                drag.target: parent
+                hoverEnabled: true
+
+                onClicked: {
+                    if (close.enabled) {
+                        console.log("----------- change to desktop " + thumb.desktop)
+                        qmlRequestChangeDesktop(thumb.desktop)
+                    }
+                }
+
+                onEntered: {
+                    close.opacity = 1.0
+                    close.enabled = true
+                }
+
+                onExited: {
+                    close.opacity = 0.0
+                    close.enabled = false
+                }
+            }
+            
             DesktopThumbnail {
                 id: thumb
-                desktop: componentDesktop
+                desktop: thumbRoot.desktop
 
                 anchors.fill: parent
                 anchors.margins: manager.currentDesktop == desktop ? 3 : 1
                 radius: manager.currentDesktop == desktop ? 8 : 6
+
+                GridView {
+                    id: view
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    model: thumb.windows.length
+
+                    interactive: false
+
+                    cellWidth: 150
+                    cellHeight: 150
+
+                    delegate: Rectangle {
+                        width: view.cellWidth
+                        height: view.cellHeight
+                        anchors.margins: 10
+                        z: 5
+                        color: 'transparent'
+
+                        PlasmaCore.WindowThumbnail {
+                            anchors.fill: parent
+                            winId: thumb.windows[index]
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            drag.target: parent
+                            onClicked: {
+                                console.log('--------- DesktopThumbnail.window clicked' + thumb.windows[index])
+                            }
+                        }
+                    }
+                }
             }
 
+            Rectangle {
+                id: close
+                z: 3 // at the top
+                width: closeImg.width
+                height: closeImg.height
+                x: parent.width - closeImg.width/2
+                y: -height/2
+                color: "transparent"
+                opacity: 0.0
+                //NOTE: kwin 5.14 does not support delete ws in the middle,
+                //right now, disable it 
+
+                Image {
+                    id: closeImg
+                    source: "qrc:///icons/data/close.png"
+                    //width: 31
+                    //height: 31
+                    sourceSize.width: 31
+                    sourceSize.height: 31
+                }
+
+                Behavior on opacity {
+                    PropertyAnimation { duration: 300; easing.type: Easing.InOutCubic }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        console.log("----------- close desktop " + thumb.desktop)
+                        qmlRequestDeleteDesktop(thumb.desktop)
+                    }
+                }
+            }
+
+
             Behavior on x {
-                //enabled: animateLayouting
+                enabled: animateLayouting
                 PropertyAnimation { duration: 300; easing.type: Easing.Linear }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    qmlRequestChangeDesktop(thumb.desktop)
-                }
-            }
         }
-
     }
 
     ListModel {
@@ -145,9 +234,8 @@ Rectangle {
     }
 
     function handleAppendDesktop() {
-        console.log('--------------- handleAppendDesktop')
-
         var id = manager.desktopCount
+        console.log('--------------- handleAppendDesktop ' + manager.desktopCount)
 
         var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
         'property int componentDesktop: ' + id + '}';
@@ -158,8 +246,22 @@ Rectangle {
         thumbs.append({'obj': obj});
     }
 
-    function handleDesktopRemoved() {
-        console.log('--------------- handleDesktopRemoved')
+    function handleDesktopRemoved(id) {
+        console.log('--------------- handleDesktopRemoved ' + id)
+        for (var i = 0; i < thumbs.count; i++) {
+            var d = thumbs.get(i)
+            if (d.obj.componentDesktop == id) {
+                d.obj.destroy()
+                thumbs.remove(i)
+                break;
+            }
+        }
+    }
+
+    function debugObject(o) {
+        for (var p in Object.getOwnPropertyNames(o)) {
+            console.log("========= " + p);
+        }
     }
 
     function handleLayoutChanged() {
@@ -168,19 +270,21 @@ Rectangle {
         plus.x = r.x
         plus.y = r.y
 
+        if (manager.desktopCount < thumbs.count) {
+            // this has been handled by handleDesktopRemoved
+        }
+
         for (var i = 0; i < thumbs.count; i++) {
             var r = manager.calculateDesktopThumbRect(i);
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y
+            thumbs.get(i).obj.componentDesktop = i+1
         }
 
         // rearrange thumbs
         if (manager.desktopCount > thumbs.count) {
             handleAppendDesktop();
-        } else if (manager.desktopCount < thumbs.count) {
-            handleDesktopRemoved();
         }
-
     }
 
     function initDesktops() {
@@ -197,10 +301,6 @@ Rectangle {
             obj.y = r.y
             thumbs.append({'obj': obj});
         }
-    }
-
-    function handleDesktopCountChanged() {
-        console.log('--------------- desktopCountChanged')
     }
 
 }
