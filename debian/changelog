@@ -1,3 +1,11 @@
+kwin (4:5.15.5-1) unstable; urgency=medium
+
+  * New upstream release (5.14.5).
+  * Update install files
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 16 May 2019 09:17:16 -0300
+
 kwin (4:5.14.5-1) unstable; urgency=medium
 
   * New upstream release (5.14.5).

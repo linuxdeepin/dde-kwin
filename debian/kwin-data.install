@@ -4,7 +4,6 @@ usr/share/doc/*/*/kcontrol/
 usr/share/icons/*/*/apps/kwin.*
 usr/share/kconf_update/kwin.upd
 usr/share/knotifications5/kwin.notifyrc
-usr/share/kservices5/desktop.desktop
 usr/share/kservices5/kcmkwineffects.desktop
 usr/share/kservices5/kwin*.desktop
 usr/share/kservices5/kwin/

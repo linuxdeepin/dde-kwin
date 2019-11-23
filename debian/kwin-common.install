@@ -7,6 +7,7 @@ usr/lib/*/libexec/org_kde_kwin_xclipboard_syncer
 usr/lib/*/libkdeinit5_kwin_rules_dialog.so
 usr/lib/*/libkwin.so.5
 usr/lib/*/libkwin.so.5.*
+usr/lib/*/libkcmkwincommon.so.5*
 usr/lib/*/qt5/plugins/kcm_kwin*.so
 usr/lib/*/qt5/plugins/kpackage/packagestructure/
 usr/lib/*/qt5/plugins/kwin*.so
