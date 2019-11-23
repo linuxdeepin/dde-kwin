@@ -83,7 +83,7 @@ Package: kwin-common
 Architecture: any
 Depends: kwin-data (= ${source:Version}),
          libkf5globalaccel-bin,
-         libkwineffects11 (= ${binary:Version}),
+         libkwineffects12 (= ${binary:Version}),
          qml-module-org-kde-kquickcontrolsaddons,
          qml-module-qtmultimedia,
          ${misc:Depends},
@@ -262,8 +262,8 @@ Description: KDE window manager x11 plugin
 Package: kwin-x11
 Architecture: any
 Depends: kwin-common (= ${binary:Version}),
-         libkwinglutils11 (= ${binary:Version}),
-         libkwinxrenderutils11 (= ${binary:Version}),
+         libkwinglutils12 (= ${binary:Version}),
+         libkwinxrenderutils12 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Breaks: kde-window-manager (<< 4:5), kwin-addons (<< 4:5.14)
@@ -297,7 +297,7 @@ Description: KDE window manager effect builtins library
  .
  This package is part of the KDE base workspace module.
 
-Package: libkwineffects11
+Package: libkwineffects12
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -324,7 +324,7 @@ Description: KDE window manager effects library
  .
  This package is part of the KDE base workspace module.
 
-Package: libkwinglutils11
+Package: libkwinglutils12
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -353,7 +353,7 @@ Description: KDE window manager gl utils library
  .
  This package is part of the KDE base workspace module.
 
-Package: libkwinxrenderutils11
+Package: libkwinxrenderutils12
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
