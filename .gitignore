@@ -23,6 +23,7 @@ bin/
 *.qbs.user
 *.qbs.user.*
 *.moc
+*.qm
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
