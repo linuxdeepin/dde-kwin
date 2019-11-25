@@ -283,7 +283,7 @@ Description: KDE window manager, X11 version
 Package: libkwin4-effect-builtins1
 Section: libs
 Architecture: any
-Depends: libkwineffects11 (= ${binary:Version}),
+Depends: libkwineffects12 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
 Description: KDE window manager effect builtins library
