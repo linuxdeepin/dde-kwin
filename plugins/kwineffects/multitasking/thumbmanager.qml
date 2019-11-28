@@ -3,6 +3,7 @@ import QtQuick.Window 2.0
 import com.deepin.kwin 1.0
 import QtGraphicalEffects 1.0
 import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.kwin 2.0 as KWin
 
 Rectangle {
     id: root
@@ -20,6 +21,7 @@ Rectangle {
     signal qmlRequestChangeDesktop(int to)
     signal qmlRequestAppendDesktop()
     signal qmlRequestDeleteDesktop(int id)
+    signal qmlRequestMove2Desktop(variant wid, int desktop)
 
     Component.onCompleted: {
         initDesktops();
@@ -33,6 +35,8 @@ Rectangle {
             id: thumbRoot
             color: "transparent"
 
+            signal windowsChanged()
+
             width: manager.thumbSize.width
             height: manager.thumbSize.height
             property int desktop: componentDesktop
@@ -42,8 +46,12 @@ Rectangle {
             //active border: solid 3px rgba(36, 171, 255, 1.0);
             border.width: manager.currentDesktop == desktop ? 3 : 1
             border.color: manager.currentDesktop == desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
+            onWindowsChanged: {
+                console.log('------------ windowsChanged')
+                thumb.refreshWindows()
+            }
 
-            Drag.keys: ["thumbTarget"]
+            Drag.keys: ["wsThumb"]
 
             MouseArea {
                 anchors.fill: parent
@@ -55,6 +63,9 @@ Rectangle {
                         console.log("----------- change to desktop " + thumb.desktop)
                         qmlRequestChangeDesktop(thumb.desktop)
                     }
+                }
+
+                onReleased: {
                 }
 
                 onEntered: {
@@ -87,26 +98,100 @@ Rectangle {
                     cellWidth: 150
                     cellHeight: 150
 
+                    displaced: Transition {
+                        NumberAnimation { properties: "x,y"; easing.type: Easing.InOutCubic }
+                    }
+
                     delegate: Rectangle {
+                        id: viewItem
+
                         width: view.cellWidth
                         height: view.cellHeight
                         anchors.margins: 10
                         z: 5
                         color: 'transparent'
 
-                        PlasmaCore.WindowThumbnail {
+                        property variant wid: thumb.windows[index]
+                        property DesktopThumbnail owningDesktop: thumb
+
+                        //PlasmaCore.WindowThumbnail {
+                            //anchors.fill: parent
+                            //winId: viewItem.wid
+                        //}
+                        KWin.ThumbnailItem {
                             anchors.fill: parent
-                            winId: thumb.windows[index]
+                            wId: viewItem.wid
+                        }
+
+                        Drag.active: itemArea.drag.active
+                        Drag.keys: ['winthumb']
+                        Drag.hotSpot.x: width/2
+                        Drag.hotSpot.y: height/2
+
+                        states: State {
+                            when: itemArea.drag.active
+                            ParentChange {
+                                target: viewItem
+                                parent: root
+                            }
                         }
 
                         MouseArea {
+                            id: itemArea
+
                             anchors.fill: parent
                             drag.target: parent
+
                             onClicked: {
-                                console.log('--------- DesktopThumbnail.window clicked' + thumb.windows[index])
+                                console.log('--------- DesktopThumbnail.window clicked ' + viewItem.wid)
+                            }
+
+                            onReleased: {
+                                console.log('--------- DesktopThumbnail.window released ' + viewItem.wid)
+                                if (viewItem.Drag.target != null) {
+                                    // target must be a DesktopThumbnail
+                                    viewItem.Drag.drop()
+                                }
+                                
                             }
                         }
                     }
+                }
+            } // ~DesktopThumbnail
+
+            // this can accept winthumb or wsThumb type of dropping
+            // winthumb is for moving window around desktops
+            // wsThumb is for switching desktop positions
+            DropArea {
+                id: wsDrop
+                anchors.fill: parent
+                keys: ['winthumb', 'wsThumb']
+
+                states: State {
+                    when: wsDrop.containsDrag
+                    PropertyChanges {
+                        target: thumbRoot
+                        border.color: "red"
+                    }
+                }
+
+                onDropped: {
+                    if (drop.keys[0] == 'winthumb') {
+                        console.log('~~~~~ Drop winthumb, wid ' + drop.source.wid + ', to desktop ' + desktop
+                            + ', from ' + drop.source.owningDesktop.desktop)
+
+                        if (desktop != drop.source.owningDesktop.desktop)
+                            qmlRequestMove2Desktop(drop.source.wid, desktop)
+                    } else if (drop.keys[0] == 'wsThumb') {
+                        console.log('~~~~~ Drop DesktopThumbnail, todo')
+                    }
+                }
+
+                onEntered: {
+                    // source could be DesktopThumbnail or winthumb
+                    console.log('~~~~~  Enter ws ' + desktop + ', wid ' + drag.source.wid
+                        + ', keys: ' + drag.keys)
+
                 }
             }
 
@@ -119,16 +204,12 @@ Rectangle {
                 y: -height/2
                 color: "transparent"
                 opacity: 0.0
-                //NOTE: kwin 5.14 does not support delete ws in the middle,
-                //right now, disable it 
 
                 Image {
                     id: closeImg
-                    source: "qrc:///icons/data/close.png"
-                    //width: 31
-                    //height: 31
-                    sourceSize.width: 31
-                    sourceSize.height: 31
+                    source: "qrc:///icons/data/close_normal.svg"
+                    sourceSize.width: 48
+                    sourceSize.height: 48
                 }
 
                 Behavior on opacity {
@@ -140,6 +221,18 @@ Rectangle {
                     onClicked: {
                         console.log("----------- close desktop " + thumb.desktop)
                         qmlRequestDeleteDesktop(thumb.desktop)
+                    }
+
+                    onEntered: {
+                        closeImg.source = "qrc:///icons/data/close_hover.svg"
+                    }
+
+                    onPressed: {
+                        closeImg.source = "qrc:///icons/data/close_press.svg"
+                    }
+
+                    onExited: {
+                        closeImg.source = "qrc:///icons/data/close_normal.svg"
                     }
                 }
             }
@@ -258,9 +351,27 @@ Rectangle {
         }
     }
 
+    function handleDesktopWindowsChanged(id) {
+        for (var i = 0; i < thumbs.count; i++) {
+            var d = thumbs.get(i)
+            if (d.obj.componentDesktop == id) {
+                d.obj.item.windowsChanged();
+                break;
+            }
+        }
+    }
+
+
     function debugObject(o) {
-        for (var p in Object.getOwnPropertyNames(o)) {
-            console.log("========= " + p);
+        //for (var p in Object.getOwnPropertyNames(o)) {
+            //console.log("========= " + o[p]);
+        //}
+
+        var keys = Object.keys(o);
+        for(var i=0; i<keys.length; i++) {
+            var key = keys[i];
+            // prints all properties, signals, functions from object
+            console.log('======== ' + key + ' : ' + o[key]);
         }
     }
 

@@ -84,11 +84,14 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     connect(this, SIGNAL(layoutChanged()), root, SLOT(handleLayoutChanged()), Qt::QueuedConnection);
     connect(this, SIGNAL(desktopRemoved(QVariant)), root, SLOT(handleDesktopRemoved(QVariant)),
             Qt::QueuedConnection);
+    connect(this, SIGNAL(desktopWindowsChanged(QVariant)), root, SLOT(handleDesktopWindowsChanged(QVariant)),
+            Qt::QueuedConnection);
 
     // relay QML signals
     connect(root, SIGNAL(qmlRequestChangeDesktop(int)), this, SIGNAL(requestChangeCurrentDesktop(int)));
     connect(root, SIGNAL(qmlRequestAppendDesktop()), this, SIGNAL(requestAppendDesktop()));
     connect(root, SIGNAL(qmlRequestDeleteDesktop(int)), this, SIGNAL(requestDeleteDesktop(int)));
+    connect(root, SIGNAL(qmlRequestMove2Desktop(QVariant, int)), this, SIGNAL(requestMove2Desktop(QVariant, int)));
 
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
 
@@ -266,16 +269,64 @@ MultitaskingEffect::~MultitaskingEffect()
     m_thumbManager->deleteLater();
 }
 
+QVector<int> MultitaskingEffect::desktopList(const EffectWindow *w) const
+{
+    if (w->isOnAllDesktops()) {
+        static QVector<int> allDesktops;
+        if (allDesktops.count() != effects->numberOfDesktops()) {
+            allDesktops.resize(effects->numberOfDesktops());
+            for (int i = 0; i < effects->numberOfDesktops(); ++i)
+                allDesktops[i] = i;
+        }
+        return allDesktops;
+    }
+
+    QVector<int> desks;
+    desks.resize(w->desktops().count());
+    int i = 0;
+    for (const int desk : w->desktops()) {
+        desks[i++] = desk-1;
+    }
+    return desks;
+}
+
+
 void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
 {
+    if (!m_activated)
+        return;
+
+    qDebug() << __func__;
+    if (!isRelevantWithPresentWindows(w))
+        return; // don't add
+    foreach (const int i, desktopList(w)) {
+        WindowMotionManager& wmm = m_motionManagers[i];
+        wmm.manage(w);
+        calculateWindowTransformations(wmm.managedWindows(), wmm);
+    }
+    effects->addRepaintFull();
 }
 
 void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
 {
+    if (!m_activated && m_toggleTimeline.currentValue() == 0)
+        return;
+    qDebug() << __func__;
+    //if (w == windowMove) {
+        //effects->setElevatedWindow(windowMove, false);
+        //windowMove = NULL;
+    //}
+    foreach (const int i, desktopList(w)) {
+        WindowMotionManager& wmm = m_motionManagers[i];
+        wmm.unmanage(w);
+        calculateWindowTransformations(wmm.managedWindows(), wmm);
+    }
+    effects->addRepaintFull();
 }
 
 void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
 {
+    qDebug() << __func__;
     if (m_thumbManager && w == m_thumbManager->effectWindow()) {
         m_thumbManager->setEffectWindow(nullptr);
     }
@@ -285,6 +336,9 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
         p->unmanage(w);
         ++p;
     }
+
+    //if (w == windowMove)
+        //windowMove = 0;
 }
 
 void MultitaskingEffect::onNumberDesktopsChanged(int old)
@@ -675,6 +729,29 @@ void MultitaskingEffect::removeDesktop(int d)
 
 }
 
+void MultitaskingEffect::moveWindow2Desktop(QVariant wid, int desktop)
+{
+    auto* ew = effects->findWindow(wid.toULongLong());
+    if (!ew) {
+        return;
+    }
+
+    auto prev_desktop = ew->desktops().first();
+    if (prev_desktop == desktop) {
+        qDebug() << "------------ the same desktop";
+        return;
+    }
+
+    qDebug() << "---------- move " << wid << "to" << desktop;
+    QVector<uint> ids {(uint)desktop};
+    effects->windowToDesktops(ew, ids);
+
+    emit m_thumbManager->desktopWindowsChanged(prev_desktop);
+    emit m_thumbManager->desktopWindowsChanged(desktop);
+
+    effects->addRepaintFull();
+}
+
 void MultitaskingEffect::changeCurrentDesktop(int d)
 {
     if (d <= 0 || d > effects->numberOfDesktops()) {
@@ -722,6 +799,8 @@ void MultitaskingEffect::setActive(bool active)
                     this, &MultitaskingEffect::appendDesktop);
             connect(m_thumbManager, &DesktopThumbnailManager::requestDeleteDesktop,
                     this, &MultitaskingEffect::removeDesktop);
+            connect(m_thumbManager, &DesktopThumbnailManager::requestMove2Desktop,
+                    this, &MultitaskingEffect::moveWindow2Desktop);
         }
         m_thumbManager->move(0, -height);
         m_thumbManager->show();

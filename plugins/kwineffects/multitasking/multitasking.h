@@ -80,6 +80,17 @@ public:
         }
     }
 
+    Q_INVOKABLE void refreshWindows() {
+        QList<WId> vl;
+        for (auto wid: KWindowSystem::self()->windows()) {
+            KWindowInfo info(wid, NET::WMDesktop);
+            if (info.valid() && info.desktop() == m_desktop) {
+                vl.append(wid);
+            }
+        }
+        setWindows(vl);
+    }
+
     QVariant windows() const { return QVariant::fromValue(m_windows); }
     void setWindows(QList<WId> ids) {
         m_windows.clear();
@@ -168,6 +179,7 @@ signals:
     void containerSizeChanged();
     void thumbSizeChanged();
     void layoutChanged();
+    void desktopWindowsChanged(QVariant id);
     void desktopRemoved(QVariant id);
 
     // internal
@@ -175,6 +187,7 @@ signals:
     void requestChangeCurrentDesktop(int d);
     void requestAppendDesktop();
     void requestDeleteDesktop(int);
+    void requestMove2Desktop(QVariant, int);
 
 private:
     EffectWindow* m_effectWindow {nullptr};
@@ -220,6 +233,7 @@ public:
     }
 
     void updateHighlightWindow(EffectWindow* w);
+    QVector<int> desktopList(const EffectWindow *w) const;
 
 public Q_SLOTS:
     void setActive(bool active);
@@ -235,6 +249,8 @@ public Q_SLOTS:
     void removeDesktop(int d);
 
     void changeCurrentDesktop(int d);
+
+    void moveWindow2Desktop(QVariant wid, int desktop);
 
 private slots:
     void onNumberDesktopsChanged(int old);
