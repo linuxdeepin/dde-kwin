@@ -239,11 +239,6 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
             action->setEnabled(item.enable);
         }
 
-        if (QStyle *s = QStyleFactory::create("dlight")) {
-            s->setParent(_globalWindowMenu);
-            _globalWindowMenu->setStyle(s);
-        }
-
         connect(_globalWindowMenu, &QMenu::triggered, _globalWindowMenu, [] (const QAction *action) {
             MenuSlot::onMenuItemInvoked(action->property("id").toString(), action->isChecked(), _menuClient);
         });
