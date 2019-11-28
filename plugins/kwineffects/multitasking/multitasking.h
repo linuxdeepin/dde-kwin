@@ -24,6 +24,7 @@
 #define _DEEPIN_MULTITASKING_H 
 
 #include <QObject>
+#include <QPoint>
 #include <QtWidgets>
 #include <QQuickView>
 #include <QQuickPaintedItem>
@@ -152,6 +153,9 @@ public:
         m_effectWindow = w;
     }
 
+    int desktopAtPos(QPoint);
+    void updateDesktopWindows();
+
     EffectWindow* effectWindow() {
         return m_effectWindow;
     }
@@ -251,6 +255,7 @@ public Q_SLOTS:
     void changeCurrentDesktop(int d);
 
     void moveWindow2Desktop(QVariant wid, int desktop);
+    void moveEffectWindow2Desktop(KWin::EffectWindow* ew, int desktop);
 
 private slots:
     void onNumberDesktopsChanged(int old);
@@ -290,6 +295,12 @@ private:
     QVector<WindowMotionManager> m_motionManagers;
     WindowMotionManager m_thumbMotion;
     EffectWindow* m_highlightWindow {nullptr};
+
+    EffectWindow* m_movingWindow {nullptr};
+    bool m_isWindowMoving {false};
+    QRect m_movingWindowGeometry;
+    QPoint m_movingWindowStartPoint;
+    QPoint m_dragStartPos;
 
     // Shortcut - needed to toggle the effect
     QList<QKeySequence> shortcut;

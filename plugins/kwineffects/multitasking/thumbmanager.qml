@@ -107,21 +107,24 @@ Rectangle {
 
                         width: view.cellWidth
                         height: view.cellHeight
-                        anchors.margins: 10
-                        z: 5
+                        anchors.margins: 2
                         color: 'transparent'
+                        border {
+                            width: 1
+                            color: "green"
+                        }
 
                         property variant wid: thumb.windows[index]
                         property DesktopThumbnail owningDesktop: thumb
 
-                        //PlasmaCore.WindowThumbnail {
-                            //anchors.fill: parent
-                            //winId: viewItem.wid
-                        //}
-                        KWin.ThumbnailItem {
+                        PlasmaCore.WindowThumbnail {
                             anchors.fill: parent
-                            wId: viewItem.wid
+                            winId: viewItem.wid
                         }
+                        //KWin.ThumbnailItem {
+                            //anchors.fill: parent
+                            //wId: viewItem.wid
+                        //}
 
                         Drag.active: itemArea.drag.active
                         Drag.keys: ['winthumb']
@@ -355,6 +358,7 @@ Rectangle {
         for (var i = 0; i < thumbs.count; i++) {
             var d = thumbs.get(i)
             if (d.obj.componentDesktop == id) {
+                console.log('------------- handleDesktopWindowsChanged: ' + id)
                 d.obj.item.windowsChanged();
                 break;
             }
