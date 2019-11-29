@@ -109,10 +109,6 @@ Rectangle {
                         height: view.cellHeight
                         anchors.margins: 2
                         color: 'transparent'
-                        border {
-                            width: 1
-                            color: "green"
-                        }
 
                         property variant wid: thumb.windows[index]
                         property DesktopThumbnail owningDesktop: thumb

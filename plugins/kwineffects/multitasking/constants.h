@@ -58,6 +58,15 @@ namespace Constants {
      * thumbnail workspace relayout duration 
      */
     static const int RELAYOUT_DURATION = 300;
+
+    /**
+     * size for window icon
+     */
+    static const int ICON_SIZE = 64;
+    /**
+     * size for window action icons: pin, unpin, close
+     */
+    static const int ACTION_SIZE = 48;
 }
 
 #endif

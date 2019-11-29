@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QHash>
 #include <QtWidgets>
 #include <QQuickView>
 #include <QQuickPaintedItem>
@@ -260,6 +261,18 @@ public Q_SLOTS:
 private slots:
     void onNumberDesktopsChanged(int old);
     void onCurrentDesktopChanged();
+    void closeWindow();
+    void toggleWindowKeepAbove();
+
+private:
+    struct WindowData {
+        bool isAbove {false};
+        EffectFrame* close {nullptr};
+        EffectFrame* pin {nullptr};
+        EffectFrame* unpin {nullptr};
+        EffectFrame* icon {nullptr};
+    };
+    typedef QHash<EffectWindow*, WindowData> DataHash;
 
 private:
     bool isRelevantWithPresentWindows(EffectWindow *w) const;
@@ -285,8 +298,12 @@ private:
         return int((width / double(w->width())) * w->height());
     }
 
+    EffectFrame* createIconFor(EffectWindow*);
+    void initWindowData(DataHash::iterator wd, EffectWindow* w);
 
 private:
+    DataHash m_windowDatas;
+
     // Activation
     bool m_activated {false};
     bool m_hasKeyboardGrab {false};

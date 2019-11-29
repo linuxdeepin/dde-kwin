@@ -318,6 +318,32 @@ QVector<int> MultitaskingEffect::desktopList(const EffectWindow *w) const
     return desks;
 }
 
+void MultitaskingEffect::initWindowData(DataHash::iterator wd, EffectWindow* w)
+{
+    wd->isAbove = w->keepAbove();
+    wd->icon = createIconFor(w);
+
+    auto createIcon = [](const char* icon_path, int size) {
+        auto icon = effects->effectFrame(EffectFrameUnstyled, false);
+        icon->setAlignment(Qt::AlignCenter);
+        icon->setIcon(QIcon(icon_path));
+        icon->setIconSize(QSize(size, size));
+        return icon;
+    };
+    wd->close = createIcon(":/icons/data/close_normal.svg", Constants::ACTION_SIZE);
+    wd->pin = createIcon(":/icons/data/unsticked_normal.svg", Constants::ACTION_SIZE);
+    wd->unpin = createIcon(":/icons/data/sticked_normal.svg", Constants::ACTION_SIZE);
+}
+
+EffectFrame* MultitaskingEffect::createIconFor(EffectWindow* w)
+{
+    auto icon = effects->effectFrame(EffectFrameUnstyled, false);
+    icon->setAlignment(Qt::AlignCenter);
+    icon->setIcon(w->icon());
+    icon->setIconSize(QSize(Constants::ICON_SIZE, Constants::ICON_SIZE));
+
+    return icon;
+}
 
 void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
 {
@@ -327,6 +353,11 @@ void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
     qDebug() << __func__;
     if (!isRelevantWithPresentWindows(w))
         return; // don't add
+
+
+    auto wd = m_windowDatas.insert(w, WindowData());
+    initWindowData(wd, w);
+
     foreach (const int i, desktopList(w)) {
         WindowMotionManager& wmm = m_motionManagers[i-1];
         wmm.manage(w);
@@ -339,6 +370,7 @@ void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
 {
     if (!m_activated && m_toggleTimeline.currentValue() == 0)
         return;
+
     qDebug() << __func__;
 
     if (w == m_movingWindow) {
@@ -360,6 +392,19 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
     qDebug() << __func__;
     if (m_thumbManager && w == m_thumbManager->effectWindow()) {
         m_thumbManager->setEffectWindow(nullptr);
+    }
+
+    if (m_activated) {
+        //TODO: performance!
+        m_thumbManager->updateDesktopWindows();
+    }
+
+    auto wd = m_windowDatas.find(w);
+    if (wd != m_windowDatas.end()) {
+        delete wd->icon;
+        delete wd->pin;
+        delete wd->unpin;
+        m_windowDatas.erase(wd);
     }
 
     auto p = m_motionManagers.begin();
@@ -512,7 +557,8 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
     data.mask |= PAINT_WINDOW_TRANSFORMED;
 
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) && (w != m_thumbManager->effectWindow())) {
+    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w)) 
+            && (w != m_thumbManager->effectWindow())) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
     }
 
@@ -579,6 +625,28 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
             
             //qDebug() << "--------- window " << w->geometry() << geo;
             effects->paintWindow(w, mask, area, d);
+
+            auto wd = m_windowDatas.constFind(w);
+            if (wd != m_windowDatas.constEnd()) {
+                QPoint wp(geo.center().rx(), geo.bottom());
+                wd->icon->setPosition(wp);
+                wd->icon->render(region, 1.0, 0.0);
+
+                if (m_highlightWindow == w) {
+                    wp = geo.topRight().toPoint();
+                    wd->close->setPosition(wp);
+                    wd->close->render(region, 1.0, 0.0);
+
+                    wp = geo.topLeft().toPoint();
+                    if (wd->isAbove) {
+                        wd->unpin->setPosition(wp);
+                        wd->unpin->render(region, 1.0, 0.0);
+                    } else {
+                        wd->pin->setPosition(wp);
+                        wd->pin->render(region, 1.0, 0.0);
+                    }
+                }
+            }
         }
     } else {
         effects->paintWindow(w, mask, region, data);
@@ -657,13 +725,17 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
     auto windows = mm.managedWindows();
     for (auto win: windows) {
         auto geom = mm.transformedGeometry(win);
+        geom.adjust(-24, -24, 24 ,24);
         if (geom.contains(me->pos())) {
             target = win;
             break;
         }
     }
 
-    updateHighlightWindow(target);
+    if (m_isWindowMoving)
+        updateHighlightWindow(nullptr);
+    else
+        updateHighlightWindow(target);
 
     switch (me->type()) {
         case QEvent::MouseMove:
@@ -697,6 +769,7 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 
                         calculateWindowTransformations(wmm.managedWindows(), wmm);
 
+                        updateHighlightWindow(nullptr);
                         m_isWindowMoving = true;
                         effects->defineCursor(Qt::ClosedHandCursor);
                     }
@@ -743,15 +816,69 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
                 m_movingWindow = nullptr;
                 m_isWindowMoving = false;
 
-            } else if (target) {
-                effects->activateWindow(target);
-                setActive(false);
+            } else if (target) { // this must be m_highlightWindow now
+                if (m_highlightWindow != target) break;
+
+                auto wd = m_windowDatas.find(target);
+                if (wd != m_windowDatas.end()) {
+                    if (wd->close->geometry().contains(me->pos())) {
+                        QMetaObject::invokeMethod(this, "closeWindow", Qt::QueuedConnection);
+                    } else if (wd->isAbove && wd->unpin->geometry().contains(me->pos())) {
+                        QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
+                    } else if (!wd->isAbove && wd->pin->geometry().contains(me->pos())) {
+                        QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
+                    } else {
+                        updateHighlightWindow(nullptr);
+                        effects->activateWindow(target);
+                        setActive(false);
+                    }
+                }
             } else {
                 setActive(false);
             }
             break;
 
         default: break;
+    }
+
+}
+
+void MultitaskingEffect::toggleWindowKeepAbove()
+{
+    if (m_highlightWindow) {
+        auto& wd = m_windowDatas[m_highlightWindow];
+
+        //HACK: find wid of the highlighted window
+        WId highlight_wid = 0;
+        for (auto wid: KWindowSystem::self()->windows()) {
+            if (effects->findWindow(wid) == m_highlightWindow) {
+                highlight_wid = wid;
+                break;
+            }
+        }
+
+        if (highlight_wid == 0) return;
+
+        if (m_highlightWindow->keepAbove()) {
+            qDebug() << "--------- click unpin";
+            KWindowSystem::self()->clearState(highlight_wid, NET::KeepAbove);
+            wd.isAbove = false;
+        } else {
+            qDebug() << "--------- click pin";
+            KWindowSystem::self()->setState(highlight_wid, NET::KeepAbove);
+            wd.isAbove = true;
+        }
+
+        effects->addRepaintFull();
+    }
+}
+
+void MultitaskingEffect::closeWindow()
+{
+    if (m_highlightWindow) {
+        qDebug() << "--------- click close";
+        m_highlightWindow->closeWindow();
+        updateHighlightWindow(nullptr);
     }
 }
 
@@ -814,6 +941,14 @@ void MultitaskingEffect::cleanup()
     m_thumbMotion.unmanage(m_thumbManager->effectWindow());
     m_thumbMotion.reset();
     m_thumbManager->hide();
+
+    auto wd = m_windowDatas.begin();
+    while (wd != m_windowDatas.end()) {
+        delete wd.value().icon;
+        ++wd;
+    }
+    m_windowDatas.clear();
+
 
     if (m_hasKeyboardGrab) effects->ungrabKeyboard();
     m_hasKeyboardGrab = false;
@@ -953,6 +1088,14 @@ void MultitaskingEffect::setActive(bool active)
         m_thumbManager->move(0, -height);
         m_thumbManager->show();
 
+        for (const auto& w: effects->stackingOrder()) {
+            auto wd = m_windowDatas.find(w);
+            if (wd != m_windowDatas.end()) {
+                continue;
+            }
+            wd = m_windowDatas.insert(w, WindowData());
+            initWindowData(wd, w);
+        }
 
         for (int i = 1; i <= effects->numberOfDesktops(); i++) {
             WindowMotionManager wmm;
