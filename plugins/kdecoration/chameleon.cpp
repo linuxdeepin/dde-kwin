@@ -100,6 +100,7 @@ void Chameleon::init()
     connect(m_theme, &ChameleonWindowTheme::mouseInputAreaMarginsChanged, this, &Chameleon::updateMouseInputAreaMargins);
     connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateShadow);
     connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateTitleBarArea);
+    connect(qGuiApp, &QGuiApplication::fontChanged, this, &Chameleon::updateTitleGeometry);
 
     m_initialized = true;
 }
@@ -114,7 +115,6 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
         }
 
         painter->fillRect(titleBar() & repaintArea, getBackgroundColor());
-        painter->setFont(s->font());
         painter->setPen(getTextColor());
         painter->drawText(m_titleArea, Qt::AlignCenter, m_title);
 
@@ -335,7 +335,9 @@ void Chameleon::updateTitleGeometry()
     m_titleArea = titleBar();
 
     m_title = client().data()->caption();
-    int full_width = s->fontMetrics().width(m_title);
+    // 使用系统字体，不要使用 settings() 中的字体
+    const QFontMetricsF fontMetrics(qGuiApp->font());
+    int full_width = fontMetrics.width(m_title);
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
         int buttons_width = m_leftButtons->geometry().width() 
@@ -349,7 +351,7 @@ void Chameleon::updateTitleGeometry()
             m_titleArea.moveCenter(titleBar().center());
 
         } else if (full_width > m_titleArea.width()) {
-            m_title = s->fontMetrics().elidedText(m_title,
+            m_title = fontMetrics.elidedText(m_title,
                     Qt::ElideRight, qMax(m_titleArea.width(), m_titleArea.height()));
             m_titleArea.moveRight(m_rightButtons->geometry().left() + s->smallSpacing());
 
@@ -370,7 +372,7 @@ void Chameleon::updateTitleGeometry()
             m_titleArea.moveCenter(titleBar().center());
 
         } else if (full_width > m_titleArea.height()) {
-            m_title = s->fontMetrics().elidedText(m_title,
+            m_title = fontMetrics.elidedText(m_title,
                     Qt::ElideRight, qMax(m_titleArea.width(), m_titleArea.height()));
             m_titleArea.moveBottom(m_rightButtons->geometry().top() + s->smallSpacing());
 
