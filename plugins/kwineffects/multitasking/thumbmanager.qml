@@ -41,6 +41,12 @@ Rectangle {
             height: manager.thumbSize.height
             property int desktop: componentDesktop
 
+            //FIXME: define a enum {
+            //    PendingRemove,
+            //    PendingSwitch
+            //}
+            property bool pendingDragRemove: false
+
             radius: manager.currentDesktop == desktop ? 8 : 6
             //inactive border: solid 1px rgba(0, 0, 0, 0.1);
             //active border: solid 3px rgba(36, 171, 255, 1.0);
@@ -52,8 +58,28 @@ Rectangle {
             }
 
             Drag.keys: ["wsThumb"]
+            Drag.active: thumbArea.drag.active
+            //TOOD: should be cursor position?
+            Drag.hotSpot {
+                x: width/2
+                y: height/2
+            }
+
+            states: State {
+                when: thumbArea.drag.active
+                ParentChange {
+                    target: thumbRoot
+                    parent: root
+                }
+
+                PropertyChanges {
+                    target: thumbRoot
+                    z: 100
+                }
+            }
 
             MouseArea {
+                id: thumbArea
                 anchors.fill: parent
                 drag.target: parent
                 hoverEnabled: true
@@ -65,7 +91,23 @@ Rectangle {
                     }
                 }
 
+                onPressed: {
+                    //FIXME: make hotSpot follow mouse cursor when drag started
+                    // however, this is not accurate, we need a drag-started event
+                    thumbRoot.Drag.hotSpot.x = mouse.x
+                    thumbRoot.Drag.hotSpot.y = mouse.y
+                }
+
                 onReleased: {
+                    // target should be wsDropComponent
+                    if (thumbRoot.Drag.target != null) {
+                        console.log('------- release ws on ' + thumbRoot.Drag.target)
+                        thumbRoot.Drag.drop()
+                    } else {
+                        //FIXME: not good, since current the parent is still chagned (by ParentChange)
+                        thumbRoot.x = 0
+                        thumbRoot.y = 0
+                    }
                 }
 
                 onEntered: {
@@ -78,6 +120,44 @@ Rectangle {
                     close.enabled = false
                 }
             }
+
+            // this can accept winthumb type of dropping
+            // winthumb is for moving window around desktops
+            DropArea {
+                id: winDrop
+                anchors.fill: parent
+                keys: ['winthumb']
+
+                states: State {
+                    when: winDrop.containsDrag
+                    PropertyChanges {
+                        target: thumbRoot
+                        border.color: "red"
+                    }
+                }
+
+                onDropped: {
+                    if (drop.keys[0] == 'winthumb') {
+                        console.log('~~~~~ Drop winthumb, wid ' + drop.source.wid + ', to desktop ' + desktop
+                            + ', from ' + drop.source.owningDesktop.desktop)
+
+                        if (desktop != drop.source.owningDesktop.desktop)
+                            qmlRequestMove2Desktop(drop.source.wid, desktop)
+                    }
+                }
+
+                onEntered: {
+                    // source could be DesktopThumbnail or winthumb
+                    if (drag.keys[0] == 'winthumb') {
+                        console.log('~~~~~  Enter ws ' + desktop + ', wid ' + drag.source.wid
+                        + ', keys: ' + drag.keys)
+                    } else {
+                        drag.accepted = false
+                    }
+
+                }
+            }
+
             
             DesktopThumbnail {
                 id: thumb
@@ -133,6 +213,11 @@ Rectangle {
                                 target: viewItem
                                 parent: root
                             }
+
+                            PropertyChanges {
+                                target: viewItem
+                                z: 100
+                            }
                         }
 
                         MouseArea {
@@ -157,42 +242,6 @@ Rectangle {
                     }
                 }
             } // ~DesktopThumbnail
-
-            // this can accept winthumb or wsThumb type of dropping
-            // winthumb is for moving window around desktops
-            // wsThumb is for switching desktop positions
-            DropArea {
-                id: wsDrop
-                anchors.fill: parent
-                keys: ['winthumb', 'wsThumb']
-
-                states: State {
-                    when: wsDrop.containsDrag
-                    PropertyChanges {
-                        target: thumbRoot
-                        border.color: "red"
-                    }
-                }
-
-                onDropped: {
-                    if (drop.keys[0] == 'winthumb') {
-                        console.log('~~~~~ Drop winthumb, wid ' + drop.source.wid + ', to desktop ' + desktop
-                            + ', from ' + drop.source.owningDesktop.desktop)
-
-                        if (desktop != drop.source.owningDesktop.desktop)
-                            qmlRequestMove2Desktop(drop.source.wid, desktop)
-                    } else if (drop.keys[0] == 'wsThumb') {
-                        console.log('~~~~~ Drop DesktopThumbnail, todo')
-                    }
-                }
-
-                onEntered: {
-                    // source could be DesktopThumbnail or winthumb
-                    console.log('~~~~~  Enter ws ' + desktop + ', wid ' + drag.source.wid
-                        + ', keys: ' + drag.keys)
-
-                }
-            }
 
             Rectangle {
                 id: close
@@ -242,12 +291,110 @@ Rectangle {
                 PropertyAnimation { duration: 300; easing.type: Easing.Linear }
             }
 
+            Behavior on y {
+                enabled: animateLayouting
+                PropertyAnimation { duration: 300; easing.type: Easing.Linear }
+            }
+
         }
+    }
+
+    Component {
+        id: wsDropComponent
+
+        DropArea {
+            id: wsDrop
+            width: manager.thumbSize.width
+            height: manager.thumbSize.height
+            property int designated: index
+
+            z: 1
+            keys: ['wsThumb']
+
+            onDropped: {
+                /* NOTE:
+                 * during dropping, PropertyChanges is still in effect, which means 
+                 * drop.source.parent should not be Loader
+                 * and drop.source.z == 100
+                 */
+                if (drop.keys[0] === 'wsThumb') {
+                    console.log('------wsDrop on ws ' + wsDrop.designated + ', switch with ' + drop.source.desktop)
+                    if (wsDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
+                        //FIXME: could be a delete operation but need more calculation
+                        console.log("----------- close desktop " + drop.source.desktop)
+                        qmlRequestDeleteDesktop(drop.source.desktop)
+                    } else {
+                        drop.source.x = 0
+                        drop.source.y = 0
+                    }
+                }
+            }
+
+            onEntered: {
+                if (drag.keys[0] === 'wsThumb') {
+                    console.log('------[wsDrop]: Enter ' + wsDrop.designated + ' from ' + drag.source
+                        + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
+                }
+            }
+
+            onPositionChanged: {
+                if (drag.keys[0] === 'wsThumb') {
+                    console.log('------ ' + drag.x + ',' + drag.y)
+                    if ( drag.y < 30) {
+                        hint.visible = true
+                    } else {
+                        hint.visible = false
+                    }
+                    drag.source.pendingDragRemove = hint.visible
+                }
+            }
+
+            Rectangle {
+                id: hint
+                visible: false
+                anchors.fill: parent
+                color: 'lightblue'
+
+                Text {
+                    text: "Drag upwards to remove"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    y: parent.height * 0.572
+
+                    font.family: "Helvetica"
+                    font.pointSize: 14
+                    color: Qt.rgba(1, 1, 1, 0.5)
+                }
+
+                Canvas {
+                    anchors.fill: parent
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+
+                        var POSITION_PERCENT = 0.449;
+                        var LINE_START = 0.060;
+
+                        ctx.beginPath();
+                        ctx.moveTo(width * LINE_START, height * POSITION_PERCENT);
+                        ctx.lineTo(width * (1.0 - 2.0 * LINE_START), height * POSITION_PERCENT);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+    }
+
+
+    // list of wwsDropComponent
+    ListModel {
+        id: placeHolds
     }
 
     ListModel {
         id: thumbs
     }
+
 
     Rectangle {
         id: plus
@@ -323,19 +470,33 @@ Rectangle {
                 background.opacity = 0.0
             }
         }
+    } //~ plus button
+
+    function newDesktop(desktop) {
+        var r = manager.calculateDesktopThumbRect(desktop-1);
+
+        var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
+        'property int componentDesktop: ' + desktop + '}';
+        var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
+        obj.x = r.x
+        obj.y = r.y
+        obj.z = 2
+        thumbs.append({'obj': obj});
+
+        var src2 = 'import QtQuick 2.0; Loader { sourceComponent: wsDropComponent; ' + 
+        'property int index: ' + desktop + '}';
+        var obj2 = Qt.createQmlObject(src2, root, "dynamicSnippet2"); 
+        obj2.x = r.x
+        obj2.y = r.y
+        obj2.z = 1
+        placeHolds.append({'obj': obj2});
     }
 
     function handleAppendDesktop() {
         var id = manager.desktopCount
         console.log('--------------- handleAppendDesktop ' + manager.desktopCount)
 
-        var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
-        'property int componentDesktop: ' + id + '}';
-        var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
-        var r = manager.calculateDesktopThumbRect(id-1);
-        obj.x = r.x
-        obj.y = r.y
-        thumbs.append({'obj': obj});
+        newDesktop(id)
     }
 
     function handleDesktopRemoved(id) {
@@ -345,6 +506,15 @@ Rectangle {
             if (d.obj.componentDesktop == id) {
                 d.obj.destroy()
                 thumbs.remove(i)
+                break;
+            }
+        }
+
+        for (var i = 0; i < placeHolds.count; i++) {
+            var d = placeHolds.get(i)
+            if (d.obj.index == id) {
+                d.obj.destroy()
+                placeHolds.remove(i)
                 break;
             }
         }
@@ -390,6 +560,10 @@ Rectangle {
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y
             thumbs.get(i).obj.componentDesktop = i+1
+
+            placeHolds.get(i).obj.x = r.x
+            placeHolds.get(i).obj.y = r.y
+            placeHolds.get(i).obj.index = i+1
         }
 
         // rearrange thumbs
@@ -404,13 +578,7 @@ Rectangle {
         plus.y = r.y
 
         for (var i = 1; i <= manager.desktopCount; i++) {
-            var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
-            'property int componentDesktop: ' + i + '}';
-            var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
-            var r = manager.calculateDesktopThumbRect(i-1);
-            obj.x = r.x
-            obj.y = r.y
-            thumbs.append({'obj': obj});
+            newDesktop(i)
         }
     }
 

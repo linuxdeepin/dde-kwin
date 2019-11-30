@@ -32,6 +32,7 @@
 #define ACTION_NAME  "ShowMultitasking"
 
 
+/* definitions from kwin, which haven't been exposed as API */
 namespace KWin {
 
 class KWIN_EXPORT VirtualDesktop : public QObject
@@ -96,18 +97,15 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
 
     auto vds = VirtualDesktopManager::self();
-    QList<VirtualDesktop*> ds;
     for (auto o: vds->children()) {
         if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
-            ds.append(dynamic_cast<VirtualDesktop*>(o));
+            if (auto vd = dynamic_cast<VirtualDesktop*>(o)) {
+                qDebug() << "~~~~~~~~~~~~~~~~~~~~ " 
+                    << vd->property("id")
+                    << vd->property("x11DesktopNumber") 
+                    << vd->property("name");
+            }
         }
-    }
-
-    for (auto vd: ds) {
-        qDebug() << "~~~~~~~~~~~~~~~~~~~~ " 
-            << vd->property("id")
-            << vd->property("x11DesktopNumber") 
-            << vd->property("name");
     }
 }
 
@@ -128,19 +126,17 @@ void DesktopThumbnailManager::onDesktopsChanged()
 {
     //NOTE: VirtualDesktop is lazy destroyed, so this may contain stale VD
     auto vds = VirtualDesktopManager::self();
-    QList<VirtualDesktop*> ds;
     for (auto o: vds->children()) {
         if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
-            ds.append(dynamic_cast<VirtualDesktop*>(o));
+            if (auto vd = dynamic_cast<VirtualDesktop*>(o)) {
+                qDebug() << "~~~~~~~~~~~~~~~~~~~~ " 
+                    << vd->property("id")
+                    << vd->property("x11DesktopNumber") 
+                    << vd->property("name");
+            }
         }
     }
 
-    for (auto vd: ds) {
-        qDebug() << "~~~~~~~~~~~~~~~~~~~~ " << __func__
-            << vd->property("id")
-            << vd->property("x11DesktopNumber") 
-            << vd->property("name");
-    }
     emit desktopCountChanged();
     emit layoutChanged();
     emit showPlusButtonChanged();
@@ -596,7 +592,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
         WindowPaintData d = data;
         if (w->isDesktop() && m_thumbManager) {
-            d.setSaturation(0.1);
+            d.setBrightness(0.2);
             effects->paintWindow(w, mask, area, d);
 
 #if 0
