@@ -93,6 +93,7 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     connect(root, SIGNAL(qmlRequestAppendDesktop()), this, SIGNAL(requestAppendDesktop()));
     connect(root, SIGNAL(qmlRequestDeleteDesktop(int)), this, SIGNAL(requestDeleteDesktop(int)));
     connect(root, SIGNAL(qmlRequestMove2Desktop(QVariant, int)), this, SIGNAL(requestMove2Desktop(QVariant, int)));
+    connect(root, SIGNAL(qmlRequestSwitchDesktop(int, int)), this, SIGNAL(requestSwitchDesktop(int, int)));
 
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
 
@@ -592,7 +593,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
         WindowPaintData d = data;
         if (w->isDesktop() && m_thumbManager) {
-            d.setBrightness(0.2);
+            d.setBrightness(0.4);
             effects->paintWindow(w, mask, area, d);
 
 #if 0
@@ -985,6 +986,35 @@ void MultitaskingEffect::removeDesktop(int d)
 
 }
 
+void MultitaskingEffect::switchTwoDesktop(int to, int from)
+{
+    qDebug() << "---- swtich" << to << "with" << from;
+    EffectWindowList to_wins;
+    EffectWindowList from_wins;
+
+    int dir = from < to ? 1 : -1;
+    for (const auto& ew: effects->stackingOrder()) {
+        if (ew->isOnAllDesktops())
+            continue;
+
+        auto dl = ew->desktops();
+        if (dl.size() == 0 || (dir > 0 && (dl[0] > to || dl[0] < from)) ||
+                (dir < 0 && (dl[0] < to || dl[0] > from)))
+            continue;
+
+        int newd = dl[0] == from ? to: dl[0]-dir;
+        QVector<uint> desks {(uint)newd};
+        qDebug() << "     ---- move" << ew << "from" << dl[0] << "to" << newd;
+        effects->windowToDesktops(ew, desks);
+    }
+
+    remanageAll();
+    //emit m_thumbManager->layoutChanged();
+
+    effects->addRepaintFull();
+
+}
+
 void MultitaskingEffect::moveWindow2Desktop(QVariant wid, int desktop)
 {
     auto* ew = effects->findWindow(wid.toULongLong());
@@ -1049,6 +1079,26 @@ void MultitaskingEffect::changeCurrentDesktop(int d)
     }
 }
 
+void MultitaskingEffect::remanageAll()
+{
+    while (m_motionManagers.size() > 0) {
+        m_motionManagers.first().unmanageAll();
+        m_motionManagers.removeFirst();
+    }
+
+    for (int i = 1; i <= effects->numberOfDesktops(); i++) {
+        WindowMotionManager wmm;
+        for (const auto& w: effects->stackingOrder()) {
+            if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
+                wmm.manage(w);
+            }
+        }
+
+        calculateWindowTransformations(wmm.managedWindows(), wmm);
+        m_motionManagers.append(wmm);
+    }
+}
+
 void MultitaskingEffect::setActive(bool active)
 {
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
@@ -1079,6 +1129,8 @@ void MultitaskingEffect::setActive(bool active)
                     this, &MultitaskingEffect::removeDesktop);
             connect(m_thumbManager, &DesktopThumbnailManager::requestMove2Desktop,
                     this, &MultitaskingEffect::moveWindow2Desktop);
+            connect(m_thumbManager, &DesktopThumbnailManager::requestSwitchDesktop,
+                    this, &MultitaskingEffect::switchTwoDesktop);
         }
         m_thumbManager->updateDesktopWindows();
         m_thumbManager->move(0, -height);
@@ -1105,7 +1157,7 @@ void MultitaskingEffect::setActive(bool active)
             m_motionManagers.append(wmm);
         }
 
-        bool enableAdd = effects->numberOfDesktops() < 7;
+        bool enableAdd = effects->numberOfDesktops() < 4;
         bool enableRemove = effects->numberOfDesktops() > 1;
 
 

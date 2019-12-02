@@ -193,6 +193,7 @@ signals:
     void requestAppendDesktop();
     void requestDeleteDesktop(int);
     void requestMove2Desktop(QVariant, int);
+    void requestSwitchDesktop(int, int);
 
 private:
     EffectWindow* m_effectWindow {nullptr};
@@ -257,12 +258,14 @@ public Q_SLOTS:
 
     void moveWindow2Desktop(QVariant wid, int desktop);
     void moveEffectWindow2Desktop(KWin::EffectWindow* ew, int desktop);
+    void switchTwoDesktop(int to, int from);
 
 private slots:
     void onNumberDesktopsChanged(int old);
     void onCurrentDesktopChanged();
     void closeWindow();
     void toggleWindowKeepAbove();
+    void remanageAll();
 
 private:
     struct WindowData {

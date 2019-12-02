@@ -22,6 +22,7 @@ Rectangle {
     signal qmlRequestAppendDesktop()
     signal qmlRequestDeleteDesktop(int id)
     signal qmlRequestMove2Desktop(variant wid, int desktop)
+    signal qmlRequestSwitchDesktop(int to, int from)
 
     Component.onCompleted: {
         initDesktops();
@@ -78,6 +79,40 @@ Rectangle {
                 }
             }
 
+            // make sure dragged ws reset back to Loader's (0, 0)
+            Timer {
+                id: timerBack
+                repeat: false
+                interval: 1
+                running: false
+                onTriggered: {
+                    console.log('~~~~~~ restore position')
+                    parent.x = 0
+                    parent.y = 0
+                }
+            }
+
+            /* 
+             * this is a hack to make a smooth bounce back animation
+             * thumbRoot'll be reparnet back to loader and make a sudden visual
+             * change of thumbRoot's position. we can disable behavior animation 
+             * and set position to the same visual point in the scene (where mouse
+             * resides), and then issue the behavior animation.
+             */
+            property int lastDragX: 0
+            property int lastDragY: 0
+            property bool disableBehavior: false
+            onParentChanged: {
+                if (parent != root) {
+                    console.log('~~~~~~~ parent chagned to ' + parent)
+                    var pos = parent.mapFromGlobal(lastDragX, lastDragY)
+                    console.log('----- ' + parent.x + ',' + parent.y + " => " + pos.x + ',' + pos.y)
+                    thumbRoot.x = pos.x
+                    thumbRoot.y = pos.y
+                    disableBehavior = false
+                }
+            }
+
             MouseArea {
                 id: thumbArea
                 anchors.fill: parent
@@ -103,11 +138,14 @@ Rectangle {
                     if (thumbRoot.Drag.target != null) {
                         console.log('------- release ws on ' + thumbRoot.Drag.target)
                         thumbRoot.Drag.drop()
-                    } else {
-                        //FIXME: not good, since current the parent is still chagned (by ParentChange)
-                        thumbRoot.x = 0
-                        thumbRoot.y = 0
                     }
+                    //NOTE: since current the parent is still chagned (by ParentChange), 
+                    //delay (x,y) reset into timerBack
+                    timerBack.running = true
+                    console.log('----- ' + parent.x + ',' + parent.y)
+                    lastDragX = parent.x
+                    lastDragY = parent.y
+                    disableBehavior = true
                 }
 
                 onEntered: {
@@ -287,12 +325,12 @@ Rectangle {
 
 
             Behavior on x {
-                enabled: animateLayouting
+                enabled: animateLayouting && !disableBehavior
                 PropertyAnimation { duration: 300; easing.type: Easing.Linear }
             }
 
             Behavior on y {
-                enabled: animateLayouting
+                enabled: animateLayouting && !disableBehavior
                 PropertyAnimation { duration: 300; easing.type: Easing.Linear }
             }
 
@@ -318,14 +356,22 @@ Rectangle {
                  * and drop.source.z == 100
                  */
                 if (drop.keys[0] === 'wsThumb') {
-                    console.log('------wsDrop on ws ' + wsDrop.designated + ', switch with ' + drop.source.desktop)
+                    var from = drop.source.desktop
+                    var to = wsDrop.designated
                     if (wsDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
                         //FIXME: could be a delete operation but need more calculation
-                        console.log("----------- close desktop " + drop.source.desktop)
-                        qmlRequestDeleteDesktop(drop.source.desktop)
+                        console.log("----------- wsDrop: close desktop " + from)
+                        qmlRequestDeleteDesktop(from)
                     } else {
-                        drop.source.x = 0
-                        drop.source.y = 0
+                        if (from == to) {
+                            return
+                        }
+                        console.log("----------- wsDrop: reorder desktop ")
+
+                        thumbs.move(from-1, to-1, 1)
+                        qmlRequestSwitchDesktop(to, from)
+                        // must update layout right now
+                        handleLayoutChanged()
                     }
                 }
             }
@@ -337,9 +383,12 @@ Rectangle {
                 }
             }
 
+            onExited: {
+            }
+
             onPositionChanged: {
                 if (drag.keys[0] === 'wsThumb') {
-                    console.log('------ ' + drag.x + ',' + drag.y)
+                    //console.log('------ ' + drag.x + ',' + drag.y)
                     if ( drag.y < 30) {
                         hint.visible = true
                     } else {
@@ -524,7 +573,7 @@ Rectangle {
         for (var i = 0; i < thumbs.count; i++) {
             var d = thumbs.get(i)
             if (d.obj.componentDesktop == id) {
-                console.log('------------- handleDesktopWindowsChanged: ' + id)
+                console.log('------------- handleDesktopWindowsChanged: ' + id + '(' + i + ')')
                 d.obj.item.windowsChanged();
                 break;
             }
@@ -557,9 +606,12 @@ Rectangle {
 
         for (var i = 0; i < thumbs.count; i++) {
             var r = manager.calculateDesktopThumbRect(i);
+            //console.log('   ----- ' + (i+1) + ': ' + thumbs.get(i).obj.x + ',' + thumbs.get(i).obj.y + 
+                //'  => ' + r.x + ',' + r.y)
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y
             thumbs.get(i).obj.componentDesktop = i+1
+            thumbs.get(i).obj.item.windowsChanged();
 
             placeHolds.get(i).obj.x = r.x
             placeHolds.get(i).obj.y = r.y
