@@ -267,6 +267,8 @@ private slots:
     void toggleWindowKeepAbove();
     void remanageAll();
 
+    void desktopRemoved(int d);
+
 private:
     struct WindowData {
         bool isAbove {false};

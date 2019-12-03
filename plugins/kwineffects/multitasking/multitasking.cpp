@@ -906,18 +906,54 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             return;
         }
 
+        if (e->isAutoRepeat()) return;
         switch (e->key()) {
             case Qt::Key_Escape:
                 if (isActive()) toggleActive();
                 break;
 
-            case Qt::Key_Right: 
-                changeCurrentDesktop(qMin(m_targetDesktop + 1, 4));
+            case Qt::Key_Enter:
+                if (m_highlightWindow) {
+                    updateHighlightWindow(nullptr);
+                    effects->activateWindow(m_highlightWindow);
+                    setActive(false);
+                }
+                break;
+
+            case Qt::Key_Right:  // include super+->
+                changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
                 break;
 
             case Qt::Key_Left: 
-                changeCurrentDesktop(qMax(m_targetDesktop - 1, 1));
+                changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
                 break;
+
+            case Qt::Key_1:
+            case Qt::Key_2:
+            case Qt::Key_3:
+            case Qt::Key_4:
+                if (e->modifiers() == Qt::NoModifier) {
+                    changeCurrentDesktop(e->key() - Qt::Key_0);
+                } else if (e->modifiers() == (Qt::ShiftModifier | Qt::MetaModifier)) {
+                    qDebug() << "----------- super+shift+[d]";
+                }
+                break;
+                
+            case Qt::Key_Equal:
+                if (e->modifiers() == Qt::AltModifier) {
+                    appendDesktop();
+                }
+                break;
+
+            case Qt::Key_Minus:
+                if (e->modifiers() == Qt::AltModifier) {
+                    removeDesktop(m_targetDesktop);
+                }
+
+            case Qt::Key_Delete:
+                if (m_highlightWindow) {
+                    qDebug() << "------------[TODO]: close highlighted window";
+                }
 
             default: break;
         }
@@ -966,24 +1002,36 @@ void MultitaskingEffect::appendDesktop()
 
 void MultitaskingEffect::removeDesktop(int d)
 {
-    auto vds = VirtualDesktopManager::self();
-    for (auto o: vds->children()) {
-        if (QLatin1String("KWin::VirtualDesktop") == o->metaObject()->className()) {
-            auto vd = dynamic_cast<VirtualDesktop*>(o);
-            if (vd->property("x11DesktopNumber").toInt() == d) {
-                qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " 
-                    << vd->property("id")
-                    << vd->property("x11DesktopNumber") 
-                    << vd->property("name");
-                vds->removeVirtualDesktop(vd->property("id").toByteArray());
+    if (d <= 0 || d > effects->numberOfDesktops())
+        return;
 
-                emit m_thumbManager->desktopRemoved(QVariant(d));
-                break;
-            }
+    qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d;
 
-        }
+    for (const auto& ew: effects->stackingOrder()) {
+        if (ew->isOnAllDesktops())
+            continue;
+
+        auto dl = ew->desktops();
+        if (dl.size() == 0 || dl[0] < d) continue;
+
+        int newd = dl[0] - 1;
+        QVector<uint> desks {(uint)newd};
+        qDebug() << "     ---- move" << ew << "from" << dl[0] << "to" << newd;
+        effects->windowToDesktops(ew, desks);
     }
 
+    emit m_thumbManager->desktopRemoved(QVariant(d));
+    effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
+    //NOTE: removeVirtualDesktop seems very buggy, and causes occasional crash
+    //vds->removeVirtualDesktop(toDel->property("id").toByteArray());
+
+    QTimer::singleShot(1, [=]() { desktopRemoved(d); });
+}
+
+void MultitaskingEffect::desktopRemoved(int d)
+{
+    remanageAll();
+    effects->addRepaintFull();
 }
 
 void MultitaskingEffect::switchTwoDesktop(int to, int from)
@@ -1009,7 +1057,6 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
     }
 
     remanageAll();
-    //emit m_thumbManager->layoutChanged();
 
     effects->addRepaintFull();
 
