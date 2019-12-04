@@ -102,6 +102,8 @@ public:
         emit windowsChanged();
     }
 
+    //Q_INVOKABLE QVariant posForWindow(QVariant wid) {
+    //}
 
     void paint(QPainter* p) override {
         QRect rect(0, 0, width(), height());
@@ -281,6 +283,11 @@ private:
         EffectFrame* icon {nullptr};
     };
     typedef QHash<EffectWindow*, WindowData> DataHash;
+    struct GridSize {
+        int columns;
+        int rows;
+    };
+
 
 private:
     bool isRelevantWithPresentWindows(EffectWindow *w) const;
@@ -295,6 +302,9 @@ private:
     // borrowed from PresentWindows effect
     void calculateWindowTransformationsNatural(EffectWindowList windowlist, int screen,
             WindowMotionManager& motionManager);
+    void calculateWindowTransformationsClosest(EffectWindowList windowlist, int screen,
+            WindowMotionManager& motionManager);
+    void clearGrids();
     bool isOverlappingAny(EffectWindow *w, const QHash<EffectWindow*, QRect> &targets, const QRegion &border);
     inline double aspectRatio(EffectWindow *w) {
         return w->width() / double(w->height());
@@ -339,6 +349,9 @@ private:
     int m_targetDesktop {0};
 
     QMargins m_desktopMargins;
+    // Grid layout info
+    QList<GridSize> m_gridSizes;
+
 
     DesktopThumbnailManager* m_thumbManager {nullptr};
 

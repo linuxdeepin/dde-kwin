@@ -1172,6 +1172,14 @@ void MultitaskingEffect::remanageAll()
     }
 }
 
+void MultitaskingEffect::clearGrids()
+{
+    m_gridSizes.clear();
+    for (int i = 0; i < effects->numScreens(); ++i) {
+        m_gridSizes.append(GridSize());
+    }
+}
+
 void MultitaskingEffect::setActive(bool active)
 {
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
@@ -1187,6 +1195,8 @@ void MultitaskingEffect::setActive(bool active)
         effects->startMouseInterception(this, Qt::PointingHandCursor);
         m_hasKeyboardGrab = effects->grabKeyboard(this);
         effects->setActiveFullScreenEffect(this);
+
+        clearGrids();
 
         changeCurrentDesktop(effects->currentDesktop());
 
@@ -1263,7 +1273,10 @@ void MultitaskingEffect::calculateWindowTransformations(EffectWindowList windows
     if (windows.size() == 0)
         return;
 
-    calculateWindowTransformationsNatural(windows, 0, wmm);
+    //NOTE: this is good
+    clearGrids();
+    calculateWindowTransformationsClosest(windows, 0, wmm);
+    //calculateWindowTransformationsNatural(windows, 0, wmm);
 }
 
 QMargins MultitaskingEffect::desktopMargins()
@@ -1300,11 +1313,12 @@ void MultitaskingEffect::calculateWindowTransformationsNatural(EffectWindowList 
     // is always sorted the same way no matter which window is currently active.
     qSort(windowlist);
 
+    bool showPanel = true;
     QRect area = effects->clientArea(ScreenArea, screen, effects->currentDesktop());
-    area -= desktopMargins();
+    if (showPanel)   // reserve space for the panel
+        area = effects->clientArea(MaximizeArea, screen, effects->currentDesktop());
 
-    //if (m_showPanel)   // reserve space for the panel
-        //area = effects->clientArea(MaximizeArea, screen, effects->currentDesktop());
+    area -= desktopMargins();
     QRect bounds = area;
     qDebug() << "---------- area" << area << bounds << desktopMargins();
 
@@ -1524,6 +1538,113 @@ void MultitaskingEffect::calculateWindowTransformationsNatural(EffectWindowList 
     // Notify the motion manager of the targets
     foreach (EffectWindow * w, windowlist)
         motionManager.moveWindow(w, targets.value(w));
+}
+
+static inline int distance(QPoint &pos1, QPoint &pos2)
+{
+    const int xdiff = pos1.x() - pos2.x();
+    const int ydiff = pos1.y() - pos2.y();
+    return int(sqrt(float(xdiff*xdiff + ydiff*ydiff)));
+}
+
+void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList windowlist, int screen,
+        WindowMotionManager& motionManager)
+{
+    // This layout mode requires at least one window visible
+    if (windowlist.count() == 0)
+        return;
+
+    bool showPanel = true;
+    QRect area = effects->clientArea(ScreenArea, screen, effects->currentDesktop());
+    if (showPanel)   // reserve space for the panel
+        area = effects->clientArea(MaximizeArea, screen, effects->currentDesktop());
+    area -= desktopMargins();
+
+    int columns = int(ceil(sqrt(double(windowlist.count()))));
+    int rows = int(ceil(windowlist.count() / double(columns)));
+
+    // Remember the size for later
+    // If we are using this layout externally we don't need to remember m_gridSizes.
+    if (m_gridSizes.size() != 0) {
+        m_gridSizes[screen].columns = columns;
+        m_gridSizes[screen].rows = rows;
+    }
+
+    // Assign slots
+    int slotWidth = area.width() / columns;
+    int slotHeight = area.height() / rows;
+    QVector<EffectWindow*> takenSlots;
+    takenSlots.resize(rows*columns);
+    takenSlots.fill(0);
+
+    // precalculate all slot centers
+    QVector<QPoint> slotCenters;
+    slotCenters.resize(rows*columns);
+    for (int x = 0; x < columns; ++x)
+        for (int y = 0; y < rows; ++y) {
+            slotCenters[x + y*columns] = QPoint(area.x() + slotWidth * x + slotWidth / 2,
+                                                area.y() + slotHeight * y + slotHeight / 2);
+        }
+
+    // Assign each window to the closest available slot
+    EffectWindowList tmpList = windowlist; // use a QLinkedList copy instead?
+    QPoint otherPos;
+    while (!tmpList.isEmpty()) {
+        EffectWindow *w = tmpList.first();
+        int slotCandidate = -1, slotCandidateDistance = INT_MAX;
+        QPoint pos = w->geometry().center();
+        for (int i = 0; i < columns*rows; ++i) { // all slots
+            const int dist = distance(pos, slotCenters[i]);
+            if (dist < slotCandidateDistance) { // window is interested in this slot
+                EffectWindow *occupier = takenSlots[i];
+                assert(occupier != w);
+                if (!occupier || dist < distance((otherPos = occupier->geometry().center()), slotCenters[i])) {
+                    // either nobody lives here, or we're better - takeover the slot if it's our best
+                    slotCandidate = i;
+                    slotCandidateDistance = dist;
+                }
+            }
+        }
+        assert(slotCandidate != -1);
+        if (takenSlots[slotCandidate])
+            tmpList << takenSlots[slotCandidate]; // occupier needs a new home now :p
+        tmpList.removeAll(w);
+        takenSlots[slotCandidate] = w; // ...and we rumble in =)
+    }
+
+    for (int slot = 0; slot < columns*rows; ++slot) {
+        EffectWindow *w = takenSlots[slot];
+        if (!w) // some slots might be empty
+            continue;
+
+        // Work out where the slot is
+        QRect target(
+            area.x() + (slot % columns) * slotWidth,
+            area.y() + (slot / columns) * slotHeight,
+            slotWidth, slotHeight);
+        target.adjust(10, 10, -10, -10);   // Borders
+        double scale;
+        if (target.width() / double(w->width()) < target.height() / double(w->height())) {
+            // Center vertically
+            scale = target.width() / double(w->width());
+            target.moveTop(target.top() + (target.height() - int(w->height() * scale)) / 2);
+            target.setHeight(int(w->height() * scale));
+        } else {
+            // Center horizontally
+            scale = target.height() / double(w->height());
+            target.moveLeft(target.left() + (target.width() - int(w->width() * scale)) / 2);
+            target.setWidth(int(w->width() * scale));
+        }
+        // Don't scale the windows too much
+        if (scale > 2.0 || (scale > 1.0 && (w->width() > 300 || w->height() > 300))) {
+            scale = (w->width() > 300 || w->height() > 300) ? 1.0 : 2.0;
+            target = QRect(
+                         target.center().x() - int(w->width() * scale) / 2,
+                         target.center().y() - int(w->height() * scale) / 2,
+                         scale * w->width(), scale * w->height());
+        }
+        motionManager.moveWindow(w, target);
+    }
 }
 
 
