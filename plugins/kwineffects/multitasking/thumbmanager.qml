@@ -633,6 +633,5 @@ Rectangle {
             newDesktop(i)
         }
     }
-
 }
 

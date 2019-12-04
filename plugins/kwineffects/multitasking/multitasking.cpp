@@ -172,8 +172,11 @@ int DesktopThumbnailManager::currentDesktop() const
 void DesktopThumbnailManager::resizeEvent(QResizeEvent* re)
 {
     QWidget::resizeEvent(re);
+    m_wsThumbSize = QSize(); // invalidate
     m_view->resize(re->size());
     emit containerSizeChanged();
+    emit thumbSizeChanged();
+    emit layoutChanged();
 }
 
 void DesktopThumbnailManager::updateDesktopWindows()
@@ -283,7 +286,9 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SLOT(onCurrentDesktopChanged()));
     //connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)),
     //    this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
-    //connect(effects, &EffectsHandler::numberScreensChanged, this, &DesktopGridEffect::setup);
+    connect(effects, &EffectsHandler::numberScreensChanged, this, &MultitaskingEffect::onNumberScreensChanged);
+    connect(effects, &EffectsHandler::virtualScreenGeometryChanged, this, &MultitaskingEffect::onScreenSizeChanged);
+
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
@@ -414,6 +419,27 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
         m_movingWindow = nullptr;
         m_isWindowMoving = false;
         effects->defineCursor(Qt::PointingHandCursor);
+    }
+}
+
+void MultitaskingEffect::onNumberScreensChanged()
+{
+    qDebug() << "------- screens changed " << effects->numScreens();
+}
+
+void MultitaskingEffect::onScreenSizeChanged()
+{
+    qDebug() << "------- screen size changed" << effects->virtualScreenGeometry();
+    if (m_thumbManager) {
+        auto height = qRound(effects->workspaceHeight() * Constants::FLOW_WORKSPACE_TOP_OFFSET_PERCENT);
+        m_thumbManager->setGeometry(0, 0, effects->workspaceWidth(), height);
+        m_thumbManager->move(0, -height);
+        m_thumbManager->show();
+    }
+
+    if (isActive()) {
+        remanageAll();
+        effects->addRepaintFull();
     }
 }
 

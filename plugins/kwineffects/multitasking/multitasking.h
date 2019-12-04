@@ -262,6 +262,9 @@ public Q_SLOTS:
 
 private slots:
     void onNumberDesktopsChanged(int old);
+    void onNumberScreensChanged();
+    void onScreenSizeChanged();
+
     void onCurrentDesktopChanged();
     void closeWindow();
     void toggleWindowKeepAbove();
