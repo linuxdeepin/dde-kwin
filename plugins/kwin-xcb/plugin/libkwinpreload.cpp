@@ -226,7 +226,7 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
         return;
     }
 
-
+    _globalWindowMenu.clear();
     if (_globalWindowMenu.isNull()) {
         _globalWindowMenu = new QMenu;
 
