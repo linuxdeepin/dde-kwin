@@ -36,8 +36,6 @@ Rectangle {
             id: thumbRoot
             color: "transparent"
 
-            signal windowsChanged()
-
             width: manager.thumbSize.width
             height: manager.thumbSize.height
             property int desktop: componentDesktop
@@ -53,10 +51,6 @@ Rectangle {
             //active border: solid 3px rgba(36, 171, 255, 1.0);
             border.width: manager.currentDesktop == desktop ? 3 : 1
             border.color: manager.currentDesktop == desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
-            onWindowsChanged: {
-                console.log('------------ windowsChanged')
-                thumb.refreshWindows()
-            }
 
             Drag.keys: ["wsThumb"]
             Drag.active: thumbArea.drag.active
@@ -205,27 +199,34 @@ Rectangle {
                 anchors.margins: manager.currentDesktop == desktop ? 3 : 1
                 radius: manager.currentDesktop == desktop ? 8 : 6
 
-                GridView {
+                onWindowsLayoutChanged: {
+                    for (var i = 0; i < children.length; i++) {
+                        if (children[i].objectName == 'repeater')
+                            continue;
+                        var geo = geometryForWindow(thumb.children[i].wid)
+                        thumb.children[i].x = geo.x
+                        thumb.children[i].y = geo.y
+                        thumb.children[i].width = geo.width
+                        thumb.children[i].height = geo.height
+                        console.log('  --- relayout ' + desktop + ' ' + geo);
+                    }
+                }
+
+                Repeater {
                     id: view
-                    anchors.fill: parent
-                    anchors.margins: 10
+                    objectName: 'repeater'
+
                     model: thumb.windows.length
 
-                    interactive: false
-
-                    cellWidth: 150
-                    cellHeight: 150
-
-                    displaced: Transition {
-                        NumberAnimation { properties: "x,y"; easing.type: Easing.InOutCubic }
-                    }
+                    property int cellWidth: 150
+                    property int cellHeight: 150
 
                     delegate: Rectangle {
                         id: viewItem
 
                         width: view.cellWidth
                         height: view.cellHeight
-                        anchors.margins: 2
+                        clip: true
                         color: 'transparent'
 
                         property variant wid: thumb.windows[index]
@@ -569,17 +570,6 @@ Rectangle {
         }
     }
 
-    function handleDesktopWindowsChanged(id) {
-        for (var i = 0; i < thumbs.count; i++) {
-            var d = thumbs.get(i)
-            if (d.obj.componentDesktop == id) {
-                console.log('------------- handleDesktopWindowsChanged: ' + id + '(' + i + ')')
-                d.obj.item.windowsChanged();
-                break;
-            }
-        }
-    }
-
 
     function debugObject(o) {
         //for (var p in Object.getOwnPropertyNames(o)) {
@@ -611,7 +601,6 @@ Rectangle {
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y
             thumbs.get(i).obj.componentDesktop = i+1
-            thumbs.get(i).obj.item.windowsChanged();
 
             placeHolds.get(i).obj.x = r.x
             placeHolds.get(i).obj.y = r.y

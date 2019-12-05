@@ -61,21 +61,14 @@ public:
             }
             emit desktopChanged(); 
 
-            QList<WId> vl;
-            for (auto wid: KWindowSystem::self()->windows()) {
-                KWindowInfo info(wid, NET::WMDesktop);
-                if (info.valid() && info.desktop() == d) {
-                    vl.append(wid);
-                }
-            }
-            setWindows(vl);
+            //refreshWindows();
 
             update();
         }
     }
 
     float radius() const { return m_radius; }
-    void setRadius(float d) { 
+    void setRadius(float d) {
         if (m_radius != d) {
             m_radius = d;
             emit radiusChanged(); 
@@ -102,8 +95,24 @@ public:
         emit windowsChanged();
     }
 
-    //Q_INVOKABLE QVariant posForWindow(QVariant wid) {
-    //}
+    Q_INVOKABLE QRect geometryForWindow(QVariant wid) {
+        QRect r(0, 0, 150, 150);
+
+        WId id = wid.toULongLong();
+        if (geoData.contains(id)) {
+            r = geoData[id];
+        }
+
+        return r;
+    }
+
+    QHash<WId, QRect> geoData;
+
+    Q_INVOKABLE void setupLayout(QHash<WId, QRect> data) {
+        qDebug() << "--------setupLayout " << m_desktop;
+        geoData = data;
+        emit windowsLayoutChanged();
+    }
 
     void paint(QPainter* p) override {
         QRect rect(0, 0, width(), height());
@@ -130,6 +139,7 @@ signals:
     void desktopChanged();
     void radiusChanged();
     void windowsChanged();
+    void windowsLayoutChanged();
 
 private:
     int m_desktop {0};
@@ -157,7 +167,6 @@ public:
     }
 
     int desktopAtPos(QPoint);
-    void updateDesktopWindows();
 
     EffectWindow* effectWindow() {
         return m_effectWindow;
@@ -169,8 +178,10 @@ public:
     bool showPlusButton() const;
     QSize containerSize() const;
 
+    void updateWindowThumbsGeometry(int desktop, const WindowMotionManager& wmm);
+
     Q_INVOKABLE QRect calculateDesktopThumbRect(int index);
-    Q_INVOKABLE QVariantList windowsFor(int desktop);
+    void updateWindowsFor(int desktop, QList<WId> ids);
 
 protected slots:
     void onDesktopsChanged();
@@ -201,7 +212,8 @@ private:
     EffectWindow* m_effectWindow {nullptr};
     EffectsHandler* m_handler {nullptr};
 
-    QList<QWidget*> m_thumbs;
+    // <desktop id -> wid list>
+    QHash<int, QList<WId>> m_windowsHash;
 
     QQuickWidget* m_view {nullptr};
 
@@ -262,10 +274,16 @@ public Q_SLOTS:
     void moveEffectWindow2Desktop(KWin::EffectWindow* ew, int desktop);
     void switchTwoDesktop(int to, int from);
 
+    WId findWId(EffectWindow* ew);
+    QList<WId> windowsFor(int desktop);
+    void updateDesktopWindows();
+    void updateDesktopWindows(int desktop);
+
 private slots:
     void onNumberDesktopsChanged(int old);
     void onNumberScreensChanged();
     void onScreenSizeChanged();
+
 
     void onCurrentDesktopChanged();
     void closeWindow();
