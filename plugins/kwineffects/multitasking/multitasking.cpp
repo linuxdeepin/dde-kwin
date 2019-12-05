@@ -357,6 +357,10 @@ void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
         effects->defineCursor(Qt::PointingHandCursor);
     }
 
+    if (w == m_highlightWindow) {
+        updateHighlightWindow(nullptr);
+    }
+
     foreach (const int i, desktopList(w)) {
         WindowMotionManager& wmm = m_motionManagers[i-1];
         wmm.unmanage(w);
@@ -397,6 +401,12 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
         m_movingWindow = nullptr;
         m_isWindowMoving = false;
         effects->defineCursor(Qt::PointingHandCursor);
+    }
+
+    if (w == m_highlightWindow) {
+        updateHighlightWindow(nullptr);
+        m_selectedWindow = nullptr;
+        selectNextWindow();
     }
 }
 
@@ -644,7 +654,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
         } else if (!w->isDesktop()) {
             auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
 
-            if (m_highlightWindow == w) {
+            if (m_selectedWindow == w) {
                 auto center = geo.center();
                 geo.setWidth(geo.width() * 1.05f);
                 geo.setHeight(geo.height() * 1.05f);
@@ -919,16 +929,11 @@ void MultitaskingEffect::updateHighlightWindow(EffectWindow* w)
     if (w == m_highlightWindow) return;
 
     qDebug() << __func__;
-    if (m_highlightWindow) {
-        effects->setElevatedWindow(m_highlightWindow, false);
-        m_highlightWindow->addRepaintFull();
-    }
 
     m_highlightWindow = w;
-    if (w) {
-        effects->setElevatedWindow(m_highlightWindow, true);
-        m_highlightWindow->addRepaintFull();
-    }
+
+    if (m_highlightWindow)
+        selectWindow(m_highlightWindow);
 }
 
 void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
@@ -948,9 +953,10 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 break;
 
             case Qt::Key_Enter:
-                if (m_highlightWindow) {
+            case Qt::Key_Return:
+                if (m_selectedWindow) {
                     updateHighlightWindow(nullptr);
-                    effects->activateWindow(m_highlightWindow);
+                    effects->activateWindow(m_selectedWindow);
                     setActive(false);
                 }
                 break;
@@ -969,8 +975,26 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_4:
                 if (e->modifiers() == Qt::NoModifier) {
                     changeCurrentDesktop(e->key() - Qt::Key_0);
-                } else if (e->modifiers() == (Qt::ShiftModifier | Qt::MetaModifier)) {
-                    qDebug() << "----------- super+shift+[d]";
+                } 
+                break;
+
+            case Qt::Key_Exclam: // shift+1
+            case Qt::Key_At: // shift+2
+            case Qt::Key_NumberSign: // shift+3
+            case Qt::Key_Dollar: // shift+4
+                if (e->modifiers() == (Qt::ShiftModifier | Qt::MetaModifier)) {
+                    int target_desktop = 1;
+                    switch(e->key()) {
+                        case Qt::Key_Exclam:  target_desktop = 1; break;
+                        case Qt::Key_At:  target_desktop = 2; break;
+                        case Qt::Key_NumberSign:  target_desktop = 3; break;
+                        case Qt::Key_Dollar:  target_desktop = 4; break;
+                        default: break;
+                    }
+                    qDebug() << "----------- super+shift+"<<target_desktop;
+
+                    if (m_selectedWindow)
+                        moveEffectWindow2Desktop(m_selectedWindow, target_desktop);
                 }
                 break;
                 
@@ -986,12 +1010,54 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 }
 
             case Qt::Key_Delete:
-                if (m_highlightWindow) {
+                if (m_selectedWindow) {
                     qDebug() << "------------[TODO]: close highlighted window";
                 }
+                break;
+
+            case Qt::Key_Tab:
+                selectNextWindow();
+                break;
 
             default: break;
         }
+    }
+}
+
+void MultitaskingEffect::selectNextWindow()
+{
+    int current = effects->currentDesktop();
+    const auto& wmm = m_motionManagers[current-1];
+    if (!m_selectedWindow) {
+        selectWindow(wmm.managedWindows().first());
+    } else {
+        auto wl = wmm.managedWindows();
+        for (int i = 0; i < wl.size(); i++) {
+            if (wl[i] == m_selectedWindow) {
+                selectWindow(wl[(i+1) % wl.size()]);
+                break;
+            }
+        }
+    }
+}
+
+void MultitaskingEffect::selectWindow(EffectWindow* w)
+{
+    if (m_selectedWindow == w) {
+        return;
+    }
+    
+    qDebug() << "------ select window " << w;
+
+    if (m_selectedWindow) {
+        effects->setElevatedWindow(m_selectedWindow, false);
+        m_selectedWindow->addRepaintFull();
+    }
+
+    m_selectedWindow = w;
+    if (w) {
+        effects->setElevatedWindow(m_selectedWindow, true);
+        m_selectedWindow->addRepaintFull();
     }
 }
 
@@ -1259,9 +1325,7 @@ void MultitaskingEffect::setActive(bool active)
             updateDesktopWindows(i);
         }
 
-        bool enableAdd = effects->numberOfDesktops() < 4;
-        bool enableRemove = effects->numberOfDesktops() > 1;
-
+        selectNextWindow();
 
     } else {
         auto p = m_motionManagers.begin();
@@ -1273,6 +1337,7 @@ void MultitaskingEffect::setActive(bool active)
         }
 
         updateHighlightWindow(nullptr);
+        m_selectedWindow = nullptr;
     }
 
     effects->addRepaintFull();

@@ -268,6 +268,9 @@ public Q_SLOTS:
     void appendDesktop();
     void removeDesktop(int d);
 
+    void selectNextWindow();
+    void selectWindow(EffectWindow* w);
+
     void changeCurrentDesktop(int d);
 
     void moveWindow2Desktop(QVariant wid, int desktop);
@@ -348,6 +351,7 @@ private:
     QVector<WindowMotionManager> m_motionManagers;
     WindowMotionManager m_thumbMotion;
     EffectWindow* m_highlightWindow {nullptr};
+    EffectWindow* m_selectedWindow {nullptr};
 
     EffectWindow* m_movingWindow {nullptr};
     bool m_isWindowMoving {false};

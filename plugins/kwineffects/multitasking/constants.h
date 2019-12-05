@@ -40,7 +40,7 @@ namespace Constants {
     /**
      * The percent value between flow workspace's top offset and monitor's height.
      */
-    static const float FLOW_WORKSPACE_TOP_OFFSET_PERCENT = 0.151f;
+    static const float FLOW_WORKSPACE_TOP_OFFSET_PERCENT = 0.161f;
 
     /**
      * The percent value between distance of flow workspaces and its width.
