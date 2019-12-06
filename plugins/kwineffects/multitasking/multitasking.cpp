@@ -934,6 +934,8 @@ void MultitaskingEffect::updateHighlightWindow(EffectWindow* w)
 
     if (m_highlightWindow)
         selectWindow(m_highlightWindow);
+
+    effects->addRepaintFull();
 }
 
 void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
@@ -1302,7 +1304,13 @@ void MultitaskingEffect::setActive(bool active)
         m_thumbManager->move(0, -height);
         m_thumbManager->show();
 
-        for (const auto& w: effects->stackingOrder()) {
+
+        EffectWindowList windows = effects->stackingOrder();
+        EffectWindow* active_window = nullptr;
+        for (const auto& w: windows) {
+            if (!isRelevantWithPresentWindows(w)) {
+                continue;
+            }
             auto wd = m_windowDatas.find(w);
             if (wd != m_windowDatas.end()) {
                 continue;
@@ -1313,8 +1321,12 @@ void MultitaskingEffect::setActive(bool active)
 
         for (int i = 1; i <= effects->numberOfDesktops(); i++) {
             WindowMotionManager wmm;
-            for (const auto& w: effects->stackingOrder()) {
+            for (const auto& w: windows) {
                 if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
+                    // the last window is on top of the stack
+                    if (i == m_targetDesktop) {
+                        active_window = w;
+                    }
                     wmm.manage(w);
                 }
             }
@@ -1325,7 +1337,7 @@ void MultitaskingEffect::setActive(bool active)
             updateDesktopWindows(i);
         }
 
-        selectNextWindow();
+        selectWindow(active_window);
 
     } else {
         auto p = m_motionManagers.begin();
@@ -1337,7 +1349,7 @@ void MultitaskingEffect::setActive(bool active)
         }
 
         updateHighlightWindow(nullptr);
-        m_selectedWindow = nullptr;
+        selectWindow(nullptr);
     }
 
     effects->addRepaintFull();
