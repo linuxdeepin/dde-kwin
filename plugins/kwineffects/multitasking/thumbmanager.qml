@@ -24,9 +24,15 @@ Rectangle {
     signal qmlRequestMove2Desktop(variant wid, int desktop)
     signal qmlRequestSwitchDesktop(int to, int from)
 
+    signal mouseLeaved(); // mouse leaved thumbmanager
+
     Component.onCompleted: {
         initDesktops();
         animateLayouting = true
+    }
+
+    onMouseLeaved: {
+        console.log(' !!!------- leaved thumbmanager')
     }
 
     Component {
@@ -53,7 +59,10 @@ Rectangle {
             border.color: manager.currentDesktop == desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
 
             Drag.keys: ["wsThumb"]
-            Drag.active: thumbArea.drag.active
+            //NOTE: need to bind to thumbArea.pressed 
+            //when mouse pressed and leave DesktopThumbnailManager, drag keeps active 
+            //while mouse released or not later.
+            Drag.active: thumbArea.pressed && thumbArea.drag.active
             //TOOD: should be cursor position?
             Drag.hotSpot {
                 x: width/2
@@ -120,11 +129,20 @@ Rectangle {
                     }
                 }
 
+                onPositionChanged: {
+                    // this could happen when mouse press-hold and leave DesktopThumbnailManager
+                    if (!thumbArea.pressed && drag.target != null) {
+                        drag.target = null
+                    }
+                }
+
                 onPressed: {
                     //FIXME: make hotSpot follow mouse cursor when drag started
                     // however, this is not accurate, we need a drag-started event
                     thumbRoot.Drag.hotSpot.x = mouse.x
                     thumbRoot.Drag.hotSpot.y = mouse.y
+
+                    drag.target = parent
                 }
 
                 onReleased: {
@@ -136,7 +154,7 @@ Rectangle {
                     //NOTE: since current the parent is still chagned (by ParentChange), 
                     //delay (x,y) reset into timerBack
                     timerBack.running = true
-                    console.log('----- ' + parent.x + ',' + parent.y)
+                    console.log('----- mouse release: ' + parent.x + ',' + parent.y)
                     lastDragX = parent.x
                     lastDragY = parent.y
                     disableBehavior = true
@@ -241,7 +259,10 @@ Rectangle {
                             //wId: viewItem.wid
                         //}
 
-                        Drag.active: itemArea.drag.active
+                        //NOTE: need to bind to itemArea.pressed
+                        //when mouse pressed and leave DesktopThumbnailManager, drag keeps active
+                        //while mouse released or not later.
+                        Drag.active: itemArea.pressed && itemArea.drag.active
                         Drag.keys: ['winthumb']
                         Drag.hotSpot.x: width/2
                         Drag.hotSpot.y: height/2
@@ -259,14 +280,51 @@ Rectangle {
                             }
                         }
 
+                        // make sure dragged ws reset back to Loader's (0, 0)
+                        Timer {
+                            id: timerBack
+                            repeat: false
+                            interval: 1
+                            running: false
+                            onTriggered: {
+                                console.log('~~~~~~ restore winthumb position')
+
+                                var geo = thumb.geometryForWindow(wid)
+                                viewItem.x = geo.x
+                                viewItem.y = geo.y
+                            }
+                        }
+
+                        property int lastDragX: 0
+                        property int lastDragY: 0
+                        property bool disableBehavior: false
+                        onParentChanged: {
+                            if (parent != root) {
+                                var pos = parent.mapFromGlobal(lastDragX, lastDragY)
+                                viewItem.x = pos.x
+                                viewItem.y = pos.y
+
+                                console.log('~~~~~~~ winthumb parent chagned to ' + parent +
+                                    ' at ' + pos.x + ',' + pos.y)
+                                disableBehavior = false
+                            }
+                        }
+
                         MouseArea {
                             id: itemArea
 
                             anchors.fill: parent
                             drag.target: parent
 
-                            onClicked: {
-                                console.log('--------- DesktopThumbnail.window clicked ' + viewItem.wid)
+                            onPositionChanged: {
+                                // this could happen when mouse press-hold and leave DesktopThumbnailManager
+                                if (!itemArea.pressed && drag.target != null) {
+                                    drag.target = null
+                                }
+                            }
+
+                            onPressed: {
+                                drag.target = parent
                             }
 
                             onReleased: {
@@ -274,11 +332,14 @@ Rectangle {
                                 if (viewItem.Drag.target != null) {
                                     // target must be a DesktopThumbnail
                                     viewItem.Drag.drop()
-                                }
-                                
+                                } 
+                                timerBack.running = true
+                                lastDragX = parent.x
+                                lastDragY = parent.y
+                                disableBehavior = true
                             }
                         }
-                    }
+                    } // ~ViewItem
                 }
             } // ~DesktopThumbnail
 

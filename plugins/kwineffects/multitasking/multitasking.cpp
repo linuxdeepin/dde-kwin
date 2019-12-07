@@ -63,9 +63,11 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     m_view->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
 
     auto root = m_view->rootObject();
+    root->setAcceptHoverEvents(true);
     connect(this, SIGNAL(layoutChanged()), root, SLOT(handleLayoutChanged()), Qt::QueuedConnection);
     connect(this, SIGNAL(desktopRemoved(QVariant)), root, SLOT(handleDesktopRemoved(QVariant)),
             Qt::QueuedConnection);
+    connect(this, SIGNAL(mouseLeaved()), root, SIGNAL(mouseLeaved()));
 
     // relay QML signals
     connect(root, SIGNAL(qmlRequestChangeDesktop(int)), this, SIGNAL(requestChangeCurrentDesktop(int)));
@@ -223,12 +225,22 @@ void DesktopThumbnailManager::updateWindowThumbsGeometry(int desktop, const Wind
     }
 }
 
-void DesktopThumbnailManager::mouseMoveEvent(QMouseEvent* e)
+void DesktopThumbnailManager::enterEvent(QEvent* e)
 {
-    qDebug() << "-------------- " << __func__;
 }
 
-void DesktopThumbnailManager::setEnabled(bool v)
+void DesktopThumbnailManager::leaveEvent(QEvent* e)
+{
+    auto pos = QCursor::pos();
+    auto widget_pos = m_view->mapFromGlobal(pos);
+    QMouseEvent child_ev(QEvent::MouseButtonRelease, widget_pos, QCursor::pos(), Qt::LeftButton,
+            Qt::LeftButton, Qt::NoModifier);
+    qApp->sendEvent(m_view, &child_ev);
+
+    emit mouseLeaved();
+}
+
+void DesktopThumbnailManager::mouseMoveEvent(QMouseEvent* e)
 {
 }
 
@@ -730,6 +742,8 @@ bool MultitaskingEffect::isRelevantWithPresentWindows(EffectWindow *w) const
 // User interaction
 void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
 {
+    static bool s_insideThumbManager = false;
+
     switch (e->type()) {
         case QEvent::MouseMove:
         case QEvent::MouseButtonPress:
@@ -744,13 +758,24 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
     }
 
     auto me = static_cast<QMouseEvent*>(e);
-    
+
     if (m_thumbManager && !m_isWindowMoving) {
         if (m_thumbManager->geometry().contains(me->pos())) {
+            if (!s_insideThumbManager) {
+                s_insideThumbManager = true;
+                QEnterEvent ee(me->localPos(), me->windowPos(), me->screenPos());
+                qApp->sendEvent(m_thumbManager, &ee);
+            }
+
             auto pos = m_thumbManager->mapFromGlobal(me->pos());
             QMouseEvent new_event(me->type(), pos, me->pos(), me->button(), me->buttons(), me->modifiers());
             m_thumbManager->windowInputMouseEvent(&new_event);
             return;
+        } else if (s_insideThumbManager) {
+            s_insideThumbManager = false;
+
+            QEvent le(QEvent::Leave);
+            qApp->sendEvent(m_thumbManager, &le);
         }
     }
 

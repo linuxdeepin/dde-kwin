@@ -161,7 +161,6 @@ class DesktopThumbnailManager: public QWidget
 public:
     DesktopThumbnailManager(EffectsHandler* h);
     void windowInputMouseEvent(QMouseEvent* e);
-    void setEnabled(bool v);
     void setEffectWindow(EffectWindow* w) {
         m_effectWindow = w;
     }
@@ -189,6 +188,8 @@ protected slots:
 protected:
     void mouseMoveEvent(QMouseEvent* e) override;
     void resizeEvent(QResizeEvent* re) override;
+    void enterEvent(QEvent* e) override;
+    void leaveEvent(QEvent* e) override;
 
 signals:
     void currentDesktopChanged();
@@ -207,6 +208,8 @@ signals:
     void requestDeleteDesktop(int);
     void requestMove2Desktop(QVariant, int);
     void requestSwitchDesktop(int, int);
+
+    void mouseLeaved();
 
 private:
     EffectWindow* m_effectWindow {nullptr};
