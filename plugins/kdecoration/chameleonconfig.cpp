@@ -242,6 +242,7 @@ void ChameleonConfig::onWindowPropertyChanged(quint32 windowId, quint32 atom)
         if (!client)
             return;
 
+        m_pendingWindows.insert(client, windowId);
         emit windowTypeChanged(client);
 
         bool force_decorate = client->property(DDE_FORCE_DECORATE).toBool();
@@ -280,6 +281,20 @@ void ChameleonConfig::onWindowShapeChanged(quint32 windowId)
 
 void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
 {
+    // NOTE:
+    // since this slot gets executed in the event loop, there is a chance that 
+    // window has already been destroyed as of now. so we need to do double 
+    // check here.
+    auto kv = m_pendingWindows.find(window);
+    if (kv != m_pendingWindows.end()) {
+        QObject *client = KWinUtils::instance()->findClient(KWinUtils::Predicate::WindowMatch, kv.value());
+
+        m_pendingWindows.remove(window);
+        if (!client) {
+            return;
+        }
+    }
+
     if (window->property(DDE_NEED_UPDATE_NOBORDER).toBool()) {
         // 清理掉属性，避免下次重复更新
         window->setProperty(DDE_NEED_UPDATE_NOBORDER, QVariant());

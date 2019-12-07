@@ -133,6 +133,7 @@ private:
     quint32 m_atom_net_wm_window_type;
 #endif
     QMap<QString, X11Shadow*> m_x11ShadowCache;
+    QHash<QObject*, quint32> m_pendingWindows;
 };
 
 #endif // CHAMELEONCONFIG_H
