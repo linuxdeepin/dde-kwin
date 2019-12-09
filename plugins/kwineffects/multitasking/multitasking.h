@@ -272,7 +272,10 @@ public Q_SLOTS:
     void removeDesktop(int d);
 
     void selectNextWindow();
+    void selectPrevWindow();
     void selectWindow(EffectWindow* w);
+    void selectNextGroupWindow();
+    void selectPrevGroupWindow();
 
     void changeCurrentDesktop(int d);
 

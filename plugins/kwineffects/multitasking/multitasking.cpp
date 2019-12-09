@@ -784,6 +784,8 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
 
 void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 {
+    static bool is_smooth_scrolling = false;
+
     if (!m_activated) return;
 
     EffectWindow* target = nullptr;
@@ -804,7 +806,25 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
     else
         updateHighlightWindow(target);
 
+    if (me->button() == Qt::ForwardButton || me->button() == Qt::BackButton) {
+        if (me->type() != QEvent::MouseButtonPress || is_smooth_scrolling) return;
+
+        if (me->buttons() == Qt::ForwardButton) {
+            is_smooth_scrolling = true;
+            changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
+        } else if (me->buttons() == Qt::BackButton) {
+            is_smooth_scrolling = true;
+            changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
+        }
+
+        QTimer::singleShot(400, [&]() { is_smooth_scrolling = false; });
+        return;
+    }
+
     switch (me->type()) {
+        case QEvent::Wheel:
+            break;
+
         case QEvent::MouseMove:
             if (m_movingWindow) {
                 if (!m_isWindowMoving) {
@@ -848,6 +868,7 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
             break;
 
         case QEvent::MouseButtonPress:
+
             if (target) {
                 effects->setElevatedWindow(target, true);
                 m_movingWindow = target;
@@ -973,6 +994,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             return;
         }
 
+        //qDebug() << "-----------  " << e;
         if (e->isAutoRepeat()) return;
         switch (e->key()) {
             case Qt::Key_Escape:
@@ -1000,7 +1022,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_2:
             case Qt::Key_3:
             case Qt::Key_4:
-                if (e->modifiers() == Qt::NoModifier) {
+                if (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::MetaModifier) {
                     changeCurrentDesktop(e->key() - Qt::Key_0);
                 } 
                 break;
@@ -1043,10 +1065,91 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 break;
 
             case Qt::Key_Tab:
-                selectNextWindow();
+                if (e->modifiers() == Qt::ShiftModifier) {
+                    selectPrevWindow();
+                } else {
+                    selectNextWindow();
+                }
+                break;
+
+            case Qt::Key_QuoteLeft:
+                if (e->modifiers() == Qt::AltModifier) {
+                    selectNextGroupWindow();
+                }
+                break;
+
+            case Qt::Key_AsciiTilde:
+                if (e->modifiers() == (Qt::AltModifier | Qt::ShiftModifier)) {
+                    selectPrevGroupWindow();
+                }
                 break;
 
             default: break;
+        }
+    }
+}
+
+void MultitaskingEffect::selectNextGroupWindow()
+{
+    int current = effects->currentDesktop();
+    const auto& wmm = m_motionManagers[current-1];
+    if (!m_selectedWindow) {
+        selectWindow(wmm.managedWindows().first());
+    } else {
+        auto clz = m_selectedWindow->windowClass();
+
+        auto wl = wmm.managedWindows();
+        auto k = wl.indexOf(m_selectedWindow);
+        if (k < 0) return;
+
+        int i = (k+1) % wl.size();
+        while (i != k) {
+            if (wl[i]->windowClass() == clz) {
+                selectWindow(wl[i]);
+                break;
+            }
+            i = (i+1) % wl.size();
+        }
+    }
+}
+
+void MultitaskingEffect::selectPrevGroupWindow()
+{
+    int current = effects->currentDesktop();
+    const auto& wmm = m_motionManagers[current-1];
+    if (!m_selectedWindow) {
+        selectWindow(wmm.managedWindows().first());
+    } else {
+        auto clz = m_selectedWindow->windowClass();
+
+        auto wl = wmm.managedWindows();
+        auto k = wl.indexOf(m_selectedWindow);
+        if (k < 0) return;
+
+        int i = (k-1+wl.size()) % wl.size();
+        while (i != k) {
+            if (wl[i]->windowClass() == clz) {
+                selectWindow(wl[i]);
+                break;
+            }
+            i = (i-1+wl.size()) % wl.size();
+        }
+    }
+}
+
+void MultitaskingEffect::selectPrevWindow()
+{
+    int current = effects->currentDesktop();
+    const auto& wmm = m_motionManagers[current-1];
+    if (!m_selectedWindow) {
+        selectWindow(wmm.managedWindows().first());
+    } else {
+        auto wl = wmm.managedWindows();
+        for (int i = 0; i < wl.size(); i++) {
+            if (wl[i] == m_selectedWindow) {
+                selectWindow(wl[(i-1+wl.size()) % wl.size()]);
+                break;
+            }
         }
     }
 }
