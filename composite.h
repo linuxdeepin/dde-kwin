@@ -189,6 +189,7 @@ private Q_SLOTS:
      **/
     void slotCompositingOptionsInitialized();
     void finish();
+    void queueFinish();
     /**
      * Restarts the Compositor if running.
      * That is the Compositor will be stopped and started again.

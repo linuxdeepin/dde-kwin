@@ -66,6 +66,39 @@ Q_DECLARE_METATYPE(KWin::Compositor::SuspendReason)
 namespace KWin
 {
 
+static QByteArray PROP_COMPOSITE_TOGGLING("_NET_KDE_COMPOSITE_TOGGLING");
+static xcb_atom_t ATOM_COMPOSITE_TOGGLING = 0;
+
+static void reportCompositeChangeFinished()
+{
+    xcb_delete_property(kwinApp()->x11Connection(), kwinApp()->x11RootWindow(), ATOM_COMPOSITE_TOGGLING);
+}
+
+static void reportCompositeIsAboutToChange(int value)
+{
+    auto c = kwinApp()->x11Connection();
+    if (!c) {
+        return;
+    }
+
+    if (!ATOM_COMPOSITE_TOGGLING) {
+        // get the atom for the propertyName
+        ScopedCPointer<xcb_intern_atom_reply_t> atomReply(xcb_intern_atom_reply(c,
+                    xcb_intern_atom_unchecked(c, false, PROP_COMPOSITE_TOGGLING.size(),
+                        PROP_COMPOSITE_TOGGLING.constData()), NULL));
+        if (atomReply.isNull()) {
+            return;
+        }
+
+        ATOM_COMPOSITE_TOGGLING = atomReply->atom;
+    }
+
+    // announce property on root window
+    xcb_change_property(c, XCB_PROP_MODE_REPLACE, kwinApp()->x11RootWindow(),
+            ATOM_COMPOSITE_TOGGLING, ATOM_COMPOSITE_TOGGLING, 8, 4, &value);
+}
+
+
 extern int currentRefreshRate();
 
 CompositorSelectionOwner::CompositorSelectionOwner(const char *selection) : KSelectionOwner(selection, connection(), rootWindow()), owning(false)
@@ -184,6 +217,8 @@ void Compositor::setup()
     if (!options->isCompositingInitialized()) {
         options->reloadCompositingSettings(true);
     }
+
+    reportCompositeIsAboutToChange(1);
     slotCompositingOptionsInitialized();
 }
 
@@ -351,6 +386,7 @@ void Compositor::startupWithWorkspace()
         }
     }
 
+    //reportCompositeChangeFinished();
     emit compositingToggled(true);
 
     m_starting = false;
@@ -366,6 +402,12 @@ void Compositor::scheduleRepaint()
 {
     if (!compositeTimer.isActive())
         setCompositeTimer();
+}
+
+void Compositor::queueFinish()
+{
+    reportCompositeIsAboutToChange(0);
+    QTimer::singleShot(2000, this, SLOT(finish()));
 }
 
 void Compositor::finish()
@@ -437,6 +479,7 @@ void Compositor::finish()
             Workspace::self()->deletedList().first()->discard();
     }
     m_finishing = false;
+    //reportCompositeChangeFinished();
     emit compositingToggled(false);
 }
 
@@ -503,7 +546,7 @@ void Compositor::slotConfigChanged()
             effects->reconfigure();
         addRepaintFull();
     } else
-        finish();
+        queueFinish();
 }
 
 void Compositor::slotReinitialize()
@@ -584,7 +627,7 @@ void Compositor::suspend(Compositor::SuspendReason reason)
             KNotification::event(QStringLiteral("compositingsuspendeddbus"), message);
         }
     }
-    finish();
+    queueFinish();
 }
 
 void Compositor::resume(Compositor::SuspendReason reason)
