@@ -677,6 +677,17 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
         return;
     }
 
+    if (on) {
+        // 记录opengl被标记为不安全的次数
+        if (m_kwinConfig->group("Compositing").readEntry<bool>("OpenGLIsUnsafe", false)) {
+            int count = m_kwinConfig->group("Compositing").readEntry<int>("OpenGLIsUnsafeCount", 0);
+            m_kwinConfig->group("Compositing").writeEntry("OpenGLIsUnsafeCount", count + 1);
+        }
+
+        // 确保3D特效一定能被开启
+        m_kwinConfig->group("Compositing").writeEntry("OpenGLIsUnsafe", false);
+    }
+
     m_kwinConfig->group("Compositing").writeEntry("Enabled", on);
     // 只同步配置文件，不要通知kwin重新加载配置
     m_kwinConfig->sync();
