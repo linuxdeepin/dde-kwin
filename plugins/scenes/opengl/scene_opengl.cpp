@@ -818,7 +818,7 @@ SceneOpenGLTexture *SceneOpenGL::createTexture()
 }
 
 bool SceneOpenGL::viewportLimitsMatched(const QSize &size) const {
-    GLint limit[2];
+    GLint limit[2] = {size.width(), size.height()};
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, limit);
     if (limit[0] < size.width() || limit[1] < size.height()) {
         QMetaObject::invokeMethod(Compositor::self(), "suspend",
