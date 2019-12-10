@@ -416,8 +416,8 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
     }
 
     if (w == m_highlightWindow) {
-        updateHighlightWindow(nullptr);
         m_selectedWindow = nullptr;
+        updateHighlightWindow(nullptr);
         selectNextWindow();
     }
 }
@@ -966,6 +966,10 @@ void MultitaskingEffect::closeWindow()
     if (m_highlightWindow) {
         qDebug() << "--------- click close";
         m_highlightWindow->closeWindow();
+
+        if (m_selectedWindow == m_highlightWindow) {
+            m_selectedWindow = nullptr;
+        }
         updateHighlightWindow(nullptr);
     }
 }
@@ -978,8 +982,9 @@ void MultitaskingEffect::updateHighlightWindow(EffectWindow* w)
 
     m_highlightWindow = w;
 
-    if (m_highlightWindow)
+    if (m_highlightWindow) {
         selectWindow(m_highlightWindow);
+    }
 
     effects->addRepaintFull();
 }
@@ -1011,11 +1016,40 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 break;
 
             case Qt::Key_Right:  // include super+->
-                changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
+                if (e->modifiers() == Qt::MetaModifier) {
+                    changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
+                } else if (e->modifiers() == Qt::NoModifier) {
+                    selectNextWindow();
+                }
                 break;
 
             case Qt::Key_Left: 
-                changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
+                if (e->modifiers() == Qt::MetaModifier) {
+                    changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
+                } else if (e->modifiers() == Qt::NoModifier) {
+                    selectPrevWindow();
+                }
+                break;
+
+            case Qt::Key_Down:
+                if (e->modifiers() == Qt::NoModifier) {
+                    selectNextWindowVert(1);
+                }
+                break;
+            case Qt::Key_Up:
+                if (e->modifiers() == Qt::NoModifier) {
+                    selectNextWindowVert(-1);
+                }
+                break;
+            case Qt::Key_Home:
+                if (e->modifiers() == Qt::NoModifier) {
+                    selectFirstWindow();
+                }
+                break;
+            case Qt::Key_End:
+                if (e->modifiers() == Qt::NoModifier) {
+                    selectLastWindow();
+                }
                 break;
 
             case Qt::Key_1:
@@ -1170,6 +1204,68 @@ void MultitaskingEffect::selectNextWindow()
         }
     }
 }
+
+void MultitaskingEffect::selectFirstWindow()
+{
+    if (m_takenSlots.size() == 0) {
+        return;
+    }
+
+    int columns = m_gridSizes[0].columns;
+    int rows = m_gridSizes[0].rows;
+    if (m_takenSlots.size() != columns * rows)
+        return;
+
+    if (m_takenSlots.first())
+        selectWindow(m_takenSlots.first());
+}
+
+void MultitaskingEffect::selectLastWindow()
+{
+    if (m_takenSlots.size() == 0) {
+        return;
+    }
+
+    int columns = m_gridSizes[0].columns;
+    int rows = m_gridSizes[0].rows;
+    if (m_takenSlots.size() != columns * rows)
+        return;
+
+    if (m_takenSlots.last())
+        selectWindow(m_takenSlots.last());
+}
+
+void MultitaskingEffect::selectNextWindowVert(int dir)
+{
+    auto current = m_selectedWindow;
+    if (!current || m_takenSlots.size() == 0) {
+        return;
+    }
+
+    int columns = m_gridSizes[0].columns;
+    int rows = m_gridSizes[0].rows;
+    if (m_takenSlots.size() != columns * rows)
+        return;
+
+    int slot = 0;
+    for (; slot < columns * rows; slot++) {
+        if (current == m_takenSlots[slot]) {
+            int col = slot % columns;
+            int row = slot / columns;
+
+            int nextrow = row + dir;
+            int nextslot = nextrow * columns + col;
+            if (nextrow < 0 || nextslot < 0 || nextslot >= m_takenSlots.size()) 
+                return;
+
+            qDebug() << "---------- next " << nextrow << col << nextslot;
+            if (m_takenSlots[nextslot])
+                selectWindow(m_takenSlots[nextslot]);
+            break;
+        }
+    }
+}
+
 
 void MultitaskingEffect::selectWindow(EffectWindow* w)
 {
@@ -1836,6 +1932,7 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
         takenSlots[slotCandidate] = w; // ...and we rumble in =)
     }
 
+    m_takenSlots = takenSlots;
     for (int slot = 0; slot < columns*rows; ++slot) {
         EffectWindow *w = takenSlots[slot];
         if (!w) // some slots might be empty

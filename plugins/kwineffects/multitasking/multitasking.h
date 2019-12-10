@@ -271,11 +271,19 @@ public Q_SLOTS:
     void appendDesktop();
     void removeDesktop(int d);
 
+
     void selectNextWindow();
     void selectPrevWindow();
-    void selectWindow(EffectWindow* w);
+
+    void selectNextWindowVert(int dir);
+    void selectFirstWindow();
+    void selectLastWindow();
+
     void selectNextGroupWindow();
     void selectPrevGroupWindow();
+
+
+    void selectWindow(EffectWindow* w);
 
     void changeCurrentDesktop(int d);
 
@@ -377,8 +385,11 @@ private:
     int m_targetDesktop {0};
 
     QMargins m_desktopMargins;
+
+
     // Grid layout info
     QList<GridSize> m_gridSizes;
+    QVector<EffectWindow*> m_takenSlots;
 
 
     DesktopThumbnailManager* m_thumbManager {nullptr};
