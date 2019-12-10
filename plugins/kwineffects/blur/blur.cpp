@@ -262,7 +262,7 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     m_downSampleIterations = blurStrengthValues[blurStrength].iteration;
     m_offset = blurStrengthValues[blurStrength].offset;
     m_expandSize = blurOffsets[m_downSampleIterations - 1].expandSize;
-    m_noiseStrength = 5;
+    m_noiseStrength = 0;// 禁用噪点效果
 
     m_scalingFactor = qMax(1.0, QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96.0);
 
