@@ -92,6 +92,9 @@ Rectangle {
                     console.log('~~~~~~ restore position')
                     parent.x = 0
                     parent.y = 0
+
+                    parent.lastDragX = -1
+                    parent.lastDragY = 0
                 }
             }
 
@@ -102,11 +105,11 @@ Rectangle {
              * and set position to the same visual point in the scene (where mouse
              * resides), and then issue the behavior animation.
              */
-            property int lastDragX: 0
+            property int lastDragX: -1
             property int lastDragY: 0
             property bool disableBehavior: false
             onParentChanged: {
-                if (parent != root) {
+                if (parent != root && lastDragX != -1) {
                     console.log('~~~~~~~ parent chagned to ' + parent)
                     var pos = parent.mapFromGlobal(lastDragX, lastDragY)
                     console.log('----- ' + parent.x + ',' + parent.y + " => " + pos.x + ',' + pos.y)
@@ -155,8 +158,8 @@ Rectangle {
                     //delay (x,y) reset into timerBack
                     timerBack.running = true
                     console.log('----- mouse release: ' + parent.x + ',' + parent.y)
-                    lastDragX = parent.x
-                    lastDragY = parent.y
+                    parent.lastDragX = parent.x
+                    parent.lastDragY = parent.y
                     disableBehavior = true
                 }
 
@@ -292,14 +295,17 @@ Rectangle {
                                 var geo = thumb.geometryForWindow(wid)
                                 viewItem.x = geo.x
                                 viewItem.y = geo.y
+
+                                lastDragX = -1
+                                lastDragY = 0
                             }
                         }
 
-                        property int lastDragX: 0
+                        property int lastDragX: -1
                         property int lastDragY: 0
                         property bool disableBehavior: false
                         onParentChanged: {
-                            if (parent != root) {
+                            if (parent != root && lastDragX != -1) {
                                 var pos = parent.mapFromGlobal(lastDragX, lastDragY)
                                 viewItem.x = pos.x
                                 viewItem.y = pos.y
@@ -334,8 +340,8 @@ Rectangle {
                                     viewItem.Drag.drop()
                                 } 
                                 timerBack.running = true
-                                lastDragX = parent.x
-                                lastDragY = parent.y
+                                parent.lastDragX = parent.x
+                                parent.lastDragY = parent.y
                                 disableBehavior = true
                             }
                         }

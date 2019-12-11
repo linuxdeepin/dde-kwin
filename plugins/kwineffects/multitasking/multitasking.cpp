@@ -32,6 +32,7 @@
 
 #define ACTION_NAME  "ShowMultitasking"
 
+static const QByteArray s_GtkFrameAtomName = QByteArrayLiteral("_GTK_FRAME_EXTENTS");
 
 DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     :QWidget(0),
@@ -262,6 +263,8 @@ MultitaskingEffect::MultitaskingEffect()
     shortcut = KGlobalAccel::self()->shortcut(a);
     effects->registerGlobalShortcut(ks, a);
 
+    m_gtkFrameExtentsAtom = effects->announceSupportProperty(s_GtkFrameAtomName, this);
+
     connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleActive()));
 
     connect(KGlobalAccel::self(), &KGlobalAccel::globalShortcutChanged, this, &MultitaskingEffect::globalShortcutChanged);
@@ -272,9 +275,9 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::numberDesktopsChanged, this, &MultitaskingEffect::onNumberDesktopsChanged);
     connect(effects, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SLOT(onCurrentDesktopChanged()));
     //connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)),
-    //    this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
     connect(effects, &EffectsHandler::numberScreensChanged, this, &MultitaskingEffect::onNumberScreensChanged);
     connect(effects, &EffectsHandler::virtualScreenGeometryChanged, this, &MultitaskingEffect::onScreenSizeChanged);
+    connect(effects, &EffectsHandler::propertyNotify, this, &MultitaskingEffect::onPropertyNotify);
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
@@ -310,6 +313,8 @@ void MultitaskingEffect::initWindowData(DataHash::iterator wd, EffectWindow* w)
 {
     wd->isAbove = w->keepAbove();
     wd->icon = createIconFor(w);
+    wd->csd = !w->hasDecoration();
+    updateGtkFrameExtents(w);
 
     auto createIcon = [](const char* icon_path, int size) {
         auto icon = effects->effectFrame(EffectFrameUnstyled, false);
@@ -333,16 +338,41 @@ EffectFrame* MultitaskingEffect::createIconFor(EffectWindow* w)
     return icon;
 }
 
+void MultitaskingEffect::onPropertyNotify(KWin::EffectWindow *w, long atom)
+{
+    if (w && atom == m_gtkFrameExtentsAtom) {
+        updateGtkFrameExtents(w);
+    }
+}
+
+
+void MultitaskingEffect::updateGtkFrameExtents(EffectWindow *w)
+{
+    auto value = w->readProperty(m_gtkFrameExtentsAtom, XCB_ATOM_CARDINAL, 32);
+    if (value.size() > 0 && !(value.size() % (4 * sizeof(uint32_t)))) {
+        const uint32_t *cardinals = reinterpret_cast<const uint32_t*>(value.constData());
+        for (unsigned int i = 0; i < value.size() / sizeof(uint32_t);) {
+            int left = cardinals[i++];
+            int right = cardinals[i++];
+            int top = cardinals[i++];
+            int bottom = cardinals[i++];
+
+            m_windowDatas[w].csd = true;
+            m_windowDatas[w].gtkFrameExtents = QMargins(left, top, right, bottom);
+        }
+    }
+}
+
 void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
 {
     if (!m_activated)
         return;
 
-    qDebug() << __func__;
     if (!isRelevantWithPresentWindows(w))
         return; // don't add
 
 
+    qDebug() << __func__;
     auto wd = m_windowDatas.insert(w, WindowData());
     initWindowData(wd, w);
 
@@ -373,6 +403,10 @@ void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
         updateHighlightWindow(nullptr);
     }
 
+    if (w == m_closingdWindow) {
+        m_closingdWindow = nullptr;
+    }
+
     foreach (const int i, desktopList(w)) {
         WindowMotionManager& wmm = m_motionManagers[i-1];
         wmm.unmanage(w);
@@ -392,6 +426,7 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
     auto wd = m_windowDatas.find(w);
     if (wd != m_windowDatas.end()) {
         delete wd->icon;
+        delete wd->close;
         delete wd->pin;
         delete wd->unpin;
         m_windowDatas.erase(wd);
@@ -419,6 +454,10 @@ void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
         m_selectedWindow = nullptr;
         updateHighlightWindow(nullptr);
         selectNextWindow();
+    }
+
+    if (w == m_closingdWindow) {
+        m_closingdWindow = nullptr;
     }
 }
 
@@ -667,10 +706,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
             auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
 
             if (m_selectedWindow == w) {
-                auto center = geo.center();
-                geo.setWidth(geo.width() * 1.05f);
-                geo.setHeight(geo.height() * 1.05f);
-                geo.moveCenter(center);
+                geo = highlightedGeometry(geo);
             }
 
             d += QPoint(qRound(geo.x() - w->x()), qRound(geo.y() - w->y()));
@@ -681,20 +717,44 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
             auto wd = m_windowDatas.constFind(w);
             if (wd != m_windowDatas.constEnd()) {
+                auto ext = wd->gtkFrameExtents;
+
                 QPoint wp(geo.center().rx(), geo.bottom());
-                wd->icon->setPosition(wp);
-                wd->icon->render(region, 1.0, 0.0);
+                if (wd->csd && !ext.isNull()) {
+                    wp.ry() -= ext.bottom() * d.yScale();
+                }
+                if (wd->icon) {
+                    wd->icon->setPosition(wp);
+                    wd->icon->render(region, 1.0, 0.0);
+                }
+                    if (!wd->icon) {
+                        qDebug() << "---------- no icon ! " << w << w->windowClass();
+                    }
 
                 if (m_highlightWindow == w) {
                     wp = geo.topRight().toPoint();
-                    wd->close->setPosition(wp);
-                    wd->close->render(region, 1.0, 0.0);
+                    if (wd->csd && !ext.isNull()) {
+                        wp.rx() -= ext.right() * d.xScale();
+                        wp.ry() += ext.top() * d.yScale();
+                    }
+
+                    if (!wd->close) {
+                        qDebug() << "---------- no close ! " << w << w->windowClass();
+                    }
+                    if (wd->close) {
+                        wd->close->setPosition(wp);
+                        wd->close->render(region, 1.0, 0.0);
+                    }
 
                     wp = geo.topLeft().toPoint();
-                    if (wd->isAbove) {
+                    if (wd->csd && !ext.isNull()) {
+                        wp.rx() += ext.left() * d.xScale();
+                        wp.ry() += ext.top() * d.yScale();
+                    }
+                    if (wd->isAbove && wd->unpin) {
                         wd->unpin->setPosition(wp);
                         wd->unpin->render(region, 1.0, 0.0);
-                    } else {
+                    } else if (wd->pin) {
                         wd->pin->setPosition(wp);
                         wd->pin->render(region, 1.0, 0.0);
                     }
@@ -782,6 +842,16 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
     updateWindowStates(me);
 }
 
+QRectF MultitaskingEffect::highlightedGeometry(QRectF geometry)
+{
+    auto center = geometry.center();
+    geometry.setWidth(geometry.width() * Constants::HIGHLIGHT_SCALE);
+    geometry.setHeight(geometry.height() * Constants::HIGHLIGHT_SCALE);
+    geometry.moveCenter(center);
+
+    return geometry;
+}
+
 void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 {
     static bool is_smooth_scrolling = false;
@@ -790,14 +860,25 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 
     EffectWindow* target = nullptr;
     WindowMotionManager& mm = m_motionManagers[m_targetDesktop-1];
-    auto windows = mm.managedWindows();
-    for (auto win: windows) {
-        auto geom = mm.transformedGeometry(win);
-        // add margins to receive events for `close` and `pin` buttons
-        geom.adjust(-24, -24, 24 ,24);
+
+    bool highlight_changed = true;
+    if (m_highlightWindow) {
+        auto geom = highlightedGeometry(mm.transformedGeometry(m_highlightWindow));
         if (geom.contains(me->pos())) {
-            target = win;
-            break;
+            highlight_changed = false;
+            target = m_highlightWindow;
+        }
+    }
+
+    if (highlight_changed) {
+        auto windows = mm.managedWindows();
+        for (auto win: windows) {
+            // add margins to receive events for `close` and `pin` buttons
+            auto geom = highlightedGeometry(mm.transformedGeometry(win));
+            if (m_closingdWindow != win && geom.contains(me->pos())) {
+                target = win;
+                break;
+            }
         }
     }
 
@@ -966,6 +1047,7 @@ void MultitaskingEffect::closeWindow()
     if (m_highlightWindow) {
         qDebug() << "--------- click close";
         m_highlightWindow->closeWindow();
+        m_closingdWindow = m_highlightWindow;
 
         if (m_selectedWindow == m_highlightWindow) {
             m_selectedWindow = nullptr;
@@ -978,11 +1060,11 @@ void MultitaskingEffect::updateHighlightWindow(EffectWindow* w)
 {
     if (w == m_highlightWindow) return;
 
-    qDebug() << __func__;
-
     m_highlightWindow = w;
 
     if (m_highlightWindow) {
+        qDebug() << __func__ << w->geometry() << m_windowDatas[w].csd
+            << m_windowDatas[w].gtkFrameExtents;
         selectWindow(m_highlightWindow);
     }
 
@@ -1305,6 +1387,9 @@ void MultitaskingEffect::cleanup()
     auto wd = m_windowDatas.begin();
     while (wd != m_windowDatas.end()) {
         delete wd.value().icon;
+        delete wd.value().close;
+        delete wd.value().pin;
+        delete wd.value().unpin;
         ++wd;
     }
     m_windowDatas.clear();
@@ -1943,7 +2028,7 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
             area.x() + (slot % columns) * slotWidth,
             area.y() + (slot / columns) * slotHeight,
             slotWidth, slotHeight);
-        target.adjust(10, 10, -10, -10);   // Borders
+        target.adjust(35, 35, -35, -35);   // Borders
         double scale;
         if (target.width() / double(w->width()) < target.height() / double(w->height())) {
             // Center vertically

@@ -267,6 +267,7 @@ public Q_SLOTS:
     void onWindowAdded(KWin::EffectWindow*);
     void onWindowClosed(KWin::EffectWindow*);
     void onWindowDeleted(KWin::EffectWindow*);
+    void onPropertyNotify(KWin::EffectWindow *w, long atom);
 
     void appendDesktop();
     void removeDesktop(int d);
@@ -312,6 +313,9 @@ private slots:
 private:
     struct WindowData {
         bool isAbove {false};
+        bool csd {false};
+        QMargins gtkFrameExtents; //valid only when csd == true
+
         EffectFrame* close {nullptr};
         EffectFrame* pin {nullptr};
         EffectFrame* unpin {nullptr};
@@ -332,7 +336,11 @@ private:
     // close animation finished
     void cleanup();
 
+    void updateGtkFrameExtents(EffectWindow *w);
+ 
     void updateWindowStates(QMouseEvent* me);
+
+    QRectF highlightedGeometry(QRectF geometry);
 
     // borrowed from PresentWindows effect
     void calculateWindowTransformationsNatural(EffectWindowList windowlist, int screen,
@@ -366,6 +374,7 @@ private:
     WindowMotionManager m_thumbMotion;
     EffectWindow* m_highlightWindow {nullptr};
     EffectWindow* m_selectedWindow {nullptr};
+    EffectWindow* m_closingdWindow {nullptr};
 
     EffectWindow* m_movingWindow {nullptr};
     bool m_isWindowMoving {false};
@@ -391,6 +400,7 @@ private:
     QList<GridSize> m_gridSizes;
     QVector<EffectWindow*> m_takenSlots;
 
+    long m_gtkFrameExtentsAtom {0};
 
     DesktopThumbnailManager* m_thumbManager {nullptr};
 

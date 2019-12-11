@@ -67,6 +67,8 @@ namespace Constants {
      * size for window action icons: pin, unpin, close
      */
     static const int ACTION_SIZE = 48;
+
+    static const float HIGHLIGHT_SCALE = 1.05f;
 }
 
 #endif
