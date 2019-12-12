@@ -154,13 +154,14 @@ Rectangle {
                         console.log('------- release ws on ' + thumbRoot.Drag.target)
                         thumbRoot.Drag.drop()
                     }
+
                     //NOTE: since current the parent is still chagned (by ParentChange), 
                     //delay (x,y) reset into timerBack
                     timerBack.running = true
                     console.log('----- mouse release: ' + parent.x + ',' + parent.y)
                     parent.lastDragX = parent.x
                     parent.lastDragY = parent.y
-                    disableBehavior = true
+                    parent.disableBehavior = true
                 }
 
                 onEntered: {
@@ -342,7 +343,7 @@ Rectangle {
                                 timerBack.running = true
                                 parent.lastDragX = parent.x
                                 parent.lastDragY = parent.y
-                                disableBehavior = true
+                                parent.disableBehavior = true
                             }
                         }
                     } // ~ViewItem

@@ -1178,9 +1178,10 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 if (e->modifiers() == Qt::AltModifier) {
                     removeDesktop(m_targetDesktop);
                 }
+                break;
 
             case Qt::Key_Delete:
-                if (m_selectedWindow) {
+                if (e->modifiers() == Qt::NoModifier && m_selectedWindow) {
                     qDebug() << "------------[TODO]: close highlighted window";
                 }
                 break;
@@ -1431,7 +1432,7 @@ void MultitaskingEffect::removeDesktop(int d)
         auto dl = ew->desktops();
         if (dl.size() == 0 || dl[0] < d) continue;
 
-        int newd = dl[0] - 1;
+        int newd = dl[0] == 1 ? 1 : dl[0] - 1;
         QVector<uint> desks {(uint)newd};
         qDebug() << "     ---- move" << ew << "from" << dl[0] << "to" << newd;
         effects->windowToDesktops(ew, desks);
@@ -1439,15 +1440,15 @@ void MultitaskingEffect::removeDesktop(int d)
 
     emit m_thumbManager->desktopRemoved(QVariant(d));
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
-    //NOTE: removeVirtualDesktop seems very buggy, and causes occasional crash
-    //vds->removeVirtualDesktop(toDel->property("id").toByteArray());
 
-    QTimer::singleShot(1, [=]() { desktopRemoved(d); });
+    // delay this process, make sure layoutChanged has been handled
+    QTimer::singleShot(10, [=]() { desktopRemoved(d); });
 }
 
 void MultitaskingEffect::desktopRemoved(int d)
 {
     remanageAll();
+    updateDesktopWindows();
     effects->addRepaintFull();
 }
 

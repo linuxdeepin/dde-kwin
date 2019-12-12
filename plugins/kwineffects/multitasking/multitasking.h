@@ -61,8 +61,6 @@ public:
             }
             emit desktopChanged(); 
 
-            //refreshWindows();
-
             update();
         }
     }
@@ -92,6 +90,7 @@ public:
         for (auto id: ids) {
             m_windows.append(id);
         }
+        qDebug() << "------- " << __func__ << ids.size();
         emit windowsChanged();
     }
 
