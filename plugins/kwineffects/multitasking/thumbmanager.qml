@@ -62,7 +62,7 @@ Rectangle {
             //NOTE: need to bind to thumbArea.pressed 
             //when mouse pressed and leave DesktopThumbnailManager, drag keeps active 
             //while mouse released or not later.
-            Drag.active: thumbArea.pressed && thumbArea.drag.active
+            Drag.active: manager.desktopCount > 1 && thumbArea.pressed && thumbArea.drag.active
             //TOOD: should be cursor position?
             Drag.hotSpot {
                 x: width/2
@@ -122,7 +122,7 @@ Rectangle {
             MouseArea {
                 id: thumbArea
                 anchors.fill: parent
-                drag.target: parent
+                drag.target: null
                 hoverEnabled: true
 
                 onClicked: {
@@ -145,10 +145,16 @@ Rectangle {
                     thumbRoot.Drag.hotSpot.x = mouse.x
                     thumbRoot.Drag.hotSpot.y = mouse.y
 
-                    drag.target = parent
+                    if (manager.desktopCount > 1) {
+                        drag.target = parent
+                    }
                 }
 
                 onReleased: {
+                    if (manager.desktopCount == 1) {
+                        return
+                    }
+
                     // target should be wsDropComponent
                     if (thumbRoot.Drag.target != null) {
                         console.log('------- release ws on ' + thumbRoot.Drag.target)
@@ -321,7 +327,7 @@ Rectangle {
                             id: itemArea
 
                             anchors.fill: parent
-                            drag.target: parent
+                            drag.target: null
 
                             onPositionChanged: {
                                 // this could happen when mouse press-hold and leave DesktopThumbnailManager
@@ -452,13 +458,11 @@ Rectangle {
                 }
             }
 
-            onExited: {
-            }
-
             onPositionChanged: {
                 if (drag.keys[0] === 'wsThumb') {
-                    //console.log('------ ' + drag.x + ',' + drag.y)
-                    if ( drag.y < 30) {
+                    var diff = wsDrop.parent.y - drag.source.y
+                    //console.log('------ ' + wsDrop.parent.y + ',' + drag.source.y + ', ' + diff)
+                    if (diff > 0 && diff > drag.source.height/2) {
                         hint.visible = true
                     } else {
                         hint.visible = false
@@ -471,7 +475,7 @@ Rectangle {
                 id: hint
                 visible: false
                 anchors.fill: parent
-                color: 'lightblue'
+                color: 'transparent'
 
                 Text {
                     text: "Drag upwards to remove"

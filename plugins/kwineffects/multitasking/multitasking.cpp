@@ -1415,12 +1415,13 @@ void MultitaskingEffect::cleanup()
 void MultitaskingEffect::appendDesktop()
 {
     effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
+    changeCurrentDesktop(effects->numberOfDesktops());
 }
 
 
 void MultitaskingEffect::removeDesktop(int d)
 {
-    if (d <= 0 || d > effects->numberOfDesktops())
+    if (d <= 0 || d > effects->numberOfDesktops() || effects->numberOfDesktops() == 1)
         return;
 
     qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d;
