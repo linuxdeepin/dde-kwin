@@ -524,17 +524,27 @@ Rectangle {
         enabled: visible
         color: "#33ffffff"
 
-        x: 0
+        x: manager.containerSize.width - 200
         y: 0
-        width: manager.thumbSize.width
-        height: manager.thumbSize.height
-        radius: 6
+        width: 120
+        height: 120
+        radius: 30
 
+        Connections {
+            target: root
+            onWidthChanged: {
+                var r = manager.calculateDesktopThumbRect(0)
+                plus.x = manager.containerSize.width - 200
+                plus.y = r.y + (r.height - plus.height)/2
+                console.log(' ------------ width changed ' + root.width)
+            }
+        }
         Image {
             z: 1
             id: background
-            source: backgroundManager.defaultNewDesktopURI
+            //source: backgroundManager.defaultNewDesktopURI
             anchors.fill: parent
+            visible: false //disable now
 
             opacity: 0.0
             Behavior on opacity {
@@ -558,7 +568,7 @@ Rectangle {
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d");
-                var plus_size = 45.0
+                var plus_size = 20.0
                 ctx.lineWidth = 2
                 ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
 
@@ -579,12 +589,12 @@ Rectangle {
 
         MouseArea {
             anchors.fill: parent
-            hoverEnabled: true
+            //hoverEnabled: true
             onClicked: {
                 qmlRequestAppendDesktop()
             }
             onEntered: {
-                backgroundManager.shuffleDefaultBackgroundURI()
+                //backgroundManager.shuffleDefaultBackgroundURI()
                 background.opacity = 0.6
             }
 
@@ -658,10 +668,6 @@ Rectangle {
 
     function handleLayoutChanged() {
         console.log('--------------- layoutChanged')
-        var r = manager.calculateDesktopThumbRect(manager.desktopCount);
-        plus.x = r.x
-        plus.y = r.y
-
         if (manager.desktopCount < thumbs.count) {
             // this has been handled by handleDesktopRemoved
         }
@@ -686,9 +692,9 @@ Rectangle {
     }
 
     function initDesktops() {
-        var r = manager.calculateDesktopThumbRect(manager.desktopCount);
-        plus.x = r.x
-        plus.y = r.y
+        var r = manager.calculateDesktopThumbRect(0)
+        plus.x = manager.containerSize.width - 200
+        plus.y = r.y + (r.height - plus.height)/2
 
         for (var i = 1; i <= manager.desktopCount; i++) {
             newDesktop(i)

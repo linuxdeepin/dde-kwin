@@ -178,7 +178,7 @@ QRect DesktopThumbnailManager::calculateDesktopThumbRect(int index)
     auto area = m_handler->clientArea(ScreenArea, 0, 0);
     float space = area.width() * Constants::SPACING_PERCENT;
 
-    auto count = m_handler->numberOfDesktops() + 1;
+    auto count = m_handler->numberOfDesktops();
     float offset_x = (area.width() - (r.width() + space) * count + space) / 2.0;
     r.moveTo((r.width() + space) * index + offset_x, 40);
     return r;
