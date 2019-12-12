@@ -311,6 +311,7 @@ QVector<int> MultitaskingEffect::desktopList(const EffectWindow *w) const
 
 void MultitaskingEffect::initWindowData(DataHash::iterator wd, EffectWindow* w)
 {
+    qDebug() << "--------- init window " << w->windowClass() << w;
     wd->isAbove = w->keepAbove();
     wd->icon = createIconFor(w);
     wd->csd = !w->hasDecoration();
@@ -348,6 +349,8 @@ void MultitaskingEffect::onPropertyNotify(KWin::EffectWindow *w, long atom)
 
 void MultitaskingEffect::updateGtkFrameExtents(EffectWindow *w)
 {
+    if (!m_activated) return;
+
     auto value = w->readProperty(m_gtkFrameExtentsAtom, XCB_ATOM_CARDINAL, 32);
     if (value.size() > 0 && !(value.size() % (4 * sizeof(uint32_t)))) {
         const uint32_t *cardinals = reinterpret_cast<const uint32_t*>(value.constData());
@@ -357,8 +360,13 @@ void MultitaskingEffect::updateGtkFrameExtents(EffectWindow *w)
             int top = cardinals[i++];
             int bottom = cardinals[i++];
 
-            m_windowDatas[w].csd = true;
-            m_windowDatas[w].gtkFrameExtents = QMargins(left, top, right, bottom);
+            auto wd = m_windowDatas.find(w);
+            if (wd == m_windowDatas.end()) {
+                wd = m_windowDatas.insert(w, WindowData());
+                initWindowData(wd, w);
+            }
+            wd->csd = true;
+            wd->gtkFrameExtents = QMargins(left, top, right, bottom);
         }
     }
 }
@@ -738,9 +746,6 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
                         wp.ry() += ext.top() * d.yScale();
                     }
 
-                    if (!wd->close) {
-                        qDebug() << "---------- no close ! " << w << w->windowClass();
-                    }
                     if (wd->close) {
                         wd->close->setPosition(wp);
                         wd->close->render(region, 1.0, 0.0);
@@ -1622,6 +1627,7 @@ void MultitaskingEffect::setActive(bool active)
             }
             auto wd = m_windowDatas.find(w);
             if (wd != m_windowDatas.end()) {
+                qDebug() << "------- [init] wd exists " << w << w->windowClass();
                 continue;
             }
             wd = m_windowDatas.insert(w, WindowData());
