@@ -181,7 +181,6 @@ public:
     Q_INVOKABLE QRect calculateDesktopThumbRect(int index);
     void updateWindowsFor(int desktop, QList<WId> ids);
 
-protected slots:
     void onDesktopsChanged();
 
 protected:

@@ -524,7 +524,7 @@ Rectangle {
         enabled: visible
         color: "#33ffffff"
 
-        x: manager.containerSize.width - 200
+        x: 3000
         y: 0
         width: 120
         height: 120
@@ -692,10 +692,6 @@ Rectangle {
     }
 
     function initDesktops() {
-        var r = manager.calculateDesktopThumbRect(0)
-        plus.x = manager.containerSize.width - 200
-        plus.y = r.y + (r.height - plus.height)/2
-
         for (var i = 1; i <= manager.desktopCount; i++) {
             newDesktop(i)
         }

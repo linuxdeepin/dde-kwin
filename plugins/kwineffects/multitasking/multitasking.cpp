@@ -45,9 +45,6 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
 
-    connect(h, &EffectsHandler::numberDesktopsChanged, this, &DesktopThumbnailManager::onDesktopsChanged,
-            Qt::QueuedConnection);
-
 
     m_view = new QQuickWidget(this);
     m_view->setGeometry(0, 0, width(), height());
@@ -522,6 +519,7 @@ void MultitaskingEffect::onScreenSizeChanged()
 
 void MultitaskingEffect::onNumberDesktopsChanged(int old)
 {
+    qDebug() << "-------- " << __func__;
     if (old < effects->numberOfDesktops()) {
         // add new
         for (int i = old+1; i <= effects->numberOfDesktops(); i++) {
@@ -543,6 +541,7 @@ void MultitaskingEffect::onNumberDesktopsChanged(int old)
         }
     }
 
+    if (m_thumbManager) m_thumbManager->onDesktopsChanged();
     effects->addRepaintFull();
 }
 
@@ -965,24 +964,38 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 
         case QEvent::MouseButtonRelease:
             if (m_movingWindow && m_isWindowMoving) {
-                //TODO: move to PLUS to create new 
                 auto switch_to = m_thumbManager->desktopAtPos(me->pos());
                 //qDebug() << "---------- switch_to " << switch_to;
                 effects->defineCursor(Qt::PointingHandCursor);
                 effects->setElevatedWindow(m_movingWindow, false);
 
                 if (switch_to <= 0) {
-                    auto ids = desktopList(m_movingWindow);
-                    switch_to = ids[0];
+                    auto last_rect = m_thumbManager->calculateDesktopThumbRect(effects->numberOfDesktops()-1);
+                    auto pos = m_thumbManager->mapToGlobal(last_rect.topRight());
+                    if (me->pos().x() > pos.x() && effects->numberOfDesktops() < 4) {
+                        appendDesktop();
 
-                    WindowMotionManager& wmm = m_motionManagers[switch_to-1];
-                    wmm.manage(m_movingWindow);
-                    if (EffectWindow* modal = m_movingWindow->findModal()) {
-                        wmm.manage(modal);
+                        auto target_window = m_movingWindow;
+                        // wait for thumbmanager handles layout change (add new ws thumb)
+                        QTimer::singleShot(100, [=]() {
+                            moveEffectWindow2Desktop(target_window, effects->numberOfDesktops());
+                        });
+
+                    } else {
+                        // restore
+                        auto ids = desktopList(m_movingWindow);
+                        if (ids.size() > 0) {
+                            qDebug() << "---------- no new desktop, restore window to " << ids[0];
+                            auto& wmm = m_motionManagers[ids[0]-1];
+                            wmm.manage(m_movingWindow);
+                            if (EffectWindow* modal = m_movingWindow->findModal()) {
+                                wmm.manage(modal);
+                            }
+
+                            calculateWindowTransformations(wmm.managedWindows(), wmm);
+                            effects->addRepaintFull();
+                        }
                     }
-
-                    calculateWindowTransformations(wmm.managedWindows(), wmm);
-                    effects->addRepaintFull();
                 } else {
                     moveEffectWindow2Desktop(m_movingWindow, switch_to);
                 }
