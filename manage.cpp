@@ -149,6 +149,7 @@ bool Client::manage(xcb_window_t w, bool isMapped)
     setModal((info->state() & NET::Modal) != 0);   // Needs to be valid before handling groups
     readTransientProperty(transientCookie);
     setDesktopFileName(rules()->checkDesktopFile(QByteArray(info->desktopFileName()), true).toUtf8());
+    loadGioDesktopFileName();
     getIcons();
     connect(this, &Client::desktopFileNameChanged, this, &Client::getIcons);
 

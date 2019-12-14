@@ -1912,6 +1912,67 @@ QString AbstractClient::iconFromDesktopFile() const
     return df.readIcon();
 }
 
+void AbstractClient::loadGioDesktopFileName()
+{
+    if (!m_gioDesktopFileName.isEmpty())
+        return;
+
+    int pid = info->pid();
+
+    QString pid_file = QString("/proc/%1/environ").arg(pid);
+    if (!QFile::exists(pid_file)) {
+        return;
+    }
+
+    QFile f(pid_file);
+    if (!f.open(QFile::ReadOnly)) {
+        return;
+    }
+
+    int launch_info = 0;
+    QString deskop_file;
+    bool pid_match = true;
+
+    QTextStream ts(&f);
+    auto data = ts.readAll();
+
+    for (auto ln: data.split('\0')) {
+        if (launch_info >= 2) break;
+        auto kv = ln.split('=');
+        if (kv.size() != 2) continue;
+        if (kv[0] == "GIO_LAUNCHED_DESKTOP_FILE") {
+            deskop_file = kv[1];
+            launch_info++;
+        }
+
+        if (kv[0] == "GIO_LAUNCHED_DESKTOP_FILE_PID") {
+            auto gio_pid = kv[1].toInt();
+            if (gio_pid == pid) {
+                launch_info++;
+                pid_match = true;
+            }
+        }
+    }
+
+    if (launch_info == 2) {
+        m_gioDesktopFileName = deskop_file.toUtf8();
+    }
+}
+
+
+QString AbstractClient::iconFromGioDesktopFile() const
+{
+    if (m_gioDesktopFileName.isEmpty()) {
+        return QString();
+    }
+    QString desktopFile = QString::fromUtf8(m_gioDesktopFileName);
+    if (!desktopFile.endsWith(QLatin1String(".desktop"))) {
+        desktopFile.append(QLatin1String(".desktop"));
+    }
+    KDesktopFile df(desktopFile);
+    return df.readIcon();
+}
+
 bool AbstractClient::hasApplicationMenu() const
 {
     return ApplicationMenu::self()->applicationMenuEnabled() && !m_applicationMenuServiceName.isEmpty() && !m_applicationMenuObjectPath.isEmpty();

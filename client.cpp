@@ -1636,6 +1636,13 @@ void Client::getIcons()
         setIcon(QIcon::fromTheme(themedIconName));
         return;
     }
+    // Second read icons from the environment GIO_LAUNCHED_DESKTOP_FILE
+    const QString gioIconName = iconFromGioDesktopFile();
+    if (!gioIconName.isEmpty()) {
+        setIcon(QIcon::fromTheme(gioIconName));
+        return;
+    }
+
     QIcon icon;
     auto readIcon = [this, &icon](int size, bool scale = true) {
         const QPixmap pix = KWindowSystem::icon(window(), size, size, scale, KWindowSystem::NETWM | KWindowSystem::WMHints, info);
