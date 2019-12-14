@@ -115,7 +115,10 @@ Rectangle {
                     console.log('----- ' + parent.x + ',' + parent.y + " => " + pos.x + ',' + pos.y)
                     thumbRoot.x = pos.x
                     thumbRoot.y = pos.y
-                    disableBehavior = false
+                    if (pendingDragRemove) {
+                        disableBehavior = false
+                        timerBack.running = false
+                    }
                 }
             }
 
@@ -192,7 +195,7 @@ Rectangle {
                     when: winDrop.containsDrag
                     PropertyChanges {
                         target: thumbRoot
-                        border.color: "red"
+                        border.color: Qt.rgba(0.14, 0.67, 1.0, 0.5)
                     }
                 }
 
@@ -398,6 +401,15 @@ Rectangle {
                 }
             }
 
+            DropShadow {
+                anchors.fill: parent
+                verticalOffset: 5
+                spread: 0.2
+                radius: 8.0
+                samples: 17
+                color: "#1A000000"
+                source: parent
+            }
 
             Behavior on x {
                 enabled: animateLayouting && !disableBehavior
@@ -456,6 +468,14 @@ Rectangle {
                     console.log('------[wsDrop]: Enter ' + wsDrop.designated + ' from ' + drag.source
                         + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
                 }
+            }
+
+            onExited: {
+                if (drag.source.pendingDragRemove) {
+                    hint.visible = false
+                    drag.source.pendingDragRemove = hint.visible
+                }
+
             }
 
             onPositionChanged: {

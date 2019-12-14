@@ -213,7 +213,7 @@ void DesktopThumbnailManager::updateWindowThumbsGeometry(int desktop, const Wind
                     data.insert(wid, geom);
                     qDebug() << "     ==== " << wid << transformed << geom;
                 } else {
-                    qDebug() << "     ==== lost " << ew << wid;
+                    qDebug() << "[W]  ==== lost " << ew << wid;
                 }
             }
 
@@ -1454,6 +1454,7 @@ void MultitaskingEffect::removeDesktop(int d)
 
     emit m_thumbManager->desktopRemoved(QVariant(d));
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
+    effects->addRepaintFull();
 
     // delay this process, make sure layoutChanged has been handled
     QTimer::singleShot(10, [=]() { desktopRemoved(d); });
