@@ -26,6 +26,10 @@ Rectangle {
 
     signal mouseLeaved(); // mouse leaved thumbmanager
 
+    onVisibleChanged: {
+        console.log(' !!!------- thumbmanager visible ' + visible)
+    }
+
     Component.onCompleted: {
         initDesktops();
         animateLayouting = true

@@ -520,6 +520,8 @@ void MultitaskingEffect::onScreenSizeChanged()
 void MultitaskingEffect::onNumberDesktopsChanged(int old)
 {
     qDebug() << "-------- " << __func__;
+    BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
+
     if (old < effects->numberOfDesktops()) {
         // add new
         for (int i = old+1; i <= effects->numberOfDesktops(); i++) {
@@ -1453,6 +1455,8 @@ void MultitaskingEffect::removeDesktop(int d)
     }
 
     emit m_thumbManager->desktopRemoved(QVariant(d));
+    // shift wallpapers before acutally removing it
+    BackgroundManager::instance().desktopAboutToRemoved(d);
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
     effects->addRepaintFull();
 

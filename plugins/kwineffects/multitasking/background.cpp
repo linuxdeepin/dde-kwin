@@ -7,10 +7,13 @@
 #define DBUS_APPEARANCE_OBJ "/com/deepin/daemon/Appearance"
 #define DBUS_APPEARANCE_INTF "com.deepin.daemon.Appearance"
 
+#define DBUS_DEEPIN_WM_SERVICE "com.deepin.wm"
+#define DBUS_DEEPIN_WM_OBJ "/com/deepin/wm"
+#define DBUS_DEEPIN_WM_INTF "com.deepin.wm"
+
 const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
 Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gs_dde_appearance, ("com.deepin.dde.appearance"))
-Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gs_dde_zone, ("com.deepin.dde.zone"))
 
 #define GsettingsBackgroundUri "backgroundUris"
 
@@ -30,7 +33,6 @@ BackgroundManager::BackgroundManager()
     m_defaultNewDesktopURI = QLatin1String(fallback_background_name);
 
     connect(_gs_dde_appearance, &QGSettings::changed, this, &BackgroundManager::onGsettingsDDEAppearanceChanged);
-    connect(_gs_dde_zone, &QGSettings::changed, this, &BackgroundManager::onGsettingsDDEZoneChanged);
     // hook screen signals
 
     emit defaultBackgroundURIChanged();
@@ -64,13 +66,24 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor)
 void BackgroundManager::onGsettingsDDEAppearanceChanged(const QString &key)
 {
     qDebug() << "---------- " << __func__ << key;
+    if (key == GsettingsBackgroundUri) {
+        emit wallpapersChanged();
+    }
 }
 
-void BackgroundManager::onGsettingsDDEZoneChanged(const QString &key)
+void BackgroundManager::desktopAboutToRemoved(int d)
 {
-    qDebug() << "---------- " << __func__ << key;
-}
+    auto uris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
 
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+
+    auto n = qMin(uris.size(), m_desktopCount);
+    for (int i = d; i < n; i++) {
+        qDebug() << "-------- dbus SetWorkspaceBackground" << i << uris[i];
+        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", i, uris[i]);
+    }
+
+}
 
 QString BackgroundManager::getDefaultBackgroundURI()
 {

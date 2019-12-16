@@ -33,24 +33,35 @@ class BackgroundManager: public QObject
 public:
     static BackgroundManager& instance();
 
+    void updateDesktopCount(int n) {
+        if (m_desktopCount != n) {
+            m_desktopCount = n;
+        }
+    }
+
     // workspace id start from 1
     QPixmap getBackground(int workspace, int monitor = 0);
 
     Q_INVOKABLE void shuffleDefaultBackgroundURI();
     Q_INVOKABLE QString getDefaultBackgroundURI();
 
+public slots:
+    // respond to desktop removal, and shift wallpapers accordingly
+    void desktopAboutToRemoved(int d);
+
 signals:
     void defaultBackgroundURIChanged();
+    void wallpapersChanged();
 
 private:
     QStringList m_preinstalledWallpapers;
     QString m_defaultNewDesktopURI;
+    int m_desktopCount {0};
 
     explicit BackgroundManager();
 
 private slots:
     void onGsettingsDDEAppearanceChanged(const QString &key);
-    void onGsettingsDDEZoneChanged(const QString &key);
 };
 
 
