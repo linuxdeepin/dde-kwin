@@ -1101,6 +1101,8 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             return;
         }
 
+        if (!isActive()) return;
+
         //qDebug() << "-----------  " << e;
         if (e->isAutoRepeat()) return;
         switch (e->key()) {
