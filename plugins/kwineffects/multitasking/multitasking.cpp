@@ -593,7 +593,7 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
         data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
 
         for (auto& mm: m_motionManagers) {
-            mm.calculate(time);
+            mm.calculate(time/2.0);
         }
 
         if (m_thumbManager->effectWindow()) {
@@ -714,10 +714,25 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
             d += QPoint(qRound(geo.x() - w->x()), qRound(geo.y() - w->y()));
             d.setScale(QVector2D((float)geo.width() / w->width(), (float)geo.height() / w->height()));
             
+
+            auto wd = m_windowDatas.constFind(w);
+            if (m_selectedWindow == w) {
+                if (!m_highlightFrame) {
+                    m_highlightFrame = effects->effectFrame(EffectFrameStyled, false);
+                }
+                QRect geo_frame = geo.toRect();
+                if (wd != m_windowDatas.constEnd()) {
+                    auto ext = wd->gtkFrameExtents;
+                    geo_frame = geo_frame.marginsRemoved(ext);
+                }
+                geo_frame.adjust(-1, -1, 1, 1);
+                m_highlightFrame->setGeometry(geo_frame);
+                m_highlightFrame->render(infiniteRegion(), 1.0, 1.0);
+            }
+
             //qDebug() << "--------- window " << w->geometry() << geo;
             effects->paintWindow(w, mask, area, d);
 
-            auto wd = m_windowDatas.constFind(w);
             if (wd != m_windowDatas.constEnd()) {
                 auto ext = wd->gtkFrameExtents;
 

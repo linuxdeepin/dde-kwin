@@ -395,6 +395,7 @@ private:
 
     QMargins m_desktopMargins;
 
+    EffectFrame* m_highlightFrame {nullptr};
 
     // Grid layout info
     QList<GridSize> m_gridSizes;
