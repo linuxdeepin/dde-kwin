@@ -92,6 +92,7 @@ public:
         }
         qDebug() << "------- " << __func__ << ids.size();
         emit windowsChanged();
+        update();
     }
 
     Q_INVOKABLE QRect geometryForWindow(QVariant wid) {
@@ -111,6 +112,7 @@ public:
         qDebug() << "--------setupLayout " << m_desktop;
         geoData = data;
         emit windowsLayoutChanged();
+        update();
     }
 
     void paint(QPainter* p) override {

@@ -235,6 +235,7 @@ void DesktopThumbnailManager::leaveEvent(QEvent* e)
             Qt::LeftButton, Qt::NoModifier);
     qApp->sendEvent(m_view, &child_ev);
 
+    m_view->update();
     emit mouseLeaved();
 }
 
@@ -589,6 +590,7 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
         //qDebug() << "-------------- " << __func__ << time << m_toggleTimeline.currentValue();
 
         data.mask |= PAINT_SCREEN_TRANSFORMED;
+        data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
 
         for (auto& mm: m_motionManagers) {
             mm.calculate(time);
@@ -627,14 +629,16 @@ void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &
 {
     effects->paintScreen(mask, region, data);
 
-    if (m_isWindowMoving) {
+    if (isActive() && m_movingWindow && m_isWindowMoving) {
         // the moving window has to be painted on top of all desktops
         QPoint diff = cursorPos() - m_movingWindowStartPoint;
         QRect geo = m_movingWindowGeometry.translated(diff);
         WindowPaintData d(m_movingWindow, data.projectionMatrix());
         d *= QVector2D((qreal)geo.width() / (qreal)m_movingWindow->width(), (qreal)geo.height() / (qreal)m_movingWindow->height());
         d += QPoint(geo.left() - m_movingWindow->x(), geo.top() - m_movingWindow->y());
-        effects->drawWindow(m_movingWindow, PAINT_WINDOW_TRANSFORMED | PAINT_WINDOW_LANCZOS, infiniteRegion(), d);
+        //paint with PAINT_WINDOW_LANCZOS seems cause problem when holding the moving window
+        //for a few seconds
+        effects->drawWindow(m_movingWindow, PAINT_WINDOW_TRANSFORMED, infiniteRegion(), d);
     }
 
 }
@@ -696,20 +700,9 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
         auto area = effects->clientArea(ScreenArea, 0, 0);
 
         WindowPaintData d = data;
-        if (w->isDesktop() && m_thumbManager) {
+        if (w->isDesktop()) {
             d.setBrightness(0.4);
             effects->paintWindow(w, mask, area, d);
-
-#if 0
-            for (int i = 0; i < effects->numberOfDesktops(); i++) {
-                auto r = m_thumbManager->calculateDesktopThumbRect(i);
-                WindowPaintData d2 = data;
-                d2.setScale({Constants::WORKSPACE_WIDTH_PERCENT, Constants::WORKSPACE_WIDTH_PERCENT});
-                d2.setXTranslation(r.x());
-                d2.setYTranslation(r.y());
-                effects->drawWindow(w, mask, area, d2);
-            }
-#endif
 
         } else if (!w->isDesktop()) {
             auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
@@ -843,6 +836,10 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
             QEvent le(QEvent::Leave);
             qApp->sendEvent(m_thumbManager, &le);
         }
+    }
+
+    if (m_thumbManager) {
+        m_thumbManager->update();
     }
 
     updateWindowStates(me);
