@@ -827,6 +827,13 @@ QAction *DeepinWMFaker::accelAction(const QString accelKid) const
     action->setObjectName(accelKid);
     action->setProperty("componentName", GlobalAccelComponentName);
     action->setProperty("componentDisplayName", GlobalAccelComponentDisplayName);
+    //NOTE: this is from KGlobalAccel
+    //
+    //a isConfigurationAction shortcut combined with NoAutoloading will
+    //make it a foreign shortcut, which triggers a dbus signal sent to
+    //kglobalaccel when changed. this gives KWin the chance to listen for
+    //the externally shortcut changes and and allow effects to respond.
+    action->setProperty("isConfigurationAction", true);
 
     return action;
 }
