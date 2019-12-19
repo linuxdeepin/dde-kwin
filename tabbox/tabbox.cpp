@@ -746,6 +746,14 @@ void TabBox::setCurrentIndex(QModelIndex index, bool notifyEffects)
 {
     if (!index.isValid())
         return;
+
+    //After clicking 'show desktop', switch Windows to show only the selected window.
+    if (Workspace::self()->showingDesktop()) {
+        for (auto *client : currentClientList()) {
+            client->setMinimized(true);
+        }
+    }
+
     m_tabBox->setCurrentIndex(index);
     if (notifyEffects) {
         emit tabBoxUpdated();
@@ -1276,6 +1284,11 @@ bool TabBox::startWalkThroughDesktopList()
 
 void TabBox::KDEWalkThroughWindows(bool forward)
 {
+    const int length = currentClientList().length();
+    if ((m_tabBoxMode == TabBoxWindowsMode && length <= 1) || (m_tabBoxMode == TabBoxCurrentAppWindowsMode && length <= 1))
+    {
+        return;
+    }
     nextPrev(forward);
     delayedShow();
 }
