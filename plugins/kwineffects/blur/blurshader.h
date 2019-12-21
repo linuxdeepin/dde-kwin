@@ -45,7 +45,8 @@ public:
         DownSampleType,
         UpSampleType,
         CopySampleType,
-        NoiseSampleType
+        NoiseSampleType,
+        SaturationSampleType
     };
 
     void bind(SampleType sampleType);
@@ -57,12 +58,14 @@ public:
     void setNoiseTextureSize(const QSize &noiseTextureSize);
     void setTexturePosition(const QPoint &texPos);
     void setBlurRect(const QRect &blurRect, const QSize &screenSize);
+    void setSaturation(float sat);
 
 private:
     QScopedPointer<GLShader> m_shaderDownsample;
     QScopedPointer<GLShader> m_shaderUpsample;
     QScopedPointer<GLShader> m_shaderCopysample;
     QScopedPointer<GLShader> m_shaderNoisesample;
+    QScopedPointer<GLShader> m_shaderSaturationsample;
 
     int m_mvpMatrixLocationDownsample;
     int m_offsetLocationDownsample;
@@ -85,6 +88,10 @@ private:
     int m_texStartPosLocationNoisesample;
     int m_halfpixelLocationNoisesample;
 
+    int m_mvpMatrixLocationSaturationsample;
+    int m_renderTextureSizeLocationSaturationsample;
+    int m_satLocationSaturationsample;
+
     //Caching uniform values to aviod unnecessary setUniform calls
     int m_activeSampleType = -1;
 
@@ -99,6 +106,8 @@ private:
     float m_offsetNoisesample = 0.0;
     QVector2D m_noiseTextureSizeNoisesample;
     QMatrix4x4 m_matrixNoisesample;
+
+    QMatrix4x4 m_matrixSaturationsample;
 
     bool m_valid = false;
 

@@ -129,9 +129,10 @@ void BlurEffect::updateTexture()
      *  - The original sized texture (1)
      *  - The downsized textures (m_downSampleIterations)
      *  - The helper texture (1)
+     *  - saturation (1)
      */
-    m_renderTargets.reserve(m_downSampleIterations + 2);
-    m_renderTextures.reserve(m_downSampleIterations + 2);
+    m_renderTargets.reserve(m_downSampleIterations + 3);
+    m_renderTextures.reserve(m_downSampleIterations + 3);
 
     GLenum textureFormat = GL_RGBA8;
 
@@ -166,6 +167,14 @@ void BlurEffect::updateTexture()
         m_renderTargets.append(new GLRenderTarget(m_renderTextures.last()));
     }
 
+    // This is used for saturation (size equals to tex[1] (last up sampled texture)
+    // we keep the last texture as the same (the helper texture) to simplify modifications
+    m_renderTextures.append(GLTexture(textureFormat, effects->virtualScreenSize()));
+    m_renderTextures.last().setFilter(GL_LINEAR);
+    m_renderTextures.last().setWrapMode(GL_CLAMP_TO_EDGE);
+
+    m_renderTargets.append(new GLRenderTarget(m_renderTextures.last()));
+
     // This last set is used as a temporary helper texture
     m_renderTextures.append(GLTexture(textureFormat, effects->virtualScreenSize()));
     m_renderTextures.last().setFilter(GL_LINEAR);
@@ -173,11 +182,15 @@ void BlurEffect::updateTexture()
 
     m_renderTargets.append(new GLRenderTarget(m_renderTextures.last()));
 
+
     m_renderTargetsValid = renderTargetsValid();
 
     // Prepare the stack for the rendering
     m_renderTargetStack.clear();
-    m_renderTargetStack.reserve(m_downSampleIterations * 2);
+    m_renderTargetStack.reserve(m_downSampleIterations * 2 + 1);
+
+    //saturation
+    m_renderTargetStack.push(m_renderTargets[m_downSampleIterations + 1]);
 
     // Upsample
     for (int i = 1; i < m_downSampleIterations; i++) {
@@ -749,6 +762,8 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
 
     upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
 
+    doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection);
+
     if (useSRGB) {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
@@ -758,6 +773,26 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
     }
 
     vbo->unbindArrays();
+}
+
+void BlurEffect::doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount, float sat, QMatrix4x4 screenProjection)
+{
+    auto& renderTexture = m_renderTextures[m_downSampleIterations+1];
+
+    QMatrix4x4 modelViewProjectionMatrix;
+    modelViewProjectionMatrix.setToIdentity();
+    modelViewProjectionMatrix.ortho(0, renderTexture.width(), renderTexture.height(), 0 , 0, 65535);
+
+    m_shader->bind(BlurShader::SaturationSampleType);
+    m_shader->setModelViewProjectionMatrix(screenProjection);
+    m_shader->setSaturation(sat);
+    m_shader->setTargetTextureSize(renderTexture.size());
+    renderTexture.bind();
+
+    //Render to the screen
+    vbo->draw(GL_TRIANGLES, start, blurRectCount);
+
+    m_shader->unbind();
 }
 
 void BlurEffect::upscaleRenderToScreen(GLVertexBuffer *vbo, int vboStart, int blurRectCount, QMatrix4x4 screenProjection, QPoint windowPosition)
@@ -770,7 +805,6 @@ void BlurEffect::upscaleRenderToScreen(GLVertexBuffer *vbo, int vboStart, int bl
 #if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 10, 0, 0)
     scale = GLRenderTarget::virtualScreenScale();
 #endif
-
 
     if (m_noiseStrength > 0) {
         m_shader->bind(BlurShader::NoiseSampleType);
@@ -790,6 +824,7 @@ void BlurEffect::upscaleRenderToScreen(GLVertexBuffer *vbo, int vboStart, int bl
 
     //Render to the screen
     vbo->draw(GL_TRIANGLES, vboStart, blurRectCount);
+    GLRenderTarget::popRenderTarget();
 
     glActiveTexture(GL_TEXTURE0);
     m_shader->unbind();

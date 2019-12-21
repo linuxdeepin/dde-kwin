@@ -39,6 +39,7 @@ BlurShader::BlurShader(QObject *parent)
     QByteArray fragmentUpSource;
     QByteArray fragmentCopySource;
     QByteArray fragmentNoiseSource;
+    QByteArray fragmentSaturationSource;
 
     const QByteArray attribute = core ? "in"        : "attribute";
     const QByteArray texture2D = core ? "texture"   : "texture2D";
@@ -173,15 +174,41 @@ BlurShader::BlurShader(QObject *parent)
 
     streamFragNoise.flush();
 
+    // Fragment shader - Saturation
+    QTextStream streamFragSaturation(&fragmentSaturationSource);
+
+    streamFragSaturation << glHeaderString;
+
+    streamFragSaturation << "uniform sampler2D texUnit;\n";
+    streamFragSaturation << "uniform vec2 renderTextureSize;\n";
+    streamFragSaturation << "uniform float saturation;\n";
+
+    if (core) {
+        streamFragSaturation << "out vec4 fragColor;\n\n";
+    }
+
+    streamFragSaturation << "void main(void)\n";
+    streamFragSaturation << "{\n";
+    streamFragSaturation << "    vec2 uv = vec2(gl_FragCoord.xy / renderTextureSize);\n";
+    streamFragSaturation << "    vec4 texel = " << texture2D << "(texUnit, uv);\n";
+    streamFragSaturation << "    texel.rgb = mix(vec3(dot(texel.rgb, vec3(0.2126, 0.7152, 0.0722))), texel.rgb, saturation);\n";
+    streamFragSaturation << "    " << fragColor << " = texel;\n";
+
+    streamFragSaturation << "}\n";
+    streamFragSaturation.flush();
+
+
     m_shaderDownsample.reset(ShaderManager::instance()->loadShaderFromCode(vertexSource, fragmentDownSource));
     m_shaderUpsample.reset(ShaderManager::instance()->loadShaderFromCode(vertexSource, fragmentUpSource));
     m_shaderCopysample.reset(ShaderManager::instance()->loadShaderFromCode(vertexSource, fragmentCopySource));
     m_shaderNoisesample.reset(ShaderManager::instance()->loadShaderFromCode(vertexSource, fragmentNoiseSource));
+    m_shaderSaturationsample.reset(ShaderManager::instance()->loadShaderFromCode(vertexSource, fragmentSaturationSource));
 
     m_valid = m_shaderDownsample->isValid() &&
         m_shaderUpsample->isValid() &&
         m_shaderCopysample->isValid() &&
-        m_shaderNoisesample->isValid();
+        m_shaderNoisesample->isValid() &&
+        m_shaderSaturationsample->isValid();
 
     if (m_valid) {
         m_mvpMatrixLocationDownsample = m_shaderDownsample->uniformLocation("modelViewProjectionMatrix");
@@ -204,6 +231,10 @@ BlurShader::BlurShader(QObject *parent)
         m_noiseTextureSizeLocationNoisesample = m_shaderNoisesample->uniformLocation("noiseTextureSize");
         m_texStartPosLocationNoisesample = m_shaderNoisesample->uniformLocation("texStartPos");
         m_halfpixelLocationNoisesample = m_shaderNoisesample->uniformLocation("halfpixel");
+
+        m_mvpMatrixLocationSaturationsample = m_shaderSaturationsample->uniformLocation("modelViewProjectionMatrix");
+        m_renderTextureSizeLocationSaturationsample = m_shaderSaturationsample->uniformLocation("renderTextureSize");
+        m_satLocationSaturationsample = m_shaderSaturationsample->uniformLocation("saturation");
 
         QMatrix4x4 modelViewProjection;
         const QSize screenSize = effects->virtualScreenSize();
@@ -241,6 +272,12 @@ BlurShader::BlurShader(QObject *parent)
         glUniform1i(m_shaderNoisesample->uniformLocation("texUnit"), 0);
         glUniform1i(m_shaderNoisesample->uniformLocation("noiseTexUnit"), 1);
 
+        ShaderManager::instance()->popShader();
+
+        ShaderManager::instance()->pushShader(m_shaderSaturationsample.data());
+        m_shaderSaturationsample->setUniform(m_mvpMatrixLocationSaturationsample, modelViewProjection);
+        m_shaderSaturationsample->setUniform(m_satLocationSaturationsample, float(1.0));
+        m_shaderSaturationsample->setUniform(m_renderTextureSizeLocationSaturationsample, QVector2D(1.0, 1.0));
         ShaderManager::instance()->popShader();
     }
 }
@@ -290,6 +327,15 @@ void BlurShader::setModelViewProjectionMatrix(const QMatrix4x4 &matrix)
 
         m_matrixNoisesample = matrix;
         m_shaderNoisesample->setUniform(m_mvpMatrixLocationNoisesample, matrix);
+        break;
+
+    case SaturationSampleType:
+        if (matrix == m_matrixSaturationsample) {
+            return;
+        }
+
+        m_matrixSaturationsample = matrix;
+        m_shaderSaturationsample->setUniform(m_mvpMatrixLocationSaturationsample, matrix);
         break;
 
     default:
@@ -366,6 +412,10 @@ void BlurShader::setTargetTextureSize(const QSize &renderTextureSize)
         m_shaderNoisesample->setUniform(m_halfpixelLocationNoisesample, QVector2D(0.5 / texSize.x(), 0.5 / texSize.y()));
         break;
 
+    case SaturationSampleType:
+        m_shaderSaturationsample->setUniform(m_renderTextureSizeLocationSaturationsample, texSize);
+        break;
+
     default:
         Q_UNREACHABLE();
         break;
@@ -403,6 +453,11 @@ void BlurShader::setBlurRect(const QRect &blurRect, const QSize &screenSize)
     m_shaderCopysample->setUniform(m_blurRectLocationCopysample, rect);
 }
 
+void BlurShader::setSaturation(float sat)
+{
+    m_shaderSaturationsample->setUniform(m_satLocationSaturationsample, sat);
+}
+
 void BlurShader::bind(SampleType sampleType)
 {
     if (!isValid()) {
@@ -424,6 +479,10 @@ void BlurShader::bind(SampleType sampleType)
 
     case NoiseSampleType:
         ShaderManager::instance()->pushShader(m_shaderNoisesample.data());
+        break;
+
+    case SaturationSampleType:
+        ShaderManager::instance()->pushShader(m_shaderSaturationsample.data());
         break;
 
     default:
