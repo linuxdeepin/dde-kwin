@@ -723,11 +723,13 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
                 QRect geo_frame = geo.toRect();
                 if (wd != m_windowDatas.constEnd()) {
                     auto ext = wd->gtkFrameExtents;
-                    geo_frame = geo_frame.marginsRemoved(ext);
+                    QMargins scaled_ext(ext.left() * d.xScale(), ext.top() * d.yScale(),
+                            ext.right() * d.xScale(), ext.bottom() * d.yScale());
+                    geo_frame = geo_frame.marginsRemoved(scaled_ext);
                 }
                 geo_frame.adjust(-1, -1, 1, 1);
                 m_highlightFrame->setGeometry(geo_frame);
-                m_highlightFrame->render(infiniteRegion(), 1.0, 1.0);
+                m_highlightFrame->render(infiniteRegion(), 1.0, 0.8);
             }
 
             //qDebug() << "--------- window " << w->geometry() << geo;
