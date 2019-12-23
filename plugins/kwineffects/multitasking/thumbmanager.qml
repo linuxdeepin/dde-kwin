@@ -26,8 +26,12 @@ Rectangle {
 
     signal mouseLeaved(); // mouse leaved thumbmanager
 
+    function log(msg) {
+        manager.debugLog(msg)
+    }
+
     onVisibleChanged: {
-        console.log(' !!!------- thumbmanager visible ' + visible)
+        log(' !!!------- thumbmanager visible ' + visible)
     }
 
     Component.onCompleted: {
@@ -36,7 +40,7 @@ Rectangle {
     }
 
     onMouseLeaved: {
-        console.log(' !!!------- leaved thumbmanager')
+        log(' !!!------- leaved thumbmanager')
     }
 
     Component {
@@ -93,7 +97,7 @@ Rectangle {
                 interval: 1
                 running: false
                 onTriggered: {
-                    console.log('~~~~~~ restore position')
+                    log('~~~~~~ restore position')
                     parent.x = 0
                     parent.y = 0
 
@@ -114,9 +118,9 @@ Rectangle {
             property bool disableBehavior: false
             onParentChanged: {
                 if (parent != root && lastDragX != -1) {
-                    console.log('~~~~~~~ parent chagned to ' + parent)
+                    log('~~~~~~~ parent chagned to ' + parent)
                     var pos = parent.mapFromGlobal(lastDragX, lastDragY)
-                    console.log('----- ' + parent.x + ',' + parent.y + " => " + pos.x + ',' + pos.y)
+                    log('----- ' + parent.x + ',' + parent.y + " => " + pos.x + ',' + pos.y)
                     thumbRoot.x = pos.x
                     thumbRoot.y = pos.y
                     if (pendingDragRemove) {
@@ -134,7 +138,7 @@ Rectangle {
 
                 onClicked: {
                     if (close.enabled) {
-                        console.log("----------- change to desktop " + thumb.desktop)
+                        log("----------- change to desktop " + thumb.desktop)
                         qmlRequestChangeDesktop(thumb.desktop)
                     }
                 }
@@ -164,14 +168,14 @@ Rectangle {
 
                     // target should be wsDropComponent
                     if (thumbRoot.Drag.target != null) {
-                        console.log('------- release ws on ' + thumbRoot.Drag.target)
+                        log('------- release ws on ' + thumbRoot.Drag.target)
                         thumbRoot.Drag.drop()
                     }
 
                     //NOTE: since current the parent is still chagned (by ParentChange), 
                     //delay (x,y) reset into timerBack
                     timerBack.running = true
-                    console.log('----- mouse release: ' + parent.x + ',' + parent.y)
+                    log('----- mouse release: ' + parent.x + ',' + parent.y)
                     parent.lastDragX = parent.x
                     parent.lastDragY = parent.y
                     parent.disableBehavior = true
@@ -205,7 +209,7 @@ Rectangle {
 
                 onDropped: {
                     if (drop.keys[0] == 'winthumb') {
-                        console.log('~~~~~ Drop winthumb, wid ' + drop.source.wid + ', to desktop ' + desktop
+                        log('~~~~~ Drop winthumb, wid ' + drop.source.wid + ', to desktop ' + desktop
                             + ', from ' + drop.source.owningDesktop.desktop)
 
                         if (desktop != drop.source.owningDesktop.desktop)
@@ -216,7 +220,7 @@ Rectangle {
                 onEntered: {
                     // source could be DesktopThumbnail or winthumb
                     if (drag.keys[0] == 'winthumb') {
-                        console.log('~~~~~  Enter ws ' + desktop + ', wid ' + drag.source.wid
+                        log('~~~~~  Enter ws ' + desktop + ', wid ' + drag.source.wid
                         + ', keys: ' + drag.keys)
                     } else {
                         drag.accepted = false
@@ -243,7 +247,7 @@ Rectangle {
                         thumb.children[i].y = geo.y
                         thumb.children[i].width = geo.width
                         thumb.children[i].height = geo.height
-                        console.log('  --- relayout ' + desktop + ' ' + geo);
+                        log('  --- relayout ' + desktop + ' ' + geo);
                     }
                 }
 
@@ -304,7 +308,7 @@ Rectangle {
                             interval: 1
                             running: false
                             onTriggered: {
-                                console.log('~~~~~~ restore winthumb position')
+                                log('~~~~~~ restore winthumb position')
 
                                 var geo = thumb.geometryForWindow(wid)
                                 viewItem.x = geo.x
@@ -324,7 +328,7 @@ Rectangle {
                                 viewItem.x = pos.x
                                 viewItem.y = pos.y
 
-                                console.log('~~~~~~~ winthumb parent chagned to ' + parent +
+                                log('~~~~~~~ winthumb parent chagned to ' + parent +
                                     ' at ' + pos.x + ',' + pos.y)
                                 disableBehavior = false
                             }
@@ -348,7 +352,7 @@ Rectangle {
                             }
 
                             onReleased: {
-                                console.log('--------- DesktopThumbnail.window released ' + viewItem.wid)
+                                log('--------- DesktopThumbnail.window released ' + viewItem.wid)
                                 if (viewItem.Drag.target != null) {
                                     // target must be a DesktopThumbnail
                                     viewItem.Drag.drop()
@@ -387,7 +391,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        console.log("----------- close desktop " + thumb.desktop)
+                        log("----------- close desktop " + thumb.desktop)
                         qmlRequestDeleteDesktop(thumb.desktop)
                     }
 
@@ -451,13 +455,13 @@ Rectangle {
                     var to = wsDrop.designated
                     if (wsDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
                         //FIXME: could be a delete operation but need more calculation
-                        console.log("----------- wsDrop: close desktop " + from)
+                        log("----------- wsDrop: close desktop " + from)
                         qmlRequestDeleteDesktop(from)
                     } else {
                         if (from == to) {
                             return
                         }
-                        console.log("----------- wsDrop: reorder desktop ")
+                        log("----------- wsDrop: reorder desktop ")
 
                         thumbs.move(from-1, to-1, 1)
                         qmlRequestSwitchDesktop(to, from)
@@ -469,7 +473,7 @@ Rectangle {
 
             onEntered: {
                 if (drag.keys[0] === 'wsThumb') {
-                    console.log('------[wsDrop]: Enter ' + wsDrop.designated + ' from ' + drag.source
+                    log('------[wsDrop]: Enter ' + wsDrop.designated + ' from ' + drag.source
                         + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
                 }
             }
@@ -485,7 +489,7 @@ Rectangle {
             onPositionChanged: {
                 if (drag.keys[0] === 'wsThumb') {
                     var diff = wsDrop.parent.y - drag.source.y
-                    //console.log('------ ' + wsDrop.parent.y + ',' + drag.source.y + ', ' + diff)
+                    //log('------ ' + wsDrop.parent.y + ',' + drag.source.y + ', ' + diff)
                     if (diff > 0 && diff > drag.source.height/2) {
                         hint.visible = true
                     } else {
@@ -560,7 +564,7 @@ Rectangle {
                 var r = manager.calculateDesktopThumbRect(0)
                 plus.x = manager.containerSize.width - 200
                 plus.y = r.y + (r.height - plus.height)/2
-                console.log(' ------------ width changed ' + root.width)
+                log(' ------------ width changed ' + root.width)
             }
         }
         Image {
@@ -650,13 +654,13 @@ Rectangle {
 
     function handleAppendDesktop() {
         var id = manager.desktopCount
-        console.log('--------------- handleAppendDesktop ' + manager.desktopCount)
+        log('--------------- handleAppendDesktop ' + manager.desktopCount)
 
         newDesktop(id)
     }
 
     function handleDesktopRemoved(id) {
-        console.log('--------------- handleDesktopRemoved ' + id)
+        log('--------------- handleDesktopRemoved ' + id)
         for (var i = 0; i < thumbs.count; i++) {
             var d = thumbs.get(i)
             if (d.obj.componentDesktop == id) {
@@ -679,26 +683,26 @@ Rectangle {
 
     function debugObject(o) {
         //for (var p in Object.getOwnPropertyNames(o)) {
-            //console.log("========= " + o[p]);
+            //log("========= " + o[p]);
         //}
 
         var keys = Object.keys(o);
         for(var i=0; i<keys.length; i++) {
             var key = keys[i];
             // prints all properties, signals, functions from object
-            console.log('======== ' + key + ' : ' + o[key]);
+            log('======== ' + key + ' : ' + o[key]);
         }
     }
 
     function handleLayoutChanged() {
-        console.log('--------------- layoutChanged')
+        log('--------------- layoutChanged')
         if (manager.desktopCount < thumbs.count) {
             // this has been handled by handleDesktopRemoved
         }
 
         for (var i = 0; i < thumbs.count; i++) {
             var r = manager.calculateDesktopThumbRect(i);
-            //console.log('   ----- ' + (i+1) + ': ' + thumbs.get(i).obj.x + ',' + thumbs.get(i).obj.y + 
+            //log('   ----- ' + (i+1) + ': ' + thumbs.get(i).obj.x + ',' + thumbs.get(i).obj.y + 
                 //'  => ' + r.x + ',' + r.y)
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y

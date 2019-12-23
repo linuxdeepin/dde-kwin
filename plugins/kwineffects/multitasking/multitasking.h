@@ -37,6 +37,8 @@
 
 #include "background.h"
 
+Q_DECLARE_LOGGING_CATEGORY(KWIN_BLUR)
+
 using namespace KWin;
 
 class DesktopThumbnail: public QQuickPaintedItem
@@ -90,7 +92,6 @@ public:
         for (auto id: ids) {
             m_windows.append(id);
         }
-        qDebug() << "------- " << __func__ << ids.size();
         emit windowsChanged();
         update();
     }
@@ -109,7 +110,6 @@ public:
     QHash<WId, QRect> geoData;
 
     Q_INVOKABLE void setupLayout(QHash<WId, QRect> data) {
-        qDebug() << "--------setupLayout " << m_desktop;
         geoData = data;
         emit windowsLayoutChanged();
         update();
@@ -184,6 +184,8 @@ public:
     void updateWindowsFor(int desktop, QList<WId> ids);
 
     void onDesktopsChanged();
+
+    Q_INVOKABLE void debugLog(const QString& msg);
 
 protected:
     void mouseMoveEvent(QMouseEvent* e) override;
