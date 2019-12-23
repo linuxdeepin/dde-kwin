@@ -635,12 +635,19 @@ Rectangle {
     function newDesktop(desktop) {
         var r = manager.calculateDesktopThumbRect(desktop-1);
 
-        var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; ' + 
-        'property int componentDesktop: ' + desktop + '}';
+        var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; \n' +
+            ' property bool loading: true;' +
+            ' Behavior on x { ' + 
+            '   enabled: animateLayouting && !loading; ' +
+            '   PropertyAnimation {' +
+            '     onRunningChanged: { log("--------- running " + running); }\n' +
+            '     duration: 300; easing.type: Easing.Linear } } ' +
+            ' x: ' + r.x + ';' +
+            ' y: ' + r.y + ';' +
+            ' property int componentDesktop: ' + desktop + '}';
         var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
-        obj.x = r.x
-        obj.y = r.y
         obj.z = 2
+        obj.loading = false;
         thumbs.append({'obj': obj});
 
         var src2 = 'import QtQuick 2.0; Loader { sourceComponent: wsDropComponent; ' + 

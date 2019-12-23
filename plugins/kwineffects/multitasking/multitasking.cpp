@@ -1454,7 +1454,9 @@ void MultitaskingEffect::cleanup()
 void MultitaskingEffect::appendDesktop()
 {
     effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
-    changeCurrentDesktop(effects->numberOfDesktops());
+    QTimer::singleShot(400, [=]() {
+        changeCurrentDesktop(effects->numberOfDesktops());
+    });
 }
 
 
