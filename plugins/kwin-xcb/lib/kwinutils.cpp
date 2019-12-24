@@ -1066,10 +1066,10 @@ void KWinUtils::QuickTileWindow(uint side)
 
 void KWinUtils::ShowWorkspacesView()
 {
-    QObject *multitasking = KWin::getEffect("desktopgrid");
+    QObject *multitasking = KWin::getEffect("multitasking");
 
     if (multitasking) {
-        QMetaObject::invokeMethod(multitasking, "toggle");
+        QMetaObject::invokeMethod(multitasking, "toggleActive");
     }
 }
 
