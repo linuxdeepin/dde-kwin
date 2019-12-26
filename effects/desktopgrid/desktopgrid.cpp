@@ -706,10 +706,10 @@ void DesktopGridEffect::grabbedKeyboardEvent(QKeyEvent* e)
         switch(e->key()) {
             // Wrap only on autorepeat
         case Qt::Key_Left:
-            setHighlightedDesktop(desktopToLeft(highlightedDesktop, !e->isAutoRepeat()));
+            setHighlightedDesktop(desktopToLeft(highlightedDesktop, false));
             break;
         case Qt::Key_Right:
-            setHighlightedDesktop(desktopToRight(highlightedDesktop, !e->isAutoRepeat()));
+            setHighlightedDesktop(desktopToRight(highlightedDesktop, false));
             break;
         case Qt::Key_Up:
             setHighlightedDesktop(desktopUp(highlightedDesktop, !e->isAutoRepeat()));
