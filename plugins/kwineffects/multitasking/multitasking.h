@@ -53,8 +53,7 @@ public:
         connect(&BackgroundManager::instance(), &BackgroundManager::desktopWallpaperChanged,
             [=](int d) {
                 if (d == m_desktop) {
-                    const auto& pm = BackgroundManager::instance().getBackground(m_desktop, 0);
-                    m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
+                    m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
                     update();
                 }
             });
@@ -67,8 +66,7 @@ public:
             m_desktop = d;
 
             if (!size().isEmpty()) {
-                const auto& pm = BackgroundManager::instance().getBackground(m_desktop, 0);
-                m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
+                m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
             }
 
             emit desktopChanged(); 
@@ -138,8 +136,7 @@ public:
 protected:
     void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override {
         if (!size().isEmpty()) {
-            const auto& pm = BackgroundManager::instance().getBackground(m_desktop, 0);
-            m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
+            m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
             update();
         }
 

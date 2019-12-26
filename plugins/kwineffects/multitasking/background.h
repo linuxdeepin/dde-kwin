@@ -40,7 +40,7 @@ public:
     }
 
     // workspace id start from 1
-    QPixmap getBackground(int workspace, int monitor = 0);
+    QPixmap getBackground(int workspace, int monitor = 0, const QSize& size = QSize());
 
     Q_INVOKABLE void shuffleDefaultBackgroundURI();
     Q_INVOKABLE QString getDefaultBackgroundURI();
@@ -60,6 +60,8 @@ private:
     QString m_defaultNewDesktopURI;
     int m_desktopCount {0};
     QStringList m_cachedUris;
+
+    QHash<QString, QPair<QSize, QPixmap>> m_cachedPixmaps;
 
     explicit BackgroundManager();
 

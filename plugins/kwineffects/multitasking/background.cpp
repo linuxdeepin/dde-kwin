@@ -35,25 +35,33 @@ BackgroundManager::BackgroundManager()
     onGsettingsDDEAppearanceChanged(GsettingsBackgroundUri);
 
     connect(_gs_dde_appearance, &QGSettings::changed, this, &BackgroundManager::onGsettingsDDEAppearanceChanged);
-    // hook screen signals
 
     emit defaultBackgroundURIChanged();
 }
 
-QPixmap BackgroundManager::getBackground(int workspace, int monitor)
+QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize& size)
 {
     if (workspace <= 0) return QPixmap();
 
     QString uri = QLatin1String(fallback_background_name);
-    m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
-    const auto& uris = m_cachedUris;
-    if (workspace > uris.size()) {
-    } else {
-        uri = uris.value(workspace - 1);
+
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusReply<QString> reply = wm.call( "GetWorkspaceBackground", workspace);
+    if (!reply.value().isEmpty()) {
+        uri = reply.value();
     }
 
     if (uri.startsWith("file:///")) {
         uri.remove("file://");
+    }
+
+    if (m_cachedPixmaps.contains(uri)) {
+        auto& p = m_cachedPixmaps[uri];
+        if (p.first != size) {
+            p.first = size;
+            p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding);
+        }
+        return p.second;
     }
 
     QPixmap pm;
@@ -61,6 +69,8 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor)
         pm.load(QLatin1String(fallback_background_name));
     }
 
+    pm = pm.scaled(size, Qt::KeepAspectRatioByExpanding);
+    m_cachedPixmaps[uri] = qMakePair(size, pm);
     //qCDebug(BLUR_CAT) << "--------- " << __func__ << workspace << uri << pm.isNull();
     return pm;
 }
@@ -77,6 +87,7 @@ void BackgroundManager::onGsettingsDDEAppearanceChanged(const QString &key)
 
 void BackgroundManager::desktopAboutToRemoved(int d)
 {
+    m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
     const auto& uris = m_cachedUris;
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
@@ -90,13 +101,13 @@ void BackgroundManager::desktopAboutToRemoved(int d)
 
 void BackgroundManager::desktopSwitchedPosition(int to, int from)
 {
+    m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
     auto uris = m_cachedUris;
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
 
     int dir = from < to ? 1 : -1;
     auto n = qMin(uris.size(), m_desktopCount);
-    qCDebug(BLUR_CAT) << "---------- " << to << from << n;
     for (int i = 0; i < n; i++) {
         int d = i+1; // desktop id
         if ((dir > 0 && (d > to || d < from)) ||
@@ -106,7 +117,7 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
         int newd = d == from ? to: d-dir;
         qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << d << newd << uris[d-1];
         QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", newd, uris[d-1]);
-        m_cachedUris[newd-1] = uris[d-1];
+
         emit desktopWallpaperChanged(newd);
     }
 }
