@@ -1126,6 +1126,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
         if (!isActive()) return;
 
+        qCDebug(BLUR_CAT) << e;
         if (e->isAutoRepeat()) return;
         switch (e->key()) {
             case Qt::Key_Escape:
@@ -1225,10 +1226,14 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 }
                 break;
 
-            case Qt::Key_Tab:
+            case Qt::Key_Backtab:
                 if (e->modifiers() == Qt::ShiftModifier) {
                     selectPrevWindow();
-                } else {
+                }
+                break;
+
+            case Qt::Key_Tab:
+                if (e->modifiers() == Qt::NoModifier) {
                     selectNextWindow();
                 }
                 break;
@@ -1300,94 +1305,217 @@ void MultitaskingEffect::selectPrevGroupWindow()
 
 void MultitaskingEffect::selectPrevWindow()
 {
-    int current = effects->currentDesktop();
-    const auto& wmm = m_motionManagers[current-1];
-    if (!m_selectedWindow) {
-        selectWindow(wmm.managedWindows().first());
-    } else {
-        auto wl = wmm.managedWindows();
-        for (int i = 0; i < wl.size(); i++) {
-            if (wl[i] == m_selectedWindow) {
-                selectWindow(wl[(i-1+wl.size()) % wl.size()]);
-                break;
+    int d = effects->currentDesktop();
+    const auto& takenSlots = m_takenSlots[d];
+
+    auto current = m_selectedWindow;
+    if (!current || takenSlots.size() == 0) {
+        return;
+    }
+
+    const auto& wmm = m_motionManagers[d-1];
+    if (wmm.managedWindows().size() == 1) return;
+
+    int columns = m_gridSizes[d].columns;
+    int rows = m_gridSizes[d].rows;
+    if (takenSlots.size() != columns * rows)
+        return;
+
+    int slot = 0;
+    for (; slot < columns * rows; slot++) {
+        if (current == takenSlots[slot]) {
+            int col = slot % columns;
+            int row = slot / columns;
+
+            int max = columns * rows;
+            while (max-- > 0) {
+                if (col > 0) {
+                    col--;
+                } else if (row > 0) {
+                    row--;
+                    col = columns-1;
+                } else {
+                    row = rows-1;
+                    col = columns-1;
+                }
+
+                int nextslot = row * columns + col;
+                if (nextslot < 0 || nextslot >= takenSlots.size()) 
+                    return;
+
+                qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
+                if (takenSlots[nextslot]) {
+                    selectWindow(takenSlots[nextslot]);
+                    break;
+                }
             }
+            break;
         }
     }
 }
 
 void MultitaskingEffect::selectNextWindow()
 {
-    int current = effects->currentDesktop();
-    const auto& wmm = m_motionManagers[current-1];
-    if (!m_selectedWindow) {
-        selectWindow(wmm.managedWindows().first());
-    } else {
-        auto wl = wmm.managedWindows();
-        for (int i = 0; i < wl.size(); i++) {
-            if (wl[i] == m_selectedWindow) {
-                selectWindow(wl[(i+1) % wl.size()]);
-                break;
+    int d = effects->currentDesktop();
+    const auto& takenSlots = m_takenSlots[d];
+
+    auto current = m_selectedWindow;
+    if (!current || takenSlots.size() == 0) {
+        return;
+    }
+
+    const auto& wmm = m_motionManagers[d-1];
+    if (wmm.managedWindows().size() == 1) return;
+
+    int columns = m_gridSizes[d].columns;
+    int rows = m_gridSizes[d].rows;
+    qCDebug(BLUR_CAT) << "------- " << d << takenSlots.size() << columns*rows;
+
+    if (takenSlots.size() != columns * rows)
+        return;
+
+
+    int slot = 0;
+    for (; slot < columns * rows; slot++) {
+        if (current == takenSlots[slot]) {
+            int col = slot % columns;
+            int row = slot / columns;
+
+            int max = columns * rows;
+            while (max-- > 0) {
+                if (col + 1 < columns) {
+                    col++;
+                } else if (row + 1 < rows) {
+                    row++;
+                    col = 0;
+                } else {
+                    row = 0;
+                    col = 0;
+                }
+
+                int nextslot = row * columns + col;
+                if (nextslot < 0 || nextslot >= takenSlots.size()) 
+                    return;
+
+                qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
+                if (takenSlots[nextslot]) {
+                    selectWindow(takenSlots[nextslot]);
+                    break;
+                }
             }
+            break;
         }
     }
 }
 
 void MultitaskingEffect::selectFirstWindow()
 {
-    if (m_takenSlots.size() == 0) {
+    int d = effects->currentDesktop();
+    const auto& takenSlots = m_takenSlots[d];
+
+    if (takenSlots.size() == 0) {
         return;
     }
 
-    int columns = m_gridSizes[0].columns;
-    int rows = m_gridSizes[0].rows;
-    if (m_takenSlots.size() != columns * rows)
+    int columns = m_gridSizes[d].columns;
+    int rows = m_gridSizes[d].rows;
+    if (takenSlots.size() != columns * rows)
         return;
 
-    if (m_takenSlots.first())
-        selectWindow(m_takenSlots.first());
+    int row = 0;
+    int col = 0;
+    int max = columns * rows;
+    while (max-- > 0) {
+        int nextslot = row * columns + col;
+        if (nextslot < 0 || nextslot >= takenSlots.size()) 
+            return;
+
+        if (takenSlots[nextslot]) {
+            selectWindow(takenSlots[nextslot]);
+            break;
+        }
+
+        if (col + 1 < columns) {
+            col++;
+        } else if (row + 1 < rows) {
+            row++;
+            col = 0;
+        } else {
+            row = 0;
+            col = 0;
+        }
+    }
 }
 
 void MultitaskingEffect::selectLastWindow()
 {
-    if (m_takenSlots.size() == 0) {
+    int d = effects->currentDesktop();
+    const auto& takenSlots = m_takenSlots[d];
+
+    if (takenSlots.size() == 0) {
         return;
     }
 
-    int columns = m_gridSizes[0].columns;
-    int rows = m_gridSizes[0].rows;
-    if (m_takenSlots.size() != columns * rows)
+    int columns = m_gridSizes[d].columns;
+    int rows = m_gridSizes[d].rows;
+    if (takenSlots.size() != columns * rows)
         return;
 
-    if (m_takenSlots.last())
-        selectWindow(m_takenSlots.last());
+    int row = rows-1;
+    int col = columns-1;
+    int max = columns * rows;
+    while (max-- > 0) {
+        int nextslot = row * columns + col;
+        if (nextslot < 0 || nextslot >= takenSlots.size()) 
+            return;
+
+        qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
+        if (takenSlots[nextslot]) {
+            selectWindow(takenSlots[nextslot]);
+            break;
+        }
+
+        if (col > 0) {
+            col--;
+        } else if (row > 0) {
+            row--;
+            col = columns-1;
+        } else {
+            row = rows-1;
+            col = columns-1;
+        }
+    }
 }
 
 void MultitaskingEffect::selectNextWindowVert(int dir)
 {
+    int d = effects->currentDesktop();
+    const auto& takenSlots = m_takenSlots[d];
+
     auto current = m_selectedWindow;
-    if (!current || m_takenSlots.size() == 0) {
+    if (!current || takenSlots.size() == 0) {
         return;
     }
 
-    int columns = m_gridSizes[0].columns;
-    int rows = m_gridSizes[0].rows;
-    if (m_takenSlots.size() != columns * rows)
+    int columns = m_gridSizes[d].columns;
+    int rows = m_gridSizes[d].rows;
+    if (takenSlots.size() != columns * rows)
         return;
 
     int slot = 0;
     for (; slot < columns * rows; slot++) {
-        if (current == m_takenSlots[slot]) {
+        if (current == takenSlots[slot]) {
             int col = slot % columns;
             int row = slot / columns;
 
             int nextrow = row + dir;
             int nextslot = nextrow * columns + col;
-            if (nextrow < 0 || nextslot < 0 || nextslot >= m_takenSlots.size()) 
+            if (nextrow < 0 || nextslot < 0 || nextslot >= takenSlots.size()) 
                 return;
 
             qCDebug(BLUR_CAT) << "---------- next " << nextrow << col << nextslot;
-            if (m_takenSlots[nextslot])
-                selectWindow(m_takenSlots[nextslot]);
+            if (takenSlots[nextslot])
+                selectWindow(takenSlots[nextslot]);
             break;
         }
     }
@@ -1624,9 +1752,6 @@ void MultitaskingEffect::remanageAll()
 void MultitaskingEffect::clearGrids()
 {
     m_gridSizes.clear();
-    for (int i = 0; i < effects->numScreens(); ++i) {
-        m_gridSizes.append(GridSize());
-    }
 }
 
 void MultitaskingEffect::setActive(bool active)
@@ -1738,8 +1863,6 @@ void MultitaskingEffect::calculateWindowTransformations(EffectWindowList windows
     if (windows.size() == 0)
         return;
 
-    //NOTE: this is good
-    clearGrids();
     calculateWindowTransformationsClosest(windows, 0, wmm);
     //calculateWindowTransformationsNatural(windows, 0, wmm);
 }
@@ -2028,12 +2151,10 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
     int columns = int(ceil(sqrt(double(windowlist.count()))));
     int rows = int(ceil(windowlist.count() / double(columns)));
 
-    // Remember the size for later
-    // If we are using this layout externally we don't need to remember m_gridSizes.
-    if (m_gridSizes.size() != 0) {
-        m_gridSizes[screen].columns = columns;
-        m_gridSizes[screen].rows = rows;
-    }
+    int desktop = windowlist[0]->desktop();
+    qCDebug(BLUR_CAT) << "------- calc " << desktop << columns << rows;
+    m_gridSizes[desktop].columns = columns;
+    m_gridSizes[desktop].rows = rows;
 
     // Assign slots
     int slotWidth = area.width() / columns;
@@ -2077,7 +2198,7 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
         takenSlots[slotCandidate] = w; // ...and we rumble in =)
     }
 
-    m_takenSlots = takenSlots;
+    m_takenSlots[desktop] = takenSlots;
     for (int slot = 0; slot < columns*rows; ++slot) {
         EffectWindow *w = takenSlots[slot];
         if (!w) // some slots might be empty

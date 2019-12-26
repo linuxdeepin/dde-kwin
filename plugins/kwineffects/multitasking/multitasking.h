@@ -335,8 +335,8 @@ private:
     };
     typedef QHash<EffectWindow*, WindowData> DataHash;
     struct GridSize {
-        int columns;
-        int rows;
+        int columns {0};
+        int rows {0};
     };
 
 
@@ -410,8 +410,9 @@ private:
     EffectFrame* m_highlightFrame {nullptr};
 
     // Grid layout info
-    QList<GridSize> m_gridSizes;
-    QVector<EffectWindow*> m_takenSlots;
+    QHash<int, GridSize> m_gridSizes;
+    // <desktop id -> windows>
+    QHash<int, QVector<EffectWindow*>> m_takenSlots;
 
     long m_gtkFrameExtentsAtom {0};
 
