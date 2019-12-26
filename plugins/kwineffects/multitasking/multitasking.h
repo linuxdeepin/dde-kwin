@@ -36,8 +36,7 @@
 #include <KF5/KWindowSystem/KWindowSystem>
 
 #include "background.h"
-
-Q_DECLARE_LOGGING_CATEGORY(KWIN_BLUR)
+#include "constants.h"
 
 using namespace KWin;
 
@@ -50,17 +49,28 @@ class DesktopThumbnail: public QQuickPaintedItem
 public:
     DesktopThumbnail(QQuickItem* parent = 0): QQuickPaintedItem(parent) {
         setRenderTarget(QQuickPaintedItem::FramebufferObject);
+
+        connect(&BackgroundManager::instance(), &BackgroundManager::desktopWallpaperChanged,
+            [=](int d) {
+                if (d == m_desktop) {
+                    const auto& pm = BackgroundManager::instance().getBackground(m_desktop, 0);
+                    m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
+                    update();
+                }
+            });
     }
 
     int desktop() const { return m_desktop; }
     void setDesktop(int d) { 
         if (m_desktop != d) {
+            qCDebug(BLUR_CAT) << "[dm]: desktop changed from " << m_desktop << "->" << d;
             m_desktop = d;
 
             if (!size().isEmpty()) {
                 const auto& pm = BackgroundManager::instance().getBackground(m_desktop, 0);
                 m_bg = pm.scaled(size().toSize(), Qt::KeepAspectRatioByExpanding);
             }
+
             emit desktopChanged(); 
 
             update();

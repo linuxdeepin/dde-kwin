@@ -21,8 +21,6 @@
 
 #include <QtCore>
 
-
-#include "constants.h"
 #include "multitasking.h"
 #include <QtGui>
 #include <QMetaObject>
@@ -285,6 +283,8 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::numberScreensChanged, this, &MultitaskingEffect::onNumberScreensChanged);
     connect(effects, &EffectsHandler::virtualScreenGeometryChanged, this, &MultitaskingEffect::onScreenSizeChanged);
     connect(effects, &EffectsHandler::propertyNotify, this, &MultitaskingEffect::onPropertyNotify);
+
+    BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
@@ -1524,6 +1524,8 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
         qCDebug(BLUR_CAT) << "     ---- move" << ew << "from" << dl[0] << "to" << newd;
         effects->windowToDesktops(ew, desks);
     }
+
+    BackgroundManager::instance().desktopSwitchedPosition(to, from);
 
     remanageAll();
 

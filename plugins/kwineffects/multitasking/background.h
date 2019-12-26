@@ -48,15 +48,18 @@ public:
 public slots:
     // respond to desktop removal, and shift wallpapers accordingly
     void desktopAboutToRemoved(int d);
+    void desktopSwitchedPosition(int to, int from);
 
 signals:
     void defaultBackgroundURIChanged();
     void wallpapersChanged();
+    void desktopWallpaperChanged(int d);
 
 private:
     QStringList m_preinstalledWallpapers;
     QString m_defaultNewDesktopURI;
     int m_desktopCount {0};
+    QStringList m_cachedUris;
 
     explicit BackgroundManager();
 

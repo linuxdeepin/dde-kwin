@@ -24,6 +24,7 @@
 #define _DEEPIN_CONSTANTS_H 
 
 #include <QEasingCurve>
+#include <QtCore>
 
 namespace Constants {
     const QEasingCurve TOGGLE_MODE =  QEasingCurve::OutQuint;// AnimationMode.EASE_OUT_QUINT;
@@ -70,5 +71,8 @@ namespace Constants {
 
     static const float HIGHLIGHT_SCALE = 1.05f;
 }
+
+Q_DECLARE_LOGGING_CATEGORY(BLUR_CAT)
+
 
 #endif

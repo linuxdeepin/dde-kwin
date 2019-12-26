@@ -1,4 +1,5 @@
 #include "background.h"
+#include "constants.h"
 
 #include <QtDBus>
 #include <QGSettings>
@@ -31,6 +32,7 @@ BackgroundManager::BackgroundManager()
     :QObject()
 {
     m_defaultNewDesktopURI = QLatin1String(fallback_background_name);
+    onGsettingsDDEAppearanceChanged(GsettingsBackgroundUri);
 
     connect(_gs_dde_appearance, &QGSettings::changed, this, &BackgroundManager::onGsettingsDDEAppearanceChanged);
     // hook screen signals
@@ -43,9 +45,9 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor)
     if (workspace <= 0) return QPixmap();
 
     QString uri = QLatin1String(fallback_background_name);
-    auto uris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
+    m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
+    const auto& uris = m_cachedUris;
     if (workspace > uris.size()) {
-        //TODO:
     } else {
         uri = uris.value(workspace - 1);
     }
@@ -59,30 +61,54 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor)
         pm.load(QLatin1String(fallback_background_name));
     }
 
-    //qDebug() << "--------- " << __func__ << workspace << uri << pm.isNull();
+    //qCDebug(BLUR_CAT) << "--------- " << __func__ << workspace << uri << pm.isNull();
     return pm;
 }
 
 void BackgroundManager::onGsettingsDDEAppearanceChanged(const QString &key)
 {
-    qDebug() << "---------- " << __func__ << key;
+    //FIXME: no signal received sometimes during append desktop, why?
+    qCDebug(BLUR_CAT) << "---------- " << __func__ << key;
     if (key == GsettingsBackgroundUri) {
+        m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
         emit wallpapersChanged();
     }
 }
 
 void BackgroundManager::desktopAboutToRemoved(int d)
 {
-    auto uris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
+    const auto& uris = m_cachedUris;
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
 
     auto n = qMin(uris.size(), m_desktopCount);
     for (int i = d; i < n; i++) {
-        qDebug() << "-------- dbus SetWorkspaceBackground" << i << uris[i];
+        qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << i << uris[i];
         QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", i, uris[i]);
     }
+}
 
+void BackgroundManager::desktopSwitchedPosition(int to, int from)
+{
+    auto uris = m_cachedUris;
+
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+
+    int dir = from < to ? 1 : -1;
+    auto n = qMin(uris.size(), m_desktopCount);
+    qCDebug(BLUR_CAT) << "---------- " << to << from << n;
+    for (int i = 0; i < n; i++) {
+        int d = i+1; // desktop id
+        if ((dir > 0 && (d > to || d < from)) ||
+                (dir < 0 && (d < to || d > from)))
+            continue;
+
+        int newd = d == from ? to: d-dir;
+        qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << d << newd << uris[d-1];
+        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", newd, uris[d-1]);
+        m_cachedUris[newd-1] = uris[d-1];
+        emit desktopWallpaperChanged(newd);
+    }
 }
 
 QString BackgroundManager::getDefaultBackgroundURI()
@@ -107,8 +133,6 @@ void BackgroundManager::shuffleDefaultBackgroundURI()
                 }
                 ++p;
             }
-
-            //qDebug() << m_preinstalledWallpapers;
         }
     }
 
