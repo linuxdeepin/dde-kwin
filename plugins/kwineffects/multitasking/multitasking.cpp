@@ -1590,12 +1590,13 @@ void MultitaskingEffect::changeCurrentDesktop(int d)
     }
 
     m_targetDesktop = d;
-    effects->setCurrentDesktop(d);
-    //TODO: update 
-
-    if (m_activated) {
-        effects->addRepaintFull();
+    if (effects->currentDesktop() != m_targetDesktop) {
+        effects->setCurrentDesktop(d);
+        if (m_activated) {
+            effects->addRepaintFull();
+        }
     }
+
 }
 
 void MultitaskingEffect::remanageAll()
@@ -1633,6 +1634,11 @@ void MultitaskingEffect::setActive(bool active)
 
     if (m_activated == active)
         return;
+
+    if (!m_activated && m_toggleTimeline.currentValue() != 0) {
+        // closing animation is still in effect
+        return;
+    }
 
     m_activated = active;
 
