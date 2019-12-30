@@ -1066,7 +1066,7 @@ void KWinUtils::QuickTileWindow(uint side)
 
 void KWinUtils::ShowWorkspacesView()
 {
-    QObject *multitasking = KWin::getEffect("multitasking");
+    QObject *multitasking = KWin::getEffect("com.deepin.multitasking");
 
     if (multitasking) {
         QMetaObject::invokeMethod(multitasking, "toggleActive");
