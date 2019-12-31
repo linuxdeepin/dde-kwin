@@ -39,6 +39,18 @@ BackgroundManager::BackgroundManager()
     emit defaultBackgroundURIChanged();
 }
 
+static QString toRealPath(const QString& path)
+{
+    QString res = path;
+
+    QFileInfo fi(res);
+    if (fi.isSymLink()) {
+        res = fi.symLinkTarget();
+    }
+
+    return res;
+}
+
 QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize& size)
 {
     QString uri = QLatin1String(fallback_background_name);
@@ -58,6 +70,8 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
         uri.remove("file://");
     }
 
+    uri = toRealPath(uri);
+
     if (m_cachedPixmaps.contains(uri)) {
         auto& p = m_cachedPixmaps[uri];
         if (p.first != size) {
@@ -69,7 +83,7 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
 
     QPixmap pm;
     if (!pm.load(uri)) {
-        uri = QString::fromUtf8(fallback_background_name).remove("file://");
+        uri = toRealPath(QString::fromUtf8(fallback_background_name).remove("file://"));
         pm.load(uri);
     }
 
