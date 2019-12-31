@@ -506,7 +506,7 @@ Rectangle {
                 color: 'transparent'
 
                 Text {
-                    text: "Drag upwards to remove"
+                    text: qsTr("Drag upwards to remove")
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: parent.height * 0.572
 

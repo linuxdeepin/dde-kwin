@@ -47,6 +47,13 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
 
+    QString qm = QString(":/translations/multitasking_%1.qm").arg(QLocale::system().name());
+    auto tran = new QTranslator(this);
+    if (tran->load(qm)) {
+        qApp->installTranslator(tran);
+    } else {
+        qCDebug(BLUR_CAT) << "load " << qm << "failed";
+    }
 
     m_view = new QQuickWidget(this);
     m_view->setGeometry(0, 0, width(), height());
@@ -690,6 +697,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
     }
 
     if (w == m_thumbManager->effectWindow()) {
+        mask &= ~PAINT_WINDOW_LANCZOS;
         auto ew = m_thumbManager->effectWindow();
         WindowPaintData d = data;
 

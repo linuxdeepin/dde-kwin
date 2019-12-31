@@ -6,14 +6,23 @@ find_package(KF5Config REQUIRED)
 find_package(KF5GlobalAccel REQUIRED)
 find_package(KF5I18n REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(Qt5LinguistTools REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 
+set(SRCS multitasking.cpp background.cpp factory.cpp thumbmanager.qml)
+
+# translations
+file(GLOB TS LIST_DIRECTORIES false translations/${PLUGIN_NAME}*.ts)
+set_source_files_properties(${TS}
+    PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/translations)
+
+qt5_create_translation(QM ${SRCS} ${TS})
+
 add_library(
     ${PLUGIN_NAME} MODULE
-    multitasking.cpp
-    background.cpp
-    factory.cpp
+    ${SRCS}
+    ${QM}
     data.qrc
 )
 
