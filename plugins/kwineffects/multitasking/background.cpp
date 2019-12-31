@@ -41,9 +41,12 @@ BackgroundManager::BackgroundManager()
 
 QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize& size)
 {
-    if (workspace <= 0) return QPixmap();
-
     QString uri = QLatin1String(fallback_background_name);
+
+    if (workspace <= 0) {
+        //fallback to first workspace
+        workspace = 1;
+    }
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
     QDBusReply<QString> reply = wm.call( "GetWorkspaceBackground", workspace);
@@ -66,7 +69,8 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
 
     QPixmap pm;
     if (!pm.load(uri)) {
-        pm.load(QLatin1String(fallback_background_name));
+        uri = QString::fromUtf8(fallback_background_name).remove("file://");
+        pm.load(uri);
     }
 
     pm = pm.scaled(size, Qt::KeepAspectRatioByExpanding);
