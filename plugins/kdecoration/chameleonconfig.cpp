@@ -242,6 +242,12 @@ void ChameleonConfig::onWindowPropertyChanged(quint32 windowId, quint32 atom)
         if (!client)
             return;
 
+        //NOTE: if a pending window type change, we ignore the next request
+        // (meaning multiple consective window type events)
+        if (m_pendingWindows.find(client) != m_pendingWindows.end()) {
+            return;
+        }
+
         m_pendingWindows.insert(client, windowId);
         emit windowTypeChanged(client);
 
