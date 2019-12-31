@@ -726,6 +726,9 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
             effects->paintWindow(w, mask, area, d);
 
         } else if (!w->isDesktop()) {
+            //NOTE: add lanczos will make partial visible window be rendered completely,
+            //but slow down the animation
+            //mask |= PAINT_WINDOW_LANCZOS;
             auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
 
             if (m_selectedWindow == w) {
@@ -1730,6 +1733,9 @@ void MultitaskingEffect::changeCurrentDesktop(int d)
     if (m_targetDesktop == d) {
         return;
     }
+
+    updateHighlightWindow(nullptr);
+    selectWindow(nullptr);
 
     m_targetDesktop = d;
     if (effects->currentDesktop() != m_targetDesktop) {
