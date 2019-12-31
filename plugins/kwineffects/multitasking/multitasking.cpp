@@ -677,10 +677,14 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 {
     data.mask |= PAINT_WINDOW_TRANSFORMED;
 
+    if (m_activated) {
+        w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
+    }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
     if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w)) 
             && (w != m_thumbManager->effectWindow())) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
+        w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
     }
 
     effects->prePaintWindow(w, data, time);
