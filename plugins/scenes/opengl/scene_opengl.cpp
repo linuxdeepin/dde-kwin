@@ -818,8 +818,14 @@ SceneOpenGLTexture *SceneOpenGL::createTexture()
 }
 
 bool SceneOpenGL::viewportLimitsMatched(const QSize &size) const {
-    GLint limit[2] = {size.width(), size.height()};
+    GLint limit[2] = {0, 0};
     glGetIntegerv(GL_MAX_VIEWPORT_DIMS, limit);
+
+    if (!limit[0] || !limit[1]) {
+        qWarning() << Q_FUNC_INFO << "Failed on get the GL_MAX_VIEWPORT_DIMS";
+        return true;
+    }
+
     if (limit[0] < size.width() || limit[1] < size.height()) {
         QMetaObject::invokeMethod(Compositor::self(), "suspend",
                                   Qt::QueuedConnection, Q_ARG(Compositor::SuspendReason, Compositor::AllReasonSuspend));
@@ -836,6 +842,8 @@ void SceneOpenGL::screenGeometryChanged(const QSize &size)
     glViewport(0,0, size.width(), size.height());
     m_backend->screenGeometryChanged(size);
     GLRenderTarget::setVirtualScreenSize(size);
+
+    qDebug() << Q_FUNC_INFO << "size:" << size;
 }
 
 void SceneOpenGL::paintDesktop(int desktop, int mask, const QRegion &region, ScreenPaintData &data)

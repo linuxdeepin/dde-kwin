@@ -109,6 +109,10 @@ void EglX11Backend::setupViewport(int screenId)
 
     qreal scale = screens()->scale(screenId);
     glViewport(-v.x(), v.height() - overall.height() + v.y(), overall.width() * scale, overall.height() * scale);
+
+    qInfo() << Q_FUNC_INFO << "width:" << overall.width() * scale
+            << "height:" << overall.height() * scale
+            << "scale:" << scale;
 }
 
 void EglX11Backend::endRenderingFrameForScreen(int screenId, const QRegion &renderedRegion, const QRegion &damagedRegion)

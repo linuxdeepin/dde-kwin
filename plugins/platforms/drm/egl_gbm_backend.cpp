@@ -240,6 +240,11 @@ bool EglGbmBackend::makeContextCurrent(const Output &output)
 
     glViewport(-v.x() * scale, (v.height() - overall.height() + v.y()) * scale,
                overall.width() * scale, overall.height() * scale);
+
+    qInfo() << Q_FUNC_INFO << "width:" << overall.width() * scale
+            << "height:" << overall.height() * scale
+            << "scale:" << scale;
+
     return true;
 }
 
