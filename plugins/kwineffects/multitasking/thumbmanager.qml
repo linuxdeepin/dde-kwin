@@ -554,9 +554,9 @@ Rectangle {
 
         x: 3000
         y: 0
-        width: 120
-        height: 120
-        radius: 30
+        width: parent.height/2
+        height: parent.height/2
+        radius: width > 120 ? 30: 15
 
         Connections {
             target: root

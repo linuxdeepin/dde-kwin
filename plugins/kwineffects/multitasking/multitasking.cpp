@@ -175,8 +175,16 @@ QSize DesktopThumbnailManager::calculateThumbDesktopSize() const
         //TODO: should be primary screen
         auto area = m_handler->clientArea(ScreenArea, 0, 0);
 
-        m_wsThumbSize = QSize(area.width() * Constants::WORKSPACE_WIDTH_PERCENT, 
-                area.height() * Constants::WORKSPACE_WIDTH_PERCENT); 
+        auto h = area.height() * Constants::WORKSPACE_WIDTH_PERCENT;
+        auto w = area.width() * Constants::WORKSPACE_WIDTH_PERCENT;
+        if (h + 80 >= height()) {
+            h = height() - 40;
+            w = h * area.width() / area.height();
+
+            qCDebug(BLUR_CAT) << "scale down thumb size";
+        }
+
+        m_wsThumbSize = QSize(w, h);
     }
     return m_wsThumbSize;
 }
@@ -189,9 +197,11 @@ QRect DesktopThumbnailManager::calculateDesktopThumbRect(int index)
     auto area = m_handler->clientArea(ScreenArea, 0, 0);
     float space = area.width() * Constants::SPACING_PERCENT;
 
+    auto offset_y = (height() - r.height())/2;
+
     auto count = m_handler->numberOfDesktops();
     float offset_x = (area.width() - (r.width() + space) * count + space) / 2.0;
-    r.moveTo((r.width() + space) * index + offset_x, 40);
+    r.moveTo((r.width() + space) * index + offset_x, offset_y);
     return r;
 }
 
