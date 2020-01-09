@@ -1016,21 +1016,23 @@ void ScreenEdges::recreateEdges()
         const QRegion screen = QRegion(screens()->geometry(i)).subtracted(processedRegion);
         processedRegion += screen;
         Q_FOREACH (const QRect &screenPart, screen.rects()) {
-            if (isLeftScreen(screenPart, fullArea)) {
-                // left most screen
-                createVerticalEdge(ElectricLeft, screenPart, fullArea);
-            }
-            if (isRightScreen(screenPart, fullArea)) {
-                // right most screen
-                createVerticalEdge(ElectricRight, screenPart, fullArea);
-            }
-            if (isTopScreen(screenPart, fullArea)) {
-                // top most screen
-                createHorizontalEdge(ElectricTop, screenPart, fullArea);
-            }
-            if (isBottomScreen(screenPart, fullArea)) {
-                // bottom most screen
-                createHorizontalEdge(ElectricBottom, screenPart, fullArea);
+            if (!m_deepinDisableScreenEdges) {
+                if (isLeftScreen(screenPart, fullArea)) {
+                    // left most screen
+                    createVerticalEdge(ElectricLeft, screenPart, fullArea);
+                }
+                if (isRightScreen(screenPart, fullArea)) {
+                    // right most screen
+                    createVerticalEdge(ElectricRight, screenPart, fullArea);
+                }
+                if (isTopScreen(screenPart, fullArea)) {
+                    // top most screen
+                    createHorizontalEdge(ElectricTop, screenPart, fullArea);
+                }
+                if (isBottomScreen(screenPart, fullArea)) {
+                    // bottom most screen
+                    createHorizontalEdge(ElectricBottom, screenPart, fullArea);
+                }
             }
         }
     }
