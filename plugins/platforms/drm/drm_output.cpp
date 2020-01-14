@@ -108,6 +108,7 @@ bool DrmOutput::hideCursor()
 
 bool DrmOutput::showCursor(DrmDumbBuffer *c)
 {
+    if (!c) return false;
     const QSize &s = c->size();
     return drmModeSetCursor(m_backend->fd(), m_crtc->id(), c->handle(), s.width(), s.height()) == 0;
 }
@@ -135,6 +136,8 @@ void DrmOutput::updateCursor()
     }
     m_hasNewCursor = true;
     QImage *c = m_cursor[m_cursorIndex]->image();
+    if (!c) return;
+
     c->fill(Qt::transparent);
     c->setDevicePixelRatio(scale());
 
@@ -913,6 +916,7 @@ bool DrmOutput::presentAtomically(DrmBuffer *buffer)
         }
         return false;
     }
+
     const bool wasModeset = m_modesetRequested;
     if (!doAtomicCommit(AtomicCommitMode::Real)) {
         qCDebug(KWIN_DRM) << "Atomic commit failed. This should have never happened! Aborting present.";
