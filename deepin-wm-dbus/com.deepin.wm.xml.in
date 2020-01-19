@@ -1,6 +1,7 @@
 <interface name="com.deepin.wm">
     <property name="compositingEnabled" type="b" access="readwrite"/>
     <property name="compositingPossible" type="b" access="read"/>
+    <property name="compositingAllowSwitch" type="b" access="read"/>
     <property name="zoneEnabled" type="b" access="readwrite"/>
     <property name="cursorTheme" type="s" access="readwrite"/>
     <property name="cursorSize" type="i" access="readwrite"/>

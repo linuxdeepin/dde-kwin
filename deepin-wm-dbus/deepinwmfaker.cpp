@@ -190,6 +190,14 @@ bool DeepinWMFaker::compositingPossible() const
     return QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface).property("compositingPossible").toBool();
 }
 
+bool DeepinWMFaker::compositingAllowSwitch() const
+{
+    if (qgetenv("KWIN_COMPOSE").startsWith("N"))
+        return false;
+
+    return m_kwinConfig->group("Compositing").readEntry("AllowSwitch", true);
+}
+
 bool DeepinWMFaker::zoneEnabled() const
 {
     bool enable_closewindow = m_kwinCloseWindowGroup->readEntry("Enabled", QVariant(true)).toBool();
@@ -673,7 +681,7 @@ void DeepinWMFaker::SetDecorationDeepinTheme(const QString &name)
 
 void DeepinWMFaker::setCompositingEnabled(bool on)
 {
-    if (!m_kwinConfig->group("Compositing").readEntry("AllowSwitch", true)) {
+    if (!compositingAllowSwitch()) {
         return;
     }
 
