@@ -199,7 +199,9 @@ void KeyboardInputRedirection::update()
             }
         }
     } else {
-        seat->setFocusedKeyboardSurface(nullptr);
+        //NOTE(sonald): clear focus will make qt app lost input, this may be a bug of Qt itself
+        //need to fix it later
+        //seat->setFocusedKeyboardSurface(nullptr);
     }
 }
 
