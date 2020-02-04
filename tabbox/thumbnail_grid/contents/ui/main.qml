@@ -15,7 +15,8 @@ KWin.Switcher {
     Window {
         id: dialog
         visible: tabBox.visible
-        flags: Qt.X11BypassWindowManagerHint
+        // FramelessWindowHint is needed under wayland platform
+        flags: Qt.BypassWindowManagerHint | Qt.FramelessWindowHint
         color: "transparent"
 
         //NOTE: this is the *current* screen, not the *primary* screen
@@ -25,14 +26,16 @@ KWin.Switcher {
         onVisibleChanged: {
             if (visible) {
                 dialogMainItem.calculateColumnCount();
-                dialogMainItem.composited = dde.kwinUtils.isCompositing();
+                if (typeof(dde) != 'undefined') {
+                    dialogMainItem.composited = dde.kwinUtils.isCompositing();
+                }
             } else {
                 itemsView.highCount = 0;
             }
         }
 
         Component.onCompleted: {
-            if (dde) {
+            if (typeof(dde) != 'undefined') {
                 dde.enableDxcb(dialogMainItem)
             }
         }
