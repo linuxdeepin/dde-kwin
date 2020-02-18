@@ -225,9 +225,7 @@ Decoration {
 
             Item {
                 id: titleRow
-                //FIXME(sonald): implicitHeight returns with a huge wrong height, need to know why
-                // property real captionHeight: caption.implicitHeight + 4
-                property real captionHeight: 34
+                property real captionHeight: caption.implicitHeight + 4
                 property int topMargin: 3
                 property int bottomMargin: 1
                 property real normalHeight: captionHeight + bottomMargin + topMargin
