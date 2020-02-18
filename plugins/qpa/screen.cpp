@@ -53,7 +53,16 @@ QRect Screen::geometry() const
 
 QSizeF Screen::physicalSize() const
 {
-    return m_screen != -1 ? screens()->physicalSize(m_screen) : QPlatformScreen::physicalSize();
+    QSizeF ps;
+    if (m_screen != -1) {
+        ps = screens()->physicalSize(m_screen);
+    }
+
+    if (ps.isEmpty()) {
+        ps = QPlatformScreen::physicalSize();
+    }
+
+    return ps;
 }
 
 QPlatformCursor *Screen::cursor() const
@@ -64,6 +73,7 @@ QPlatformCursor *Screen::cursor() const
 QDpi Screen::logicalDpi() const
 {
     static int force_dpi = qEnvironmentVariableIsSet("QT_WAYLAND_FORCE_DPI") ? qEnvironmentVariableIntValue("QT_WAYLAND_FORCE_DPI") : -1;
+
     if (force_dpi > 0) {
         return QDpi(force_dpi, force_dpi);
     }
