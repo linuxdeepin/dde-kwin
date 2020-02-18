@@ -2337,8 +2337,14 @@ void InputDeviceHandler::update()
             toplevel = input()->findToplevel(pos);
         }
     }
+
     // Always set the toplevel at the position of the input device.
     setAt(toplevel);
+
+    // It's possible that when pointer is over a newly created toplevel and
+    // surface may not be valid at that time, change focus to it will be
+    // wrong. we should wait until the surface is ready.
+    if (toplevel && !toplevel->surface()) return;
 
     if (focusUpdatesBlocked()) {
         return;
