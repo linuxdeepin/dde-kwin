@@ -150,6 +150,7 @@ void X11StandalonePlatform::createPlatformCursor(QObject *parent)
         xkb->reconfigure();
     }
 #endif
+    setSoftWareCursor(false);
 }
 
 bool X11StandalonePlatform::requiresCompositing() const

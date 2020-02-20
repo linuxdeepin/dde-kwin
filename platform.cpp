@@ -41,7 +41,6 @@ Platform::Platform(QObject *parent)
     : QObject(parent)
     , m_eglDisplay(EGL_NO_DISPLAY)
 {
-    setSoftWareCursor(false);
      m_colorCorrect = new ColorCorrect::Manager(this);
 }
 
@@ -115,6 +114,7 @@ Edge *Platform::createScreenEdge(ScreenEdges *edges)
 void Platform::createPlatformCursor(QObject *parent)
 {
     new InputRedirectionCursor(parent);
+    setSoftWareCursor(false);
 }
 
 void Platform::configurationChangeRequested(KWayland::Server::OutputConfigurationInterface *config)
@@ -134,11 +134,13 @@ void Platform::setSoftWareCursor(bool set)
     }
     m_softWareCursor = set;
     if (m_softWareCursor) {
+        Cursor::self()->startCursorTracking();
         connect(Cursor::self(), &Cursor::posChanged, this, &Platform::triggerCursorRepaint);
         connect(this, &Platform::cursorChanged, this, &Platform::triggerCursorRepaint);
     } else {
         disconnect(Cursor::self(), &Cursor::posChanged, this, &Platform::triggerCursorRepaint);
         disconnect(this, &Platform::cursorChanged, this, &Platform::triggerCursorRepaint);
+        Cursor::self()->stopCursorTracking();
     }
 }
 
