@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "drm_object_plane.h"
 #include "drm_object_crtc.h"
 #include "drm_object_connector.h"
+/*
+ * generated from mutter's gen-default-modes.py
+ */
+#include "drm_default_modes.h"
 
 #include <errno.h>
 
@@ -49,7 +53,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace KWin
 {
-
 DrmOutput::DrmOutput(DrmBackend *backend)
     : AbstractOutput(backend)
     , m_backend(backend)
@@ -218,6 +221,7 @@ bool DrmOutput::init(drmModeConnector *connector)
 {
     initEdid(connector);
     initDpms(connector);
+    initScaling(connector);
     initUuid();
     if (m_backend->atomicModeSetting()) {
         if (!initPrimaryPlane()) {
@@ -227,7 +231,9 @@ bool DrmOutput::init(drmModeConnector *connector)
         return false;
     }
 
-    setInternal(connector->connector_type == DRM_MODE_CONNECTOR_LVDS || connector->connector_type == DRM_MODE_CONNECTOR_eDP);
+    setInternal(connector->connector_type == DRM_MODE_CONNECTOR_LVDS
+            || connector->connector_type == DRM_MODE_CONNECTOR_eDP
+            || connector->connector_type == DRM_MODE_CONNECTOR_DSI);
     setDpmsSupported(true);
 
     if (internal()) {
@@ -313,6 +319,47 @@ void DrmOutput::initOutputDevice(drmModeConnector *connector)
         mode.flags = deviceflags;
         mode.refreshRate = refreshRateForMode(m);
         modes << mode;
+    }
+
+    // if hardware support upscaling and internal panel only presents one physical mode,
+    // we extend the list with some default modes
+    if (isInternal() && modes.size() == 1 && m_scalingCapable) {
+        auto& default_mode = modes[0];
+        if (!(default_mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred)) {
+            default_mode.flags = KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred;
+        }
+        bool landscape = default_mode.size.width() > default_mode.size.height();
+        const drmModeModeInfo* drm_modes;
+        if (landscape) {
+            drm_modes = &s_default_landscape_drm_mode_infos[0];
+        } else {
+            drm_modes = &s_default_portrait_drm_mode_infos[0];
+        }
+        int sz = sizeof(s_default_landscape_drm_mode_infos)/sizeof(drm_modes[0]);
+
+        int modeid = 1;
+        for (int i = 0; i < sz; ++i) {
+            auto drm_mode = drm_modes[i];
+            if (drm_modes[i].hdisplay > default_mode.size.width() ||
+                    drm_modes[i].vdisplay > default_mode.size.height() ||
+                    refreshRateForMode(const_cast<drmModeModeInfo*>(drm_modes+i)) > default_mode.refreshRate)
+                continue;
+
+            KWayland::Server::OutputDeviceInterface::ModeFlags deviceflags;
+            if (isCurrentMode(&drm_mode)) {
+                deviceflags |= KWayland::Server::OutputDeviceInterface::ModeFlag::Current;
+            }
+            if (drm_mode.type & DRM_MODE_TYPE_PREFERRED) {
+                deviceflags |= KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred;
+            }
+
+            KWayland::Server::OutputDeviceInterface::Mode mode;
+            mode.id = modeid++;
+            mode.size = QSize(drm_mode.hdisplay, drm_mode.vdisplay);
+            mode.flags = deviceflags;
+            mode.refreshRate = refreshRateForMode(&drm_mode);
+            modes << mode;
+        }
     }
 
     AbstractOutput::initWaylandOutputDevice(model, manufacturer, m_uuid, modes);
@@ -580,6 +627,21 @@ void DrmOutput::initDpms(drmModeConnector *connector)
     }
 }
 
+void DrmOutput::initScaling(drmModeConnector *connector)
+{
+    for (int i = 0; i < connector->count_props; ++i) {
+        ScopedDrmPointer<_drmModeProperty, &drmModeFreeProperty> property(drmModeGetProperty(m_backend->fd(), connector->props[i]));
+        if (!property) {
+            continue;
+        }
+        if (qstrcmp(property->name, "scaling mode") == 0) {
+            qCDebug(KWIN_DRM) << "connector support scaling mode";
+            m_scalingCapable = true;
+            break;
+        }
+    }
+}
+
 static DrmOutput::DpmsMode fromWaylandDpmsMode(KWayland::Server::OutputInterface::DpmsMode wlMode)
 {
     using namespace KWayland::Server;
@@ -771,15 +833,45 @@ void DrmOutput::updateMode(int modeIndex)
 {
     // get all modes on the connector
     ScopedDrmPointer<_drmModeConnector, &drmModeFreeConnector> connector(drmModeGetConnector(m_backend->fd(), m_conn->id()));
+
     if (connector->count_modes <= modeIndex) {
-        // TODO: error?
-        return;
+        if (!isInternal() || !m_scalingCapable) {
+            return;
+        }
+        if (modeIndex < waylandOutput()->modes().size()) {
+            auto m = waylandOutput()->modes().at(modeIndex);
+            if (m.size.width() > m.size.height()) {
+                for (const auto& dm: s_default_landscape_drm_mode_infos) {
+                    if (dm.hdisplay == m.size.width() &&
+                            dm.vdisplay == m.size.height() &&
+                            m.refreshRate == refreshRateForMode((drmModeModeInfo*)&dm)) {
+                        m_mode = dm;
+                    }
+                }
+            } else {
+                for (const auto& dm: s_default_portrait_drm_mode_infos) {
+                    if (dm.hdisplay == m.size.width() &&
+                            dm.vdisplay == m.size.height() &&
+                            m.refreshRate == refreshRateForMode((drmModeModeInfo*)&dm)) {
+                        m_mode = dm;
+                    }
+                }
+            }
+        } else {
+            return;
+        }
+    } else {
+        if (isCurrentMode(&connector->modes[modeIndex])) {
+            // nothing to do
+            return;
+        }
+        m_mode = connector->modes[modeIndex];
     }
-    if (isCurrentMode(&connector->modes[modeIndex])) {
-        // nothing to do
-        return;
-    }
-    m_mode = connector->modes[modeIndex];
+
+    QString connectorName = s_connectorNames.value(connector->connector_type, QByteArrayLiteral("Unknown"));
+    qCDebug(KWIN_DRM) << __func__ << connectorName << " mid" << modeIndex
+        <<"total modes " << waylandOutput()->modes().size()
+        << m_mode.hdisplay << m_mode.vdisplay;
     m_modesetRequested = true;
     setWaylandMode();
 }

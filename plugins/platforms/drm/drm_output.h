@@ -108,6 +108,7 @@ private:
     bool setModeLegacy(DrmBuffer *buffer);
     void initEdid(drmModeConnector *connector);
     void initDpms(drmModeConnector *connector);
+    void initScaling(drmModeConnector *connector);
     void initOutputDevice(drmModeConnector *connector);
 
     bool isCurrentMode(const drmModeModeInfo *mode) const;
@@ -139,6 +140,7 @@ private:
     DpmsMode m_dpmsMode = DpmsMode::On;
     DpmsMode m_dpmsModePending = DpmsMode::On;
     QByteArray m_uuid;
+    bool m_scalingCapable = false;
 
     uint32_t m_blobId = 0;
     DrmPlane* m_primaryPlane = nullptr;

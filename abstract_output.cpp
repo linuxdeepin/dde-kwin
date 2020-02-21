@@ -104,13 +104,14 @@ void AbstractOutput::setScale(qreal scale)
         m_xdgOutput->setLogicalSize(pixelSize() / m_scale);
         m_xdgOutput->done();
     }
-    emit modeChanged();
 }
 
 void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
 {
     qCDebug(KWIN_CORE) << "Set changes in AbstractOutput.";
     Q_ASSERT(!m_waylandOutputDevice.isNull());
+
+    bool updated = false;
 
     if (!changes) {
         qCDebug(KWIN_CORE) << "No changes.";
@@ -121,10 +122,12 @@ void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
         qCDebug(KWIN_CORE) << "Setting new mode:" << changes->mode();
         m_waylandOutputDevice->setCurrentMode(changes->mode());
         updateMode(changes->mode());
+        updated = true;
     }
     if (changes->transformChanged()) {
         qCDebug(KWIN_CORE) << "Server setting transform: " << (int)(changes->transform());
         transform(changes->transform());
+        updated = true;
     }
     if (changes->positionChanged()) {
         qCDebug(KWIN_CORE) << "Server setting position: " << changes->position();
@@ -134,6 +137,11 @@ void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
     if (changes->scaleChanged()) {
         qCDebug(KWIN_CORE) << "Setting scale:" << changes->scale();
         setScale(changes->scaleF());
+        updated = true;
+    }
+
+    if (updated) {
+        emit modeChanged();
     }
 }
 
@@ -242,7 +250,14 @@ void AbstractOutput::initWaylandOutputDevice(const QString &model,
 
     int i = 0;
     for (auto mode : modes) {
-        qCDebug(KWIN_CORE).nospace() << "Adding mode " << ++i << ": " << mode.size << " [" << mode.refreshRate << "]";
+        QString flags;
+        if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred) {
+            flags += " preferred";
+        }
+        if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Current) {
+            flags += " current";
+        }
+        qCDebug(KWIN_CORE).nospace() << "Adding mode " << ++i << ": " << mode.size << " [" << mode.refreshRate << "]" << flags;
         m_waylandOutputDevice->addMode(mode);
     }
     m_waylandOutputDevice->create();
