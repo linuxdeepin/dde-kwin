@@ -890,7 +890,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
     const QString &shadow_key = ChameleonShadow::buildShadowCacheKey(&theme_config, scale);
     X11Shadow *shadow = m_x11ShadowCache.value(shadow_key);
 
-    if (!shadow && KWin::effects->xcbConnection()) {
+    if (!shadow && QX11Info::isPlatformX11()) {
         auto s = ChameleonShadow::instance()->getShadow(&theme_config, scale);
 
         if (s) {
@@ -1042,8 +1042,8 @@ bool ChameleonConfig::setWindowOverrideType(QObject *client, bool enable)
             const QByteArray data((const char*)atom_list.constData(), atom_list.size() * sizeof(xcb_atom_t));
             KWinUtils::instance()->setWindowProperty(client, m_atom_net_wm_window_type, XCB_ATOM_ATOM, 32, data);
 
-            if (KWin::effects->xcbConnection())
-                xcb_flush(KWin::effects->xcbConnection());
+            if (QX11Info::isPlatformX11())
+                xcb_flush(QX11Info::connection());
             // 标记窗口曾经为override类型，用于重设窗口类型
             client->setProperty("__dde__override_type", true);
 
@@ -1054,8 +1054,8 @@ bool ChameleonConfig::setWindowOverrideType(QObject *client, bool enable)
         const QByteArray data((const char*)atom_list.constData(), atom_list.size() * sizeof(xcb_atom_t));
         KWinUtils::instance()->setWindowProperty(client, m_atom_net_wm_window_type, XCB_ATOM_ATOM, 32, data);
 
-        if (KWin::effects->xcbConnection())
-            xcb_flush(KWin::effects->xcbConnection());
+        if (QX11Info::isPlatformX11())
+            xcb_flush(QX11Info::connection());
         // 取消窗口override类型标记
         client->setProperty("__dde__override_type", QVariant());
 
