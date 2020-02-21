@@ -162,9 +162,18 @@ public:
 }
 }
 
+static inline bool isPlatformX11()
+{
+    static bool x11 = QX11Info::isPlatformX11();
+    return x11;
+}
+
 static xcb_atom_t internAtom(const char *name, bool only_if_exists)
 {
     if (!name || *name == 0)
+        return XCB_NONE;
+
+    if (!isPlatformX11())
         return XCB_NONE;
 
     xcb_intern_atom_cookie_t cookie = xcb_intern_atom(QX11Info::connection(), only_if_exists, strlen(name), name);
@@ -184,6 +193,9 @@ static QByteArray atomName(xcb_atom_t atom)
     if (!atom)
         return QByteArray();
 
+    if (!isPlatformX11())
+        return QByteArray();
+
     xcb_generic_error_t *error = 0;
     xcb_get_atom_name_cookie_t cookie = xcb_get_atom_name(QX11Info::connection(), atom);
     xcb_get_atom_name_reply_t *reply = xcb_get_atom_name_reply(QX11Info::connection(), cookie, &error);
@@ -201,6 +213,9 @@ static QByteArray atomName(xcb_atom_t atom)
 
 static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom)
 {
+    if (!isPlatformX11())
+        return QByteArray();
+
     QByteArray data;
     xcb_connection_t* xcb_connection = QX11Info::connection();
     int offset = 0;
@@ -231,6 +246,9 @@ static QByteArray windowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom
 
 static void setWindowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t typeAtom, int format, const QByteArray &data)
 {
+    if (!isPlatformX11())
+        return;
+
     xcb_connection_t* conn = QX11Info::connection();
 
     if (format == 0 && data.isEmpty()) {
@@ -242,6 +260,9 @@ static void setWindowProperty(xcb_window_t WId, xcb_atom_t propAtom, xcb_atom_t 
 
 static xcb_window_t getParentWindow(xcb_window_t WId)
 {
+    if (!isPlatformX11())
+        return XCB_NONE;
+
     xcb_connection_t* xcb_connection = QX11Info::connection();
     xcb_query_tree_cookie_t cookie = xcb_query_tree_unchecked(xcb_connection, WId);
     xcb_query_tree_reply_t *reply = xcb_query_tree_reply(xcb_connection, cookie, NULL);
@@ -342,6 +363,9 @@ public:
     }
 
     void updateWMSupported() {
+        if (!isPlatformX11())
+            return;
+
         if (wmSupportedList.isEmpty() && removedWMSupportedList.isEmpty()) {
             return;
         }
@@ -657,7 +681,7 @@ void KWinUtils::defineWindowCursor(quint32 window, Qt::CursorShape cshape)
     if (window == XCB_WINDOW_NONE)
         return;
 
-    if (!interface->x11CursorGetCursor) {
+    if (!interface->x11CursorGetCursor || !isPlatformX11()) {
         return;
     }
 
@@ -700,6 +724,9 @@ int KWinUtils::getWindowDepth(const QObject *client)
     xcb_window_t win_id = getWindowId(client, &ok);
 
     if (!ok)
+        return 0;
+
+    if (!isPlatformX11())
         return 0;
 
     xcb_get_geometry_cookie_t cookit = xcb_get_geometry(QX11Info::connection(), win_id);
