@@ -823,7 +823,7 @@ bool SceneOpenGL::viewportLimitsMatched(const QSize &size) const {
 
     if (!limit[0] || !limit[1]) {
         qWarning() << Q_FUNC_INFO << "Failed on get the GL_MAX_VIEWPORT_DIMS";
-        return true;
+        return false;
     }
 
     if (limit[0] < size.width() || limit[1] < size.height()) {

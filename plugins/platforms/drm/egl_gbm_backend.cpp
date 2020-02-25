@@ -67,14 +67,15 @@ EglGbmBackend::~EglGbmBackend()
 
 void EglGbmBackend::cleanupSurfaces()
 {
-    for (auto it = m_outputs.constBegin(); it != m_outputs.constEnd(); ++it) {
+    for (auto it = m_outputs.begin(); it != m_outputs.end(); ++it) {
         cleanupOutput(*it);
     }
     m_outputs.clear();
 }
 
-void EglGbmBackend::cleanupOutput(const Output &o)
+void EglGbmBackend::cleanupOutput(Output &o)
 {
+    cleanupPostprocess(o);
     o.output->releaseGbm();
 
     if (o.eglSurface != EGL_NO_SURFACE) {
@@ -165,10 +166,180 @@ void EglGbmBackend::initRemotePresent()
     m_remoteaccessManager.reset(new RemoteAccessManager);
 }
 
+void EglGbmBackend::cleanupPostprocess(Output& output)
+{
+    output.rotation.vbo.reset();
+    output.rotation.fbo.reset();
+    output.rotation.texture.reset();
+    qDebug() << "---------" << __func__;
+}
+
+void EglGbmBackend::resetPostprocess(Output& output)
+{
+    cleanupPostprocess(output);
+
+    if (output.output->hardwareTransformed()) {
+        return;
+    }
+
+    makeContextCurrent(output);
+
+    auto sz = output.output->pixelSize();
+    auto* back = new GLTexture(GL_RGB8, sz.width(), sz.height());
+    back->setFilter(GL_LINEAR);
+    back->setWrapMode(GL_CLAMP_TO_EDGE);
+
+    output.rotation.texture.reset(back);
+
+    GLRenderTarget *fbo = new GLRenderTarget(*back);
+    output.rotation.fbo.reset(fbo);
+    qDebug() << "---------!!!!!!" << __func__;
+}
+
+void EglGbmBackend::preparePostprocess(const Output& output) const
+{
+    if (output.rotation.fbo) {
+        GLRenderTarget::pushRenderTarget(output.rotation.fbo.get());
+        GLRenderTarget::setKWinFramebuffer(output.rotation.fbo->id());
+        qDebug() << "---------!!!!!!" << __func__ << output.output->geometry();
+    }
+}
+
+void EglGbmBackend::renderPostprocess(Output& output)
+{
+    if (!output.rotation.fbo) return;
+
+    GLRenderTarget::popRenderTarget();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GLRenderTarget::setKWinFramebuffer(0);
+
+    const auto& sz = output.output->modeSize();
+    glViewport(0, 0, sz.width(), sz.height());
+
+    if (!output.rotation.vbo) {
+        const bool gles = GLPlatform::instance()->isGLES();
+        const bool glsl_140 = !gles && GLPlatform::instance()->glslVersion() >= kVersionNumber(1, 40);
+        const bool core = glsl_140 || (gles && GLPlatform::instance()->glslVersion() >= kVersionNumber(3, 0));
+
+        const QByteArray attribute = core ? "in"        : "attribute";
+        const QByteArray texture2D = core ? "texture"   : "texture2D";
+        const QByteArray fragColor = core ? "fragColor" : "gl_FragColor";
+
+        QString glHeaderString;
+
+        if (gles) {
+            if (core) {
+                glHeaderString += "#version 300 es\n\n";
+            }
+
+            glHeaderString += "precision highp float;\n";
+        } else if (glsl_140) {
+            glHeaderString += "#version 140\n\n";
+        }
+
+        QByteArray vertexSource;
+        QByteArray fragSource;
+
+        QTextStream streamVert(&vertexSource);
+
+        streamVert << glHeaderString;
+
+        streamVert << "uniform mat4 rotateMatrix;\n";
+        streamVert << attribute << " vec4 vertex;\n\n";
+        streamVert << attribute << " vec4 texcoord;\n\n";
+        streamVert << "out vec2 texCoord;\n";
+        streamVert << "void main(void)\n";
+        streamVert << "{\n";
+        streamVert << "    gl_Position = vertex;\n";
+        streamVert << "    vec4 t = rotateMatrix * texcoord;\n";
+        streamVert << "    texCoord = t.xy;\n";
+        streamVert << "}\n";
+        streamVert.flush();
+
+        QTextStream streamFrag(&fragSource);
+        streamFrag << glHeaderString;
+
+        streamFrag << "uniform sampler2D texUnit;\n";
+        streamFrag << attribute << " vec2 texCoord;\n\n";
+        if (core) {
+            streamFrag << "out vec4 fragColor;\n\n";
+        }
+        streamFrag << "void main(void)\n";
+        streamFrag << "{\n";
+        streamFrag << "    " << fragColor << " = " << texture2D << "(texUnit, texCoord);\n";
+        streamFrag << "}\n";
+        streamFrag.flush();
+
+        GLShader* shaderRotate = ShaderManager::instance()->loadShaderFromCode(vertexSource, fragSource);
+        if (!shaderRotate->isValid()) {
+            abort();
+        }
+        output.rotation.shader.reset(shaderRotate);
+
+        GLVertexBuffer *vbo = new GLVertexBuffer(KWin::GLVertexBuffer::Static);
+
+        QVector<float> verts;
+        verts 
+            << 1  << -1
+            << -1 << -1
+            << -1 << 1
+            << -1 << 1
+            << 1 << 1
+            << 1  << -1;
+        QVector<float> texcoords;
+        texcoords
+            << 1.0 << 0.0
+            << 0.0 << 0.0
+            << 0.0 << 1.0
+            << 0.0 << 1.0
+            << 1.0 << 1.0
+            << 1.0 << 0.0;
+        vbo->setData(verts.count()/2, 2, verts.data(), texcoords.data());
+        output.rotation.vbo.reset(vbo);
+        qDebug() << "--------- init vbo";
+    }
+
+#if 1
+    auto* shaderRotate = output.rotation.shader.get();
+    auto rotateLoc = shaderRotate->uniformLocation("rotateMatrix");
+
+    ShaderManager::instance()->pushShader(shaderRotate);
+    QMatrix4x4 m;
+    m.ortho(0, sz.width(), sz.height(), 0, 0, 65535);
+
+    QMatrix4x4 rm;
+    rm.translate(0.5, 0.5);
+    rm.rotate(-output.output->rotation(), 0, 0, 1);
+    rm.translate(-0.5, -0.5);
+
+    shaderRotate->setUniform(rotateLoc, rm);
+#else
+    // use builtin shader
+    auto shader = ShaderManager::instance()->pushShader(ShaderTrait::MapTexture);
+    QMatrix4x4 rm;
+    rm.rotate(output.output->rotation(), 0, 0, 1);
+    shader->setUniform(GLShader::ModelViewProjectionMatrix, rm);
+#endif
+
+    glActiveTexture(GL_TEXTURE0);
+    output.rotation.texture->bind();
+
+    GLint ss[4];
+    glGetIntegerv(GL_VIEWPORT, ss);
+    qDebug() << "-----------!!!!!!- " << __func__ << sz << ss[0] << ss[1] << ss[2] << ss[3];
+    output.rotation.vbo->render(GL_TRIANGLES);
+
+    output.rotation.texture->unbind();
+    ShaderManager::instance()->popShader();
+}
+
+
 bool EglGbmBackend::resetOutput(Output &o, DrmOutput *drmOutput)
 {
     o.output = drmOutput;
-    auto size = drmOutput->pixelSize();
+    auto size = o.output->hardwareTransformed() ? drmOutput->pixelSize() : drmOutput->modeSize();
+
+    qDebug() << "-----------" << __func__ << "size" << size << drmOutput->geometry();
 
     auto gbmSurface = std::make_shared<GbmSurface>(m_backend->gbmDevice(), size.width(), size.height(),
                                         GBM_FORMAT_XRGB8888, GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
@@ -191,6 +362,8 @@ bool EglGbmBackend::resetOutput(Output &o, DrmOutput *drmOutput)
         o.eglSurface = eglSurface;
         o.gbmSurface = gbmSurface;
     }
+
+    resetPostprocess(o);
     return true;
 }
 
@@ -215,6 +388,24 @@ void EglGbmBackend::createOutput(DrmOutput *drmOutput)
     }
 }
 
+void EglGbmBackend::setupViewport(const Output& output)
+{
+    // TODO: ensure the viewport is set correctly each time
+    const QSize &overall = screens()->size();
+    const QRect &v = output.output->geometry();
+    // TODO: are the values correct?
+
+    qreal scale = output.output->scale();
+
+    glViewport(-v.x() * scale, (v.height() - overall.height() + v.y()) * scale,
+               overall.width() * scale, overall.height() * scale);
+
+    qInfo() << Q_FUNC_INFO << output.output->uuid() << v << overall;
+    //qInfo() << Q_FUNC_INFO << "width:" << overall.width() * scale
+            //<< "height:" << overall.height() * scale
+            //<< "scale:" << scale;
+}
+
 bool EglGbmBackend::makeContextCurrent(const Output &output)
 {
     const EGLSurface surface = output.eglSurface;
@@ -231,19 +422,6 @@ bool EglGbmBackend::makeContextCurrent(const Output &output)
         qCWarning(KWIN_DRM) << "Error occurred while creating context " << error;
         return false;
     }
-    // TODO: ensure the viewport is set correctly each time
-    const QSize &overall = screens()->size();
-    const QRect &v = output.output->geometry();
-    // TODO: are the values correct?
-
-    qreal scale = output.output->scale();
-
-    glViewport(-v.x() * scale, (v.height() - overall.height() + v.y()) * scale,
-               overall.width() * scale, overall.height() * scale);
-
-    qInfo() << Q_FUNC_INFO << "width:" << overall.width() * scale
-            << "height:" << overall.height() * scale
-            << "scale:" << scale;
 
     return true;
 }
@@ -346,6 +524,9 @@ QRegion EglGbmBackend::prepareRenderingForScreen(int screenId)
 {
     const Output &o = m_outputs.at(screenId);
     makeContextCurrent(o);
+    preparePostprocess(o);
+    setupViewport(o);
+
     if (supportsBufferAge()) {
         QRegion region;
 
@@ -371,6 +552,8 @@ void EglGbmBackend::endRenderingFrame(const QRegion &renderedRegion, const QRegi
 void EglGbmBackend::endRenderingFrameForScreen(int screenId, const QRegion &renderedRegion, const QRegion &damagedRegion)
 {
     Output &o = m_outputs[screenId];
+    renderPostprocess(o);
+
     if (damagedRegion.intersected(o.output->geometry()).isEmpty() && screenId == 0) {
 
         // If the damaged region of a window is fully occluded, the only

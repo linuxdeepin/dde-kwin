@@ -151,6 +151,7 @@ void DrmPlane::setNext(DrmBuffer *b)
 
 void DrmPlane::setTransformation(Transformations t)
 {
+    qDebug() << "-----------" << __PRETTY_FUNCTION__ << t;
     if (auto property = m_props.at(int(PropertyIndex::Rotation))) {
         property->setValue(int(t));
     }

@@ -71,12 +71,26 @@ private:
         * @brief The damage history for the past 10 frames.
         */
         QList<QRegion> damageHistory;
+
+        struct {
+            std::shared_ptr<GLTexture> texture;
+            std::shared_ptr<GLVertexBuffer> vbo;
+            std::shared_ptr<GLRenderTarget> fbo;
+            std::shared_ptr<GLShader> shader;
+        } rotation;
     };
     bool resetOutput(Output &output, DrmOutput *drmOutput);
     bool makeContextCurrent(const Output &output);
+    void setupViewport(const Output& output);
     void presentOnOutput(Output &output);
-    void cleanupOutput(const Output &output);
+    void cleanupOutput(Output &output);
     void createOutput(DrmOutput *output);
+
+    void cleanupPostprocess(Output& output);
+    void resetPostprocess(Output& output);
+    void preparePostprocess(const Output& output) const;
+    void renderPostprocess(Output& output);
+
     DrmBackend *m_backend;
     QVector<Output> m_outputs;
     QScopedPointer<RemoteAccessManager> m_remoteaccessManager;

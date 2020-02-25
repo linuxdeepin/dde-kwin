@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 #include "abstract_output.h"
 #include "wayland_server.h"
+#include "screens.h"
 
 // KWayland
 #include <KWayland/Server/display.h>
@@ -112,6 +113,7 @@ void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
     Q_ASSERT(!m_waylandOutputDevice.isNull());
 
     bool updated = false;
+    bool overallSizeCheckNeeded = false;
 
     if (!changes) {
         qCDebug(KWIN_CORE) << "No changes.";
@@ -133,11 +135,17 @@ void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
         qCDebug(KWIN_CORE) << "Server setting position: " << changes->position();
         setGlobalPos(changes->position());
         // may just work already!
+        overallSizeCheckNeeded = true;
     }
     if (changes->scaleChanged()) {
         qCDebug(KWIN_CORE) << "Setting scale:" << changes->scale();
         setScale(changes->scaleF());
         updated = true;
+    }
+
+    overallSizeCheckNeeded |= updated;
+    if (overallSizeCheckNeeded) {
+        emit screens()->changed();
     }
 
     if (updated) {

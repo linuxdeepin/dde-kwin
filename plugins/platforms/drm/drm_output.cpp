@@ -751,74 +751,111 @@ void DrmOutput::dpmsOffHandler()
     m_backend->outputWentOff();
 }
 
+static KWayland::Server::OutputInterface::Transform device2OutputTransform(KWayland::Server::OutputDeviceInterface::Transform transform)
+{
+    using KWayland::Server::OutputDeviceInterface;
+    using KWayland::Server::OutputInterface;
+    switch (transform) {
+        case OutputDeviceInterface::Transform::Normal:
+            return OutputInterface::Transform::Normal;
+        case OutputDeviceInterface::Transform::Flipped:
+            return OutputInterface::Transform::Flipped;
+        case OutputDeviceInterface::Transform::Rotated90:
+            return OutputInterface::Transform::Rotated90;
+        case OutputDeviceInterface::Transform::Flipped90:
+            return OutputInterface::Transform::Flipped90;
+        case OutputDeviceInterface::Transform::Rotated180:
+            return OutputInterface::Transform::Rotated180;
+        case OutputDeviceInterface::Transform::Flipped180:
+            return OutputInterface::Transform::Flipped180;
+        case OutputDeviceInterface::Transform::Rotated270:
+            return OutputInterface::Transform::Rotated270;
+        case OutputDeviceInterface::Transform::Flipped270:
+            return OutputInterface::Transform::Flipped270;
+        default:
+            return OutputInterface::Transform::Normal;
+
+    }
+}
+
+static DrmPlane::Transformations output2PlaneTransform(KWayland::Server::OutputInterface::Transform transform)
+{
+    using KWayland::Server::OutputInterface;
+    switch (transform) {
+        case OutputInterface::Transform::Normal:
+        case OutputInterface::Transform::Flipped:
+            return DrmPlane::Transformation::Rotate0;
+        case OutputInterface::Transform::Rotated90:
+        case OutputInterface::Transform::Flipped90:
+            return DrmPlane::Transformation::Rotate90;
+        case OutputInterface::Transform::Rotated180:
+        case OutputInterface::Transform::Flipped180:
+            return DrmPlane::Transformation::Rotate180;
+        case OutputInterface::Transform::Rotated270:
+        case OutputInterface::Transform::Flipped270:
+            return DrmPlane::Transformation::Rotate270;
+        default:
+            return DrmPlane::Transformation::Rotate0;
+    }
+}
+
+int DrmOutput::rotation()
+{
+    auto transform = waylandOutput()->transform();
+    using KWayland::Server::OutputInterface;
+    switch (transform) {
+        case OutputInterface::Transform::Normal:
+        case OutputInterface::Transform::Flipped:
+            return 0;
+        case OutputInterface::Transform::Rotated90:
+        case OutputInterface::Transform::Flipped90:
+            return 90;
+        case OutputInterface::Transform::Rotated180:
+        case OutputInterface::Transform::Flipped180:
+            return 180;
+        case OutputInterface::Transform::Rotated270:
+        case OutputInterface::Transform::Flipped270:
+            return 270;
+        default:
+            return 0;
+    }
+}
+
 void DrmOutput::transform(KWayland::Server::OutputDeviceInterface::Transform transform)
 {
     waylandOutputDevice()->setTransform(transform);
     using KWayland::Server::OutputDeviceInterface;
     using KWayland::Server::OutputInterface;
+
     auto wlOutput = waylandOutput();
+    if (wlOutput) wlOutput->setTransform(device2OutputTransform(transform));
+    //TODO? m_xdgOutput ? 
 
     switch (transform) {
     case OutputDeviceInterface::Transform::Normal:
-        if (m_primaryPlane) {
-            m_primaryPlane->setTransformation(DrmPlane::Transformation::Rotate0);
-        }
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Normal);
-        }
         setOrientation(Qt::PrimaryOrientation);
         break;
     case OutputDeviceInterface::Transform::Rotated90:
-        if (m_primaryPlane) {
-            m_primaryPlane->setTransformation(DrmPlane::Transformation::Rotate90);
-        }
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Rotated90);
-        }
         setOrientation(Qt::PortraitOrientation);
         break;
     case OutputDeviceInterface::Transform::Rotated180:
-        if (m_primaryPlane) {
-            m_primaryPlane->setTransformation(DrmPlane::Transformation::Rotate180);
-        }
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Rotated180);
-        }
         setOrientation(Qt::InvertedLandscapeOrientation);
         break;
     case OutputDeviceInterface::Transform::Rotated270:
-        if (m_primaryPlane) {
-            m_primaryPlane->setTransformation(DrmPlane::Transformation::Rotate270);
-        }
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Rotated270);
-        }
         setOrientation(Qt::InvertedPortraitOrientation);
         break;
-    case OutputDeviceInterface::Transform::Flipped:
-        // TODO: what is this exactly?
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Flipped);
-        }
+    default:
         break;
-    case OutputDeviceInterface::Transform::Flipped90:
-        // TODO: what is this exactly?
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Flipped90);
+    }
+
+    if (m_primaryPlane) {
+        auto planeTransform = output2PlaneTransform(device2OutputTransform(transform));
+        if (m_primaryPlane->supportedTransformations() & planeTransform) {
+            qDebug() << "---------- hardware transform" << planeTransform;
+            m_primaryPlane->setTransformation(planeTransform);
+        } else {
+            qDebug() << "---------- no hardware transform" << planeTransform;
         }
-        break;
-    case OutputDeviceInterface::Transform::Flipped180:
-        // TODO: what is this exactly?
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Flipped180);
-        }
-        break;
-    case OutputDeviceInterface::Transform::Flipped270:
-        // TODO: what is this exactly?
-        if (wlOutput) {
-            wlOutput->setTransform(OutputInterface::Transform::Flipped270);
-        }
-        break;
     }
     m_modesetRequested = true;
     // the cursor might need to get rotated
@@ -879,6 +916,11 @@ void DrmOutput::updateMode(int modeIndex)
 QSize DrmOutput::pixelSize() const
 {
     return orientateSize(QSize(m_mode.hdisplay, m_mode.vdisplay));
+}
+
+QSize DrmOutput::modeSize() const
+{
+    return QSize(m_mode.hdisplay, m_mode.vdisplay);
 }
 
 void DrmOutput::setWaylandMode()
@@ -1162,15 +1204,28 @@ bool DrmOutput::doAtomicCommit(AtomicCommitMode mode)
     return true;
 }
 
+bool DrmOutput::hardwareTransformed()
+{
+    if (m_primaryPlane == nullptr) {
+        return false;
+    }
+
+    auto outputTransform = waylandOutput()->transform();
+    return m_primaryPlane->transformation() == output2PlaneTransform(outputTransform);
+}
+
 bool DrmOutput::atomicReqModesetPopulate(drmModeAtomicReq *req, bool enable)
 {
     if (enable) {
+        auto size = hardwareTransformed() ? pixelSize() : modeSize();
+        qDebug() << "---------" << __func__ << size;
+
         m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcX), 0);
         m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcY), 0);
-        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcW), m_mode.hdisplay << 16);
-        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcH), m_mode.vdisplay << 16);
-        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::CrtcW), m_mode.hdisplay);
-        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::CrtcH), m_mode.vdisplay);
+        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcW), size.width() << 16);
+        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::SrcH), size.height() << 16);
+        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::CrtcW), size.width());
+        m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::CrtcH), size.height());
         m_primaryPlane->setValue(int(DrmPlane::PropertyIndex::CrtcId), m_crtc->id());
     } else {
         if (m_backend->deleteBufferAfterPageFlip()) {

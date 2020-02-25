@@ -66,6 +66,7 @@ public:
     void pageFlipped();
 
     QSize pixelSize() const override;
+    QSize modeSize() const;
 
     // These values are defined by the kernel
     enum class DpmsMode {
@@ -86,6 +87,10 @@ public:
     bool initCursor(const QSize &cursorSize);
 
     bool supportsTransformations() const;
+
+    bool hardwareTransformed();
+
+    int rotation(); // rotation degrees
 
 Q_SIGNALS:
     void dpmsChanged();
