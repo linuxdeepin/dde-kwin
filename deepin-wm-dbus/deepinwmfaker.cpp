@@ -195,6 +195,11 @@ bool DeepinWMFaker::compositingAllowSwitch() const
     if (qgetenv("KWIN_COMPOSE").startsWith("N"))
         return false;
 
+    if (QDBusInterface(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface)
+            .property("platformRequiresCompositing").toBool()) {
+        return false;
+    }
+
     return m_kwinConfig->group("Compositing").readEntry("AllowSwitch", true);
 }
 
