@@ -38,6 +38,7 @@ class Q_DECL_EXPORT Workspace {
 #else
 class Q_DECL_EXPORT UserActionsMenu : public QObject {
     bool isShown() const;
+    void handleClick(const QPoint& pos);
     void grabInput();
     bool hasClient();
     bool isMenuClient(const AbstractClient *c) const;
