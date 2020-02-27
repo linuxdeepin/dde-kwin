@@ -209,6 +209,13 @@ bool UserActionsMenu::isMenuClient(const AbstractClient *c) const
     return c == _menuClient;
 }
 
+void UserActionsMenu::handleClick(const QPoint& pos)
+{
+    if (isShown() && !_globalWindowMenu->geometry().contains(pos)) {
+        close();
+    }
+}
+
 void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
 {
 
@@ -244,8 +251,12 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
         });
     }
 
+#if WAYLAND_PLATFORM
+    _globalWindowMenu->popup(pos.bottomLeft());
+#else
     _globalWindowMenu->exec(pos.topLeft());
     _menuClient = nullptr;
+#endif
 }
 
 void UserActionsMenu::close()
@@ -253,6 +264,7 @@ void UserActionsMenu::close()
     if (_globalWindowMenu) {
         _globalWindowMenu->close();
     }
+    _menuClient = nullptr;
 }
 
 void RuleBook::save()

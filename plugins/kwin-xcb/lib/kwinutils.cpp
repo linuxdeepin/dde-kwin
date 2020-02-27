@@ -346,7 +346,9 @@ public:
     KWinUtilsPrivate(KWinUtils *utils)
         : q(utils)
     {
-        _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
+        if (isPlatformX11()) {
+            _NET_SUPPORTED = internAtom("_NET_SUPPORTED", false);
+        }
     }
 
     static bool isShapeNotifyEvent(int type)
@@ -430,6 +432,9 @@ public:
 
         xcb_generic_event_t *event = reinterpret_cast<xcb_generic_event_t*>(message);
         uint response_type = event->response_type & ~0x80;
+
+        if (!isPlatformX11())
+            return QAbstractNativeEventFilter::nativeEventFilter(eventType, message, result);
 
         if (response_type == XCB_PROPERTY_NOTIFY) {
             xcb_property_notify_event_t *ev = reinterpret_cast<xcb_property_notify_event_t*>(event);
@@ -886,6 +891,10 @@ bool KWinUtils::isDeepinOverride(const QObject *window) const
     qulonglong wid;
     QByteArray data;
 
+    if (!isPlatformX11()) {
+        return false;
+    }
+
     static xcb_atom_t property_atom = internAtom("_DEEPIN_OVERRIDE", true);
     if (property_atom == XCB_ATOM_NONE) {
         goto out;
@@ -913,6 +922,10 @@ out:
 QVariant KWinUtils::getParentWindow(const QObject *window) const
 {
     bool ok = false;
+    if (!isPlatformX11()) {
+        return QVariant();
+    }
+
     qulonglong wid = getWindowId(window, &ok);
 
     if (!ok) {
