@@ -100,6 +100,8 @@ public:
      **/
     void show(const QRect &pos, const QWeakPointer<AbstractClient> &client);
 
+    void handleClick(const QPoint &pos);
+
 public Q_SLOTS:
     /**
      * Delayed initialization of the activity menu.

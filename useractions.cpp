@@ -131,6 +131,13 @@ bool UserActionsMenu::isMenuClient(const AbstractClient *c) const
     return c == m_client.data();
 }
 
+void UserActionsMenu::handleClick(const QPoint &pos)
+{
+    if (isShown() && !m_menu->geometry().contains(pos)) {
+        close();
+    }
+}
+
 void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
 {
     if (!KAuthorized::authorizeAction(QStringLiteral("kwin_rmb")))
