@@ -2865,7 +2865,8 @@ void AbstractClient::checkUnrestrictedMoveResize()
         if (moveResizeGeom.right() < desktopArea.left() + left_marge)
             setUnrestrictedMoveResize(true);
         if (moveResizeGeom.left() > desktopArea.right() - right_marge)
-            setUnrestrictedMoveResize(true);
+            //fix: window moved to lower right corner of screen unable to recover.
+            setUnrestrictedMoveResize(false);
     }
 }
 
