@@ -890,6 +890,7 @@ QRect Workspace::adjustClientSize(AbstractClient* c, QRect moveResizeGeom, int m
  */
 void Workspace::setClientIsMoving(AbstractClient *c)
 {
+    if (c && movingClient) return;
     Q_ASSERT(!c || !movingClient); // Catch attempts to move a second
     // window while still moving the first one.
     movingClient = c;

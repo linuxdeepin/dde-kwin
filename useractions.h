@@ -35,6 +35,35 @@ namespace KWin
 class AbstractClient;
 class Client;
 
+struct MenuItem {
+    QString id;
+    QString text;
+    bool enable;
+    bool isCheckable;
+    bool checked;
+};
+
+class Q_DECL_HIDDEN MenuSlot : public QObject
+{
+    Q_OBJECT
+public:
+    MenuSlot(KWin::AbstractClient *cl, QObject *parent = nullptr)
+        : QObject(parent)
+        , m_client(cl)
+    {}
+
+    static void onMenuItemInvoked(const QString &id, bool checked, AbstractClient *cl);
+
+public slots:
+    void onMenuItemInvoked(const QString &id, bool checked)
+    {
+        onMenuItemInvoked(id, checked, m_client);
+    }
+
+private:
+    AbstractClient *m_client;
+};
+
 /**
  * @brief Menu shown for a Client.
  *
@@ -101,6 +130,8 @@ public:
     void show(const QRect &pos, const QWeakPointer<AbstractClient> &client);
 
     void handleClick(const QPoint &pos);
+
+    void prepareMenu(const QWeakPointer<AbstractClient> &cl);
 
 public Q_SLOTS:
     /**
