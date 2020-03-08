@@ -167,7 +167,13 @@ void PointerInputRedirection::init()
     // connect the move resize of all window
     auto setupMoveResizeConnection = [this] (AbstractClient *c) {
         connect(c, &AbstractClient::clientStartUserMovedResized, this, &PointerInputRedirection::updateOnStartMoveResize);
-        connect(c, &AbstractClient::clientFinishUserMovedResized, this, &PointerInputRedirection::update);
+        //connect(c, &AbstractClient::clientFinishUserMovedResized, this, &PointerInputRedirection::update);
+        connect(c, &AbstractClient::clientFinishUserMovedResized, this, [=]() {
+            // need to force a focused pointer change
+            waylandServer()->seat()->setFocusedPointerSurface(nullptr);
+            setFocus(nullptr);
+            update();
+        });
     };
     const auto clients = workspace()->allClientList();
     std::for_each(clients.begin(), clients.end(), setupMoveResizeConnection);

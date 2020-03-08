@@ -2301,6 +2301,10 @@ bool InputDeviceHandler::updateDecoration()
 
     if (m_focus.decoration == oldDeco) {
         // no change to decoration
+
+        // sonald: this is a workaround
+        // when drag to full maximize, cursor could be invalid, so we force one update.
+        emit decorationChanged();
         return false;
     }
     cleanupDecoration(oldDeco.data(), m_focus.decoration.data());
