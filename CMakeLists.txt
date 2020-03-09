@@ -410,6 +410,7 @@ set(kwin_KDEINIT_SRCS
    keyboard_repeat.cpp
    pointer_input.cpp
    touch_input.cpp
+   tablet_input.cpp
    netinfo.cpp
    placement.cpp
    atoms.cpp

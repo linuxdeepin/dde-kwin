@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <config-kwin.h>
 
 #include <KSharedConfig>
+#include <QSet>
 
 #include <functional>
 
@@ -45,6 +46,7 @@ class InputEventFilter;
 class InputEventSpy;
 class KeyboardInputRedirection;
 class PointerInputRedirection;
+class TabletInputRedirection;
 class TouchInputRedirection;
 class WindowSelectorFilter;
 class SwitchEvent;
@@ -57,6 +59,7 @@ class DecoratedClientImpl;
 namespace LibInput
 {
     class Connection;
+    class Device;
 }
 
 /**
@@ -85,6 +88,12 @@ public:
         KeyboardKeyPressed,
         KeyboardKeyAutoRepeat
     };
+    enum TabletEventType {
+        Axis,
+        Proximity,
+        Tip
+    };
+
     virtual ~InputRedirection();
     void init();
 
@@ -213,6 +222,9 @@ public:
     PointerInputRedirection *pointer() const {
         return m_pointer;
     }
+    TabletInputRedirection *tablet() const {
+        return m_tablet;
+    }
     TouchInputRedirection *touch() const {
         return m_touch;
     }
@@ -276,6 +288,7 @@ private:
     void installInputEventFilter(InputEventFilter *filter);
     KeyboardInputRedirection *m_keyboard;
     PointerInputRedirection *m_pointer;
+    TabletInputRedirection *m_tablet;
     TouchInputRedirection *m_touch;
 
     GlobalShortcutsManager *m_shortcuts;
@@ -363,6 +376,12 @@ public:
     virtual bool swipeGestureCancelled(quint32 time);
 
     virtual bool switchEvent(SwitchEvent *event);
+
+    virtual bool tabletToolEvent(QTabletEvent *event);
+    virtual bool tabletToolButtonEvent(const QSet<uint> &buttons);
+    virtual bool tabletPadButtonEvent(const QSet<uint> &buttons);
+    virtual bool tabletPadStripEvent(int number, int position, bool isFinger);
+    virtual bool tabletPadRingEvent(int number, int position, bool isFinger);
 
 protected:
     void passToWaylandServer(QKeyEvent *event);

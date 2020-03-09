@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyboard_input.h"
 #include "pointer_input.h"
 #include "touch_input.h"
+#include "tablet_input.h"
 #include "touch_hide_cursor_spy.h"
 #include "client.h"
 #include "effects.h"
@@ -170,6 +171,40 @@ bool InputEventFilter::swipeGestureCancelled(quint32 time)
 bool InputEventFilter::switchEvent(SwitchEvent *event)
 {
     Q_UNUSED(event)
+    return false;
+}
+
+bool InputEventFilter::tabletToolEvent(QTabletEvent *event)
+{
+    Q_UNUSED(event)
+    return false;
+}
+
+bool InputEventFilter::tabletToolButtonEvent(const QSet<uint> &pressedButtons)
+{
+    Q_UNUSED(pressedButtons)
+    return false;
+}
+
+bool InputEventFilter::tabletPadButtonEvent(const QSet<uint> &pressedButtons)
+{
+    Q_UNUSED(pressedButtons)
+    return false;
+}
+
+bool InputEventFilter::tabletPadStripEvent(int number, int position, bool isFinger)
+{
+    Q_UNUSED(number)
+    Q_UNUSED(position)
+    Q_UNUSED(isFinger)
+    return false;
+}
+
+bool InputEventFilter::tabletPadRingEvent(int number, int position, bool isFinger)
+{
+    Q_UNUSED(number)
+    Q_UNUSED(position)
+    Q_UNUSED(isFinger)
     return false;
 }
 
@@ -1473,6 +1508,65 @@ public:
     }
 };
 
+/**
+ * Useful when there's no proper tablet support on the clients
+ */
+class FakeTabletInputFilter : public InputEventFilter
+{
+public:
+    FakeTabletInputFilter()
+    {
+    }
+
+    bool tabletToolEvent(QTabletEvent *event) override
+    {
+        if (!workspace()) {
+            return false;
+        }
+
+        switch (event->type()) {
+        case QEvent::TabletMove:
+        case QEvent::TabletEnterProximity:
+            input()->pointer()->processMotion(event->globalPosF(), event->timestamp());
+            break;
+        case QEvent::TabletPress:
+            input()->pointer()->processButton(KWin::qtMouseButtonToButton(Qt::LeftButton),
+                                              InputRedirection::PointerButtonPressed, event->timestamp());
+            break;
+        case QEvent::TabletRelease:
+            input()->pointer()->processButton(KWin::qtMouseButtonToButton(Qt::LeftButton),
+                                              InputRedirection::PointerButtonReleased, event->timestamp());
+            break;
+        case QEvent::TabletLeaveProximity:
+            break;
+        default:
+            qCWarning(KWIN_CORE) << "Unexpected tablet event type" << event;
+            break;
+        }
+        waylandServer()->simulateUserActivity();
+        return true;
+    }
+
+    bool tabletToolButtonEvent(const QSet<uint> &buttons) override
+    {
+        if (!workspace()) {
+            qDebug() << "not workspace";
+            return false;
+        }
+
+        auto btn = buttons.begin();
+        for (; btn != buttons.end(); ++btn) {
+            qDebug() << "tabletToolButtonEvent button=" << *btn;
+        }
+
+        input()->processPointerButton(KWin::qtMouseButtonToButton(Qt::RightButton),
+                buttons.empty() ? InputRedirection::PointerButtonReleased : InputRedirection::PointerButtonPressed, 0);
+        waylandServer()->simulateUserActivity();
+        return true;
+
+    }
+};
+
 class DragAndDropInputFilter : public InputEventFilter
 {
 public:
@@ -1598,6 +1692,7 @@ InputRedirection::InputRedirection(QObject *parent)
     : QObject(parent)
     , m_keyboard(new KeyboardInputRedirection(this))
     , m_pointer(new PointerInputRedirection(this))
+    , m_tablet(new TabletInputRedirection(this))
     , m_touch(new TouchInputRedirection(this))
     , m_shortcuts(new GlobalShortcutsManager(this))
 {
@@ -1761,6 +1856,7 @@ void InputRedirection::setupWorkspace()
         m_keyboard->init();
         m_pointer->init();
         m_touch->init();
+        m_tablet->init();
     }
     setupInputFilters();
 }
@@ -1802,6 +1898,7 @@ void InputRedirection::setupInputFilters()
     if (waylandServer()) {
         installInputEventFilter(new WindowActionInputFilter);
         installInputEventFilter(new ForwardInputFilter);
+        installInputEventFilter(new FakeTabletInputFilter);
     }
 }
 
@@ -1890,6 +1987,18 @@ void InputRedirection::setupLibInput()
                 std::bind(handleSwitchEvent, SwitchEvent::State::On, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         connect(conn, &LibInput::Connection::switchToggledOff, this,
                 std::bind(handleSwitchEvent, SwitchEvent::State::Off, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+        connect(conn, &LibInput::Connection::tabletToolEvent,
+                m_tablet, &TabletInputRedirection::tabletToolEvent);
+        connect(conn, &LibInput::Connection::tabletToolButtonEvent,
+                m_tablet, &TabletInputRedirection::tabletToolButtonEvent);
+        connect(conn, &LibInput::Connection::tabletPadButtonEvent,
+                m_tablet, &TabletInputRedirection::tabletPadButtonEvent);
+        connect(conn, &LibInput::Connection::tabletPadRingEvent,
+                m_tablet, &TabletInputRedirection::tabletPadRingEvent);
+        connect(conn, &LibInput::Connection::tabletPadStripEvent,
+                m_tablet, &TabletInputRedirection::tabletPadStripEvent);
+
         if (screens()) {
             setupLibInputWithScreens();
         } else {
