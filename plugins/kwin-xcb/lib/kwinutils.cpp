@@ -434,7 +434,7 @@ public:
         uint response_type = event->response_type & ~0x80;
 
         if (!isPlatformX11())
-            return QAbstractNativeEventFilter::nativeEventFilter(eventType, message, result);
+            return false;
 
         if (response_type == XCB_PROPERTY_NOTIFY) {
             xcb_property_notify_event_t *ev = reinterpret_cast<xcb_property_notify_event_t*>(event);
