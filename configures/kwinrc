@@ -2,6 +2,8 @@
 #默认使用com.deepin.blur
 blurEnabled=false
 enforcedecoEnabled=false
+com.deepin.multitaskingEnabled=false
+com.deepin.blurEnabled=false
 minimizeallEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_translucencyEnabled=false
