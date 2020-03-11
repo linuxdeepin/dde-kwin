@@ -402,7 +402,7 @@ public:
      * @return Toplevel* at device position.
      */
     QPointer<Toplevel> at() const {
-        return m_at;
+        return m_at.at;
     }
     /**
      * @brief Toplevel currently having pointer input focus (this might
@@ -471,7 +471,11 @@ private:
 
     QWindow* findInternalWindow(const QPoint &pos) const;
 
-    QPointer<Toplevel> m_at;
+    struct {
+        QPointer<Toplevel> at;
+        QMetaObject::Connection surfaceCreatedConnection;
+    } m_at;
+
     struct {
         QPointer<Toplevel> focus;
         QPointer<Decoration::DecoratedClientImpl> decoration;

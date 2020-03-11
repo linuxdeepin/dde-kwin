@@ -2358,11 +2358,14 @@ void InputDeviceHandler::init()
 
 bool InputDeviceHandler::setAt(Toplevel *toplevel)
 {
-    if (m_at == toplevel) {
+    if (m_at.at == toplevel) {
         return false;
     }
-    auto old = m_at;
-    m_at = toplevel;
+    auto old = m_at.at;
+    disconnect(m_at.surfaceCreatedConnection);
+    m_at.surfaceCreatedConnection = QMetaObject::Connection();
+
+    m_at.at = toplevel;
     emit atChanged(old, toplevel);
     return true;
 }
@@ -2390,7 +2393,19 @@ void InputDeviceHandler::setInternalWindow(QWindow *window)
 void InputDeviceHandler::updateFocus()
 {
     auto oldFocus = m_focus.focus;
-    m_focus.focus = m_at;
+
+    if (m_at.at && !m_at.at->surface()) {
+        // The surface has not yet been created (special XWayland case).
+        // Therefore listen for its creation.
+        if (!m_at.surfaceCreatedConnection) {
+            m_at.surfaceCreatedConnection = connect(m_at.at, &Toplevel::surfaceChanged,
+                                                    this, &InputDeviceHandler::update);
+        }
+        m_focus.focus = nullptr;
+    } else {
+        m_focus.focus = m_at.at;
+    }
+
     focusUpdate(oldFocus, m_focus.focus);
 }
 
@@ -2399,7 +2414,7 @@ bool InputDeviceHandler::updateDecoration()
     const auto oldDeco = m_focus.decoration;
     m_focus.decoration = nullptr;
 
-    auto *ac = qobject_cast<AbstractClient*>(m_at);
+    auto *ac = qobject_cast<AbstractClient*>(m_at.at);
     if (ac && ac->decoratedClient()) {
         const QRect clientRect = QRect(ac->clientPos(), ac->clientSize()).translated(ac->pos());
         if (!clientRect.contains(position().toPoint())) {
@@ -2454,11 +2469,6 @@ void InputDeviceHandler::update()
     // Always set the toplevel at the position of the input device.
     setAt(toplevel);
 
-    // It's possible that when pointer is over a newly created toplevel and
-    // surface may not be valid at that time, change focus to it will be
-    // wrong. we should wait until the surface is ready.
-    if (toplevel && !toplevel->surface()) return;
-
     if (focusUpdatesBlocked()) {
         return;
     }
@@ -2477,7 +2487,7 @@ void InputDeviceHandler::update()
     }
     updateInternalWindow(nullptr);
 
-    if (m_focus.focus != m_at) {
+    if (m_focus.focus != m_at.at) {
         // focus change
         updateDecoration();
         updateFocus();
