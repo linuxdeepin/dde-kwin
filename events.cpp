@@ -1143,7 +1143,7 @@ void Client::focusOutEvent(xcb_focus_out_event_t *e)
 {
     if (e->event != window())
         return; // only window gets focus
-    if (e->mode == XCB_NOTIFY_MODE_GRAB)
+    if (e->mode == XCB_NOTIFY_MODE_GRAB || e->mode == XCB_NOTIFY_MODE_UNGRAB)
         return; // we don't care
     if (isShade())
         return; // here neither
