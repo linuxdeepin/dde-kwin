@@ -481,6 +481,7 @@ void DrmBackend::updateOutputs()
                 qCDebug(KWIN_DRM) << "Found new output with uuid" << output->uuid();
 
                 connectedOutputs << output;
+                m_enabledOutputs << output;
                 emit outputAdded(output);
                 outputDone = true;
                 break;
@@ -492,7 +493,14 @@ void DrmBackend::updateOutputs()
     }
     std::sort(connectedOutputs.begin(), connectedOutputs.end(), [] (DrmOutput *a, DrmOutput *b) { return a->m_conn->id() < b->m_conn->id(); });
     m_outputs = connectedOutputs;
-    m_enabledOutputs = connectedOutputs;
+
+    if (m_outputs.size() == 1 && m_enabledOutputs.isEmpty()) {
+        auto* output = m_outputs.first();
+        output->setEnabled(true);
+        m_enabledOutputs << output;
+        emit outputAdded(output);
+    }
+
     readOutputsConfiguration();
     if (!m_outputs.isEmpty()) {
         emit screensQueried();
@@ -577,9 +585,8 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
 
     if (countChanged) {
         emit screensQueried();
-    } else {
-        emit screens()->changed();
     }
+    emit screens()->changed();
     config->setApplied();
 }
 
