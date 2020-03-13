@@ -92,6 +92,8 @@ public:
 
     int rotation(); // rotation degrees
 
+    void advertiseLastState();
+
 Q_SIGNALS:
     void dpmsChanged();
 

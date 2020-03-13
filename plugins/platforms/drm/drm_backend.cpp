@@ -557,8 +557,10 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
         }
         if (changeset->enabledChanged() && changeset->enabled() == KWayland::Server::OutputDeviceInterface::Enablement::Enabled) {
             drmoutput->setEnabled(true);
+            qDebug() << "-----------" << __func__ << drmoutput->uuid() << drmoutput->geometry();
             m_enabledOutputs << drmoutput;
             emit outputAdded(drmoutput);
+            drmoutput->advertiseLastState();
             countChanged = true;
         }
         drmoutput->setChanges(changeset);
@@ -576,6 +578,7 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
                 qCWarning(KWIN_DRM) << "Could NOT find DrmOutput matching " << it.key()->uuid();
                 continue;
             }
+            qDebug() << "-----------" << __func__ << "disable" << drmoutput->uuid();
             drmoutput->setEnabled(false);
             m_enabledOutputs.removeOne(drmoutput);
             emit outputRemoved(drmoutput);
@@ -585,8 +588,9 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
 
     if (countChanged) {
         emit screensQueried();
+    } else {
+        emit screens()->changed();
     }
-    emit screens()->changed();
     config->setApplied();
 }
 

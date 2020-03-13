@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "wayland_server.h"
 // KWayland
 #include <KWayland/Server/output_interface.h>
+#include <KWayland/Server/xdgoutput_interface.h>
 // KF5
 #include <KConfigGroup>
 #include <KLocalizedString>
@@ -829,7 +830,6 @@ void DrmOutput::transform(KWayland::Server::OutputDeviceInterface::Transform tra
 
     auto wlOutput = waylandOutput();
     if (wlOutput) wlOutput->setTransform(device2OutputTransform(transform));
-    //TODO? m_xdgOutput ? 
 
     switch (transform) {
     case OutputDeviceInterface::Transform::Normal:
@@ -846,6 +846,11 @@ void DrmOutput::transform(KWayland::Server::OutputDeviceInterface::Transform tra
         break;
     default:
         break;
+    }
+
+    if (xdgOutput()) {
+        xdgOutput()->setLogicalSize(pixelSize() / scale());
+        xdgOutput()->done();
     }
 
     if (m_primaryPlane) {
@@ -927,6 +932,17 @@ void DrmOutput::setWaylandMode()
 {
     AbstractOutput::setWaylandMode(QSize(m_mode.hdisplay, m_mode.vdisplay),
                                    refreshRateForMode(&m_mode));
+}
+
+void DrmOutput::advertiseLastState()
+{
+    qDebug() << "---------- " << __func__ << geometry() << scale();
+    setGlobalPos(globalPos());
+    setScale(scale());
+    AbstractOutput::setWaylandMode(QSize(m_mode.hdisplay, m_mode.vdisplay),
+                                   refreshRateForMode(&m_mode));
+    emit screens()->changed();
+    emit modeChanged();
 }
 
 void DrmOutput::pageFlipped()
