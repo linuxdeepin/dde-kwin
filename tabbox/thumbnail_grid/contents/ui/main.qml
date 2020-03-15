@@ -26,7 +26,7 @@ KWin.Switcher {
         onVisibleChanged: {
             if (visible) {
                 dialogMainItem.calculateColumnCount();
-                if (typeof(dde) != 'undefined') {
+                if (typeof(dde) != 'undefined' && "enableDxcb" in dde) {
                     dialogMainItem.composited = dde.kwinUtils.isCompositing();
                 }
             } else {
@@ -35,7 +35,7 @@ KWin.Switcher {
         }
 
         Component.onCompleted: {
-            if (typeof(dde) != 'undefined') {
+            if (typeof(dde) != 'undefined' && "enableDxcb" in dde) {
                 dde.enableDxcb(dialogMainItem)
             }
         }
