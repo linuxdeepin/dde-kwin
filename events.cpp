@@ -1119,6 +1119,7 @@ void Client::focusInEvent(xcb_focus_in_event_t *e)
 {
     if (e->event != window())
         return; // only window gets focus
+    // should we ignore grab? this cause win+p fail
     if (e->mode == XCB_NOTIFY_MODE_UNGRAB)
         return; // we don't care
     if (e->detail == XCB_NOTIFY_DETAIL_POINTER)
