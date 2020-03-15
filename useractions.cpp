@@ -1879,7 +1879,16 @@ void Workspace::slotWindowOperations()
 
 void Workspace::showWindowMenu(const QRect &pos, AbstractClient* cl)
 {
-    m_userActionsMenu->show(pos, cl);
+    if (!cl) return;
+    auto adjustPos = pos;
+    // workaround: kwin does not support _GTK_FRAME_EXTENT right now
+    if (auto cli = qobject_cast<Client*>(cl)) {
+        if (cli->isClientSideDecorated()) {
+            adjustPos.translate(50, 50);
+        }
+    }
+
+    m_userActionsMenu->show(adjustPos, cl);
 }
 
 void Workspace::showApplicationMenu(const QRect &pos, AbstractClient *c, int actionId)
