@@ -994,6 +994,10 @@ void DrmOutput::pageFlipped()
         }
         m_crtc->flipBuffer();
     }
+
+    if (m_dpmsAtomicOffPending) {
+        dpmsAtomicOff();
+    }
 }
 
 bool DrmOutput::present(DrmBuffer *buffer)
