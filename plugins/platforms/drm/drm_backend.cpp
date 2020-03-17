@@ -518,8 +518,9 @@ void DrmBackend::readOutputsConfiguration()
     // default position goes from left to right
     QPoint pos(0, 0);
     for (auto it = m_outputs.begin(); it != m_outputs.end(); ++it) {
-        qCDebug(KWIN_DRM) << "Reading output configuration for [" << uuid << "] ["<< (*it)->uuid() << "]";
         const auto outputConfig = configGroup.group((*it)->uuid());
+        qCDebug(KWIN_DRM) << "Reading output configuration for [" << uuid << "] ["<< (*it)->uuid() << "]"
+            << outputConfig.readEntry<QPoint>("Position", pos);
         (*it)->setGlobalPos(outputConfig.readEntry<QPoint>("Position", pos));
         // TODO: add mode
         (*it)->setScale(outputConfig.readEntry("Scale", 1.0));
@@ -560,7 +561,6 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
             qDebug() << "-----------" << __func__ << drmoutput->uuid() << drmoutput->geometry();
             m_enabledOutputs << drmoutput;
             emit outputAdded(drmoutput);
-            drmoutput->advertiseLastState();
             countChanged = true;
         }
         drmoutput->setChanges(changeset);
