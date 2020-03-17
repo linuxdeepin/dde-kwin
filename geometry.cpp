@@ -3499,9 +3499,27 @@ void AbstractClient::setQuickTileMode(QuickTileMode mode, bool keyboard)
             }
             setElectricBorderMode(mode); // used by ::electricBorderMaximizeGeometry(.)
         } else if (quickTileMode() == QuickTileMode(QuickTileFlag::None)) {
-            // Not coming out of an existing tile, not shifting monitors, we're setting a brand new tile.
-            // Store geometry first, so we can go out of this tile later.
-            setGeometryRestore(geometry());
+            //After canceling the 'split screen' operation, the window display is incomplete.
+            Screens *screens = Screens::self();
+            QRect current_screen_geometry = screens->geometry(screens->current());
+
+            int x = 0; //default: Left side of the screen
+            int current_screen_x = geometry().x() - current_screen_geometry.x();
+            if (current_screen_x > (current_screen_geometry.width() / 2)) {
+                x = current_screen_geometry.width() - geometry().width(); //right
+            }
+            x += current_screen_geometry.x();
+
+            int y = 0; //default: Top side of the screen
+            int current_screen_y = geometry().y() - current_screen_geometry.y();
+            if (current_screen_y > (current_screen_geometry.height() / 2)) {
+                y = current_screen_geometry.height() - geometry().height();  //bottom
+            }
+            y += current_screen_geometry.y();
+
+            int w = geometry().width();
+            int h = geometry().height();
+            setGeometryRestore(QRect(x, y, w, h));
         }
 
         if (mode != QuickTileMode(QuickTileFlag::None)) {
