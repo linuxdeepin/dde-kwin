@@ -109,7 +109,7 @@ void AbstractOutput::setScale(qreal scale)
 
 void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
 {
-    qCDebug(KWIN_CORE) << "Set changes in AbstractOutput.";
+    qCDebug(KWIN_CORE) << "Set changes in AbstractOutput." << m_waylandOutputDevice->uuid();
     Q_ASSERT(!m_waylandOutputDevice.isNull());
 
     bool updated = false;
@@ -187,6 +187,9 @@ void AbstractOutput::createXdgOutput()
         return;
     }
     m_xdgOutput = waylandServer()->xdgOutputManager()->createXdgOutput(m_waylandOutput, m_waylandOutput);
+    m_xdgOutput->setLogicalSize(pixelSize() / scale());
+    m_xdgOutput->setLogicalPosition(globalPos());
+    m_xdgOutput->done();
 }
 
 void AbstractOutput::initWaylandOutput()
