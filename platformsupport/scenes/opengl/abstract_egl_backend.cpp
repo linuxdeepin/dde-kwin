@@ -202,6 +202,10 @@ bool AbstractEglBackend::makeCurrent()
 
 void AbstractEglBackend::doneCurrent()
 {
+    if (QOpenGLContext *context = QOpenGLContext::currentContext()) {
+        // Workaround to tell Qt that no QOpenGLContext is current
+        context->doneCurrent();
+    }
     eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 }
 

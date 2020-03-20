@@ -54,7 +54,9 @@ bool SharingPlatformContext::makeCurrent(QPlatformSurface *surface)
     // but binding the content FBO looks up the format from the current context, so we need // to make sure sure Qt knows what the correct one is already
     QOpenGLContextPrivate::setCurrentContext(context());
     if (eglMakeCurrent(eglDisplay(), m_surface, m_surface, eglContext())) {
-        window->bindContentFBO();
+        if (m_needBindFbo) {
+            window->bindContentFBO();
+        }
         return true;
     }
     qCWarning(KWIN_QPA) << "Failed to make context current";
@@ -79,10 +81,15 @@ void SharingPlatformContext::swapBuffers(QPlatformSurface *surface)
         qCDebug(KWIN_QPA) << "SwapBuffers called but there is no ShellClient";
         return;
     }
+    // makeCurrent will result into calling SharingPlatformContext::makeCurrent,
+    // which unconditionally binds fbo, but may be replace promptly by upcoming swapFBO
+    m_needBindFbo = false;
+    context()->doneCurrent();
     context()->makeCurrent(surface->surface());
     glFlush();
     c->setInternalFramebufferObject(window->swapFBO());
     window->bindContentFBO();
+    m_needBindFbo = true;
 }
 
 GLuint SharingPlatformContext::defaultFramebufferObject(QPlatformSurface *surface) const

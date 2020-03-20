@@ -400,7 +400,6 @@ void EglGbmBackend::setupViewport(const Output& output)
     glViewport(-v.x() * scale, (v.height() - overall.height() + v.y()) * scale,
                overall.width() * scale, overall.height() * scale);
 
-    qInfo() << Q_FUNC_INFO << output.output->uuid() << v << overall;
     //qInfo() << Q_FUNC_INFO << "width:" << overall.width() * scale
             //<< "height:" << overall.height() * scale
             //<< "scale:" << scale;
@@ -523,6 +522,7 @@ QRegion EglGbmBackend::prepareRenderingFrame()
 QRegion EglGbmBackend::prepareRenderingForScreen(int screenId)
 {
     const Output &o = m_outputs.at(screenId);
+    doneCurrent();
     makeContextCurrent(o);
     preparePostprocess(o);
     setupViewport(o);

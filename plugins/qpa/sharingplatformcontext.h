@@ -46,6 +46,7 @@ private:
     void create();
 
     EGLSurface m_surface;
+    bool m_needBindFbo {false};
 };
 
 }
