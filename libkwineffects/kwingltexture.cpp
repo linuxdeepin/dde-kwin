@@ -261,6 +261,7 @@ GLTexturePrivate::GLTexturePrivate()
  , m_filterChanged(true)
  , m_wrapModeChanged(false)
  , m_immutable(false)
+ , m_isExternal(false)
  , m_mipLevels(1)
  , m_unnormalizeActive(0)
  , m_normalizeActive(0)
@@ -272,7 +273,7 @@ GLTexturePrivate::GLTexturePrivate()
 GLTexturePrivate::~GLTexturePrivate()
 {
     delete m_vbo;
-    if (m_texture != 0) {
+    if (!m_isExternal && m_texture != 0) {
         glDeleteTextures(1, &m_texture);
     }
     // Delete the FBO if this is the last Texture

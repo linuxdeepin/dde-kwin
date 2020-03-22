@@ -571,6 +571,7 @@ bool AbstractEglTexture::updateFromFBO(const QSharedPointer<QOpenGLFramebufferOb
     if (fbo.isNull()) {
         return false;
     }
+    m_isExternal = true;
     m_texture = fbo->texture();
     m_size = fbo->size();
     q->setWrapMode(GL_CLAMP_TO_EDGE);
