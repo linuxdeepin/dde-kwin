@@ -10,8 +10,6 @@ if (NOT PROJECT_VERSION_MAJOR)
     set(PROJECT_VERSION_MAJOR 0)
 endif()
 
-set(CMAKE_INSTALL_RPATH "/opt/usr/lib:/opt/usr/lib/aarch64-linux-gnu")
-
 add_definitions(
     -DPROJECT_NAME=\\"${PROJECT_NAME}\\"
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
