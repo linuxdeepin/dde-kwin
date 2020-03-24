@@ -1385,6 +1385,63 @@ public:
         seat->pointerAxis(orientation, orientation == Qt::Horizontal ? event->angleDelta().x() : event->angleDelta().y());
         return true;
     }
+
+    bool passToXwayland(QKeyEvent* event) {
+        auto seat = waylandServer()->seat();
+        switch(event->key()) {
+            case Qt::Key_VolumeUp:
+            case Qt::Key_VolumeDown:
+            case Qt::Key_VolumeMute:
+            case Qt::Key_MonBrightnessUp:
+            case Qt::Key_MonBrightnessDown:
+            case Qt::Key_MicMute:
+            case Qt::Key_WLAN:
+            case Qt::Key_Display:
+            case Qt::Key_Tools:
+                break;
+
+            default: return false;
+        }
+
+        const ToplevelList &stacking = Workspace::self()->stackingOrder();
+        if (stacking.isEmpty()) {
+            return false;
+        }
+        auto it = stacking.end();
+        do {
+            --it;
+            Toplevel *t = (*it);
+            if (t->isDeleted()) {
+                // a deleted window doesn't get mouse events
+                continue;
+            }
+            if (AbstractClient *c = dynamic_cast<AbstractClient*>(t)) {
+                if (!c->isOnCurrentActivity() || !c->isOnCurrentDesktop() || c->isMinimized() ||
+                        !c->isCurrentTab() || c->isHiddenInternal()) {
+                    continue;
+                }
+
+                if (ShellClient* sc = dynamic_cast<ShellClient*>(c)) {
+                    continue;
+                }
+            }
+            if (!t->readyForPainting()) {
+                continue;
+            }
+
+            if (t->isDock()) {
+                continue;
+            }
+
+            // find first non wayland client to receive hot keys
+            // this is a workaround, and will not work with xwayland client
+            seat->setFocusedKeyboardSurface(t->surface());
+            return true;
+        } while (it != stacking.begin());
+
+        return false;
+    }
+
     bool keyEvent(QKeyEvent *event) override {
         if (!workspace()) {
             return false;
@@ -1393,10 +1450,21 @@ public:
             // handled by Wayland client
             return false;
         }
+
         auto seat = waylandServer()->seat();
         input()->keyboard()->update();
+
+        auto old = seat->focusedKeyboardSurface();
+        bool steal_focus = passToXwayland(event);
+
         seat->setTimestamp(event->timestamp());
         passToWaylandServer(event);
+
+        if (steal_focus && old) {
+            auto seat = waylandServer()->seat();
+            seat->setFocusedKeyboardSurface(old);
+        }
+
         return true;
     }
     bool touchDown(quint32 id, const QPointF &pos, quint32 time) override {
