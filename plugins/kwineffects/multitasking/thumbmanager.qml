@@ -376,6 +376,7 @@ Rectangle {
                 y: -height/2
                 color: "transparent"
                 opacity: 0.0
+                visible: (1 != thumbs.count) //The close button is not displayed when there is only one thumbnail
 
                 Image {
                     id: closeImg
