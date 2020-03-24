@@ -218,7 +218,7 @@ void UserActionsMenu::handleClick(const QPoint& pos)
 
 void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
 {
-
+    qDebug() << "------------- menu show ";
     _menuClient = cl.data();
 
     if (cl.isNull())
