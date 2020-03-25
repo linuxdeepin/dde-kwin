@@ -86,6 +86,9 @@ void EffectsHandlerImplX11::doStartMouseInterception(Qt::CursorShape shape)
             XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION
         };
         m_mouseInterceptionWindow.reset(Xcb::createInputWindow(geo, mask, values));
+        qint32 pid = qApp->applicationPid();
+        xcb_change_property(connection(), XCB_PROP_MODE_REPLACE, m_mouseInterceptionWindow,
+                            Xcb::Atom("_INTERCEPTION_WINDOW_PID"), XCB_ATOM_CARDINAL, 32, 1, &pid);
         defineCursor(shape);
     } else {
         defineCursor(shape);
