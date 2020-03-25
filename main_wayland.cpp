@@ -224,6 +224,7 @@ void ApplicationWayland::continueStartupWithX()
     xcb_connection_t *c = x11Connection();
     if (!c) {
         // about to quit
+        exit(0);
         return;
     }
     QSocketNotifier *notifier = new QSocketNotifier(xcb_get_file_descriptor(c), QSocketNotifier::Read, this);
@@ -406,6 +407,7 @@ void ApplicationWayland::startXwaylandServer()
     const int xDisplayPipe = pipeFds[0];
     connect(m_xwaylandProcess, &QProcess::started, this,
         [this, xDisplayPipe] {
+        QThread::msleep(500);
             QFutureWatcher<void> *watcher = new QFutureWatcher<void>(this);
             QObject::connect(watcher, &QFutureWatcher<void>::finished, this, &ApplicationWayland::continueStartupWithX, Qt::QueuedConnection);
             QObject::connect(watcher, &QFutureWatcher<void>::finished, watcher, &QFutureWatcher<void>::deleteLater, Qt::QueuedConnection);
