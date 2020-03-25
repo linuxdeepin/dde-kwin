@@ -1455,6 +1455,7 @@ void TabBox::keyPress(int keyQt)
         };
         bool testedCurrent = false; // in case of collision, prefer to stay in the current mode
         int i = 0, j = 0;
+        bool bFocusDesktop = false;
         while (true) {
             if (!testedCurrent && modes[i] != mode()) {
                 ++j;
@@ -1468,13 +1469,26 @@ void TabBox::keyPress(int keyQt)
             direction = directionFor(cuts[i], cuts[i+ModeCount]);
             if (direction != Steady) {
                 if (modes[i] != mode()) {
-                    accept(false);
-                    setMode(modes[i]);
                     auto replayWithChangedTabboxMode = [this, direction]() {
                         reset();
                         nextPrev(direction == Forward);
                     };
-                    QTimer::singleShot(50, this, replayWithChangedTabboxMode);
+                    if (tabBox->config().clientApplicationsMode() != TabBoxConfig::AllWindowsCurrentApplication
+                                        && (tabBox->config().showDesktopMode() == TabBoxConfig::ShowDesktopClient || tabBox->clientList().isEmpty())) {
+                        QWeakPointer<TabBoxClient> desktopClient = tabBox->desktopClient();
+                        if (!desktopClient.isNull()) {
+                            QModelIndex currentIndex = m_tabBox->currentIndex();
+                            QModelIndex desktopIndex = m_tabBox->index(desktopClient);
+                            if (currentIndex == desktopIndex) {
+                                bFocusDesktop = true;
+                            }
+                        }
+                    }
+                    if (!bFocusDesktop) {
+                        accept(false);
+                        setMode(modes[i]);
+                        QTimer::singleShot(50, this, replayWithChangedTabboxMode);
+                    }
                 }
                 break;
             } else if (++j > ModeCount) { // guarding counter for invalid modes
@@ -1485,7 +1499,9 @@ void TabBox::keyPress(int keyQt)
         }
         if (direction != Steady) {
             qCDebug(KWIN_TABBOX) << "== " << cuts[i].toString() << " or " << cuts[i+ModeCount].toString();
-            KDEWalkThroughWindows(direction == Forward);
+            if (!bFocusDesktop) {
+                KDEWalkThroughWindows(direction == Forward);
+            }
         }
     } else if (m_desktopGrab) {
         direction = directionFor(m_cutWalkThroughDesktops, m_cutWalkThroughDesktopsReverse);
