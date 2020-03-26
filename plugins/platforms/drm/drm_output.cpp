@@ -64,35 +64,39 @@ DrmOutput::~DrmOutput()
 {
     Q_ASSERT(!m_pageFlipPending);
     if (!m_deleted) {
+        m_deleted = true;
         teardown();
     }
 }
 
 void DrmOutput::teardown()
 {
-    m_deleted = true;
-    hideCursor();
-    m_crtc->blank();
+    m_teardown = true;
+    if (m_deleted) {
+        hideCursor();
+        m_crtc->blank();
 
-    if (m_primaryPlane) {
-        // TODO: when having multiple planes, also clean up these
-        m_primaryPlane->setOutput(nullptr);
+        if (m_primaryPlane) {
+            // TODO: when having multiple planes, also clean up these
+            m_primaryPlane->setOutput(nullptr);
 
-        if (m_backend->deleteBufferAfterPageFlip()) {
-            delete m_primaryPlane->current();
+            if (m_backend->deleteBufferAfterPageFlip()) {
+                delete m_primaryPlane->current();
+            }
+            m_primaryPlane->setCurrent(nullptr);
         }
-        m_primaryPlane->setCurrent(nullptr);
+
+        m_crtc->setOutput(nullptr);
+        m_conn->setOutput(nullptr);
+
+        delete m_cursor[0];
+        delete m_cursor[1];
+    } else {
+        if (!m_pageFlipPending) {
+            deleteLater();
+        } //else will be deleted in the page flip handler
+        //this is needed so that the pageflipcallback handle isn't deleted
     }
-
-    m_crtc->setOutput(nullptr);
-    m_conn->setOutput(nullptr);
-
-    delete m_cursor[0];
-    delete m_cursor[1];
-    if (!m_pageFlipPending) {
-        deleteLater();
-    } //else will be deleted in the page flip handler
-    //this is needed so that the pageflipcallback handle isn't deleted
 }
 
 void DrmOutput::releaseGbm()
@@ -948,9 +952,10 @@ void DrmOutput::advertiseLastState()
 void DrmOutput::pageFlipped()
 {
     m_pageFlipPending = false;
-    if (m_deleted) {
+    if (m_teardown) {
+        qCDebug(KWIN_DRM) << "tearing down, flip and delete.";
         deleteLater();
-        return;
+        // pass through to finish the flip
     }
 
     if (!m_crtc) {
@@ -1002,6 +1007,11 @@ void DrmOutput::pageFlipped()
 
 bool DrmOutput::present(DrmBuffer *buffer)
 {
+    if (m_teardown) {
+        qCDebug(KWIN_DRM) << "Under tearing down, cancel present.";
+        return false;
+    }
+
     if (m_backend->atomicModeSetting()) {
         return presentAtomically(buffer);
     } else {

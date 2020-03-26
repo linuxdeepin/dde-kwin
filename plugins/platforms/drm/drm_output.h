@@ -169,6 +169,7 @@ private:
     bool m_hasNewCursor = false;
     bool m_internal = false;
     bool m_deleted = false;
+    bool m_teardown = false;
 };
 
 }

@@ -414,6 +414,7 @@ void DrmBackend::updateOutputs()
         it = m_outputs.erase(it);
         m_enabledOutputs.removeOne(removed);
         emit outputRemoved(removed);
+        qCDebug(KWIN_DRM) << "request output teardown from hotplug event";
         removed->teardown();
     }
 
