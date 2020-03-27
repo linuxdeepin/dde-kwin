@@ -349,6 +349,8 @@ Rectangle {
 
                             onPressed: {
                                 drag.target = parent
+                                // Click the window in the thumbnail to switch workspaces
+                                qmlRequestChangeDesktop(thumb.desktop)
                             }
 
                             onReleased: {
