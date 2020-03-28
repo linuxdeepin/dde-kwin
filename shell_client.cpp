@@ -972,8 +972,12 @@ void ShellClient::setFullScreen(bool set, bool user)
     RequestGeometryBlocker requestBlocker(this);
     StackingUpdatesBlocker blocker1(workspace());
     GeometryUpdatesBlocker blocker2(this);
+    setActive(true);
+    workspace()->setShouldGetFocus(this);
     invalidateLayer();
     workspace()->updateClientLayer(this);   // active fullscreens get different layer
+    qDebug() << "---------" << __func__ << layer() << belongsToLayer() << isFullScreen()
+        << workspace()->mostRecentlyActivatedClient();
     updateDecoration(false, false);
     if (isFullScreen()) {
         setGeometry(workspace()->clientArea(FullScreenArea, this));
