@@ -126,6 +126,7 @@ private:
     AbstractClient *m_client;
 };
 
+#ifndef WAYLAND_PLATFORM
 #ifdef USE_DBUS_MENU
 void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
 {
@@ -276,6 +277,7 @@ void RuleBook::save()
 }
 
 #endif // USE_DBUS_MENU
+#endif
 } // namespace KWin
 
 #if !defined(KWIN_VERSION) || KWIN_VERSION <= KWIN_VERSION_CHECK(5, 8, 6, 0)
