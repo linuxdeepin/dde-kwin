@@ -31,6 +31,7 @@ namespace KWin {
 // 使用DBUS菜单时，覆盖了Workspace::showWindowMenu，此函数的原本逻辑中将会调用 UserActionsMenu::show
 // 由于kwin中对UserActionsMenu对象有多处调用，因此，不使用DBUS菜单时，应该覆盖 UserActionsMenu 的函数来处理菜单显示
 class AbstractClient : public QObject {};
+#ifndef WAYLAND_PLATFORM
 #ifdef USE_DBUS_MENU
 class Q_DECL_EXPORT Workspace {
     void showWindowMenu(const QRect& pos, AbstractClient* cl);
