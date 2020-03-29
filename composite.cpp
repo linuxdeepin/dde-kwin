@@ -688,14 +688,14 @@ void Compositor::timerEvent(QTimerEvent *te)
 
 void Compositor::aboutToSwapBuffers()
 {
-    assert(!m_bufferSwapPending);
+    //assert(!m_bufferSwapPending);
 
     m_bufferSwapPending = true;
 }
 
 void Compositor::bufferSwapComplete()
 {
-    assert(m_bufferSwapPending);
+    //assert(m_bufferSwapPending);
     m_bufferSwapPending = false;
 
     if (m_composeAtSwapCompletion) {

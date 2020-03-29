@@ -62,7 +62,7 @@ DrmOutput::DrmOutput(DrmBackend *backend)
 
 DrmOutput::~DrmOutput()
 {
-    Q_ASSERT(!m_pageFlipPending);
+    //Q_ASSERT(!m_pageFlipPending);
     if (!m_deleted) {
         m_deleted = true;
         teardown();
