@@ -86,6 +86,7 @@ public:
 
 private:
     void unmap();
+    void map();
     void createFBO();
 
     KWayland::Client::Surface *m_surface;

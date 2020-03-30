@@ -78,6 +78,8 @@ void Window::setVisible(bool visible)
 {
     if (!visible) {
         unmap();
+    } else {
+        map();
     }
     QPlatformWindow::setVisible(visible);
 }
@@ -112,6 +114,13 @@ void Window::setGeometry(const QRect &rect)
     }
 #endif
     QWindowSystemInterface::handleGeometryChange(window(), geometry());
+}
+
+void Window::map()
+{
+    if (!m_shellClient) {
+        m_shellClient = waylandServer()->findClient(window());
+    }
 }
 
 void Window::unmap()
@@ -175,10 +184,7 @@ void Window::createFBO()
 
 ShellClient *Window::shellClient()
 {
-    if (!m_shellClient) {
-        waylandServer()->dispatch();
-        m_shellClient = waylandServer()->findClient(window());
-    }
+    map();
     return m_shellClient;
 }
 
