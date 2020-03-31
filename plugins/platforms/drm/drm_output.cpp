@@ -1012,6 +1012,10 @@ bool DrmOutput::present(DrmBuffer *buffer)
         return false;
     }
 
+    if (m_dpmsModePending == DpmsMode::Off) {
+        return false;
+    }
+
     if (m_backend->atomicModeSetting()) {
         return presentAtomically(buffer);
     } else {
