@@ -109,7 +109,7 @@ bool DpmsInputEventFilter::touchMotion(quint32 id, const QPointF &pos, quint32 t
 void DpmsInputEventFilter::notify()
 {
     // queued to not modify the list of event filters while filtering
-    QMetaObject::invokeMethod(m_backend, "turnOutputsOn", Qt::QueuedConnection);
+    m_backend->turnOutputsOn();
 }
 
 }
