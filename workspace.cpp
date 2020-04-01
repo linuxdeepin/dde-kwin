@@ -864,7 +864,12 @@ void Workspace::slotReloadConfig()
 
 void Workspace::reconfigure()
 {
+#ifdef __aarch64__
+    // delay may cause kwin to fail due to some unknown reason
+    reconfigureTimer.start(0);
+#else
     reconfigureTimer.start(200);
+#endif
 }
 
 /**
