@@ -1111,7 +1111,11 @@ bool Client::motionNotifyEvent(xcb_window_t w, int state, int x, int y, int x_ro
         y = this->y();
     }
 
-    handleMoveResize(QPoint(x, y), QPoint(x_root, y_root));
+    // on wayland, move resize has been handled by MoveResizeFilter.
+    // this causes a conflict and make drag-to-move flicker
+    if (!waylandServer()) {
+        handleMoveResize(QPoint(x, y), QPoint(x_root, y_root));
+    }
     return true;
 }
 
