@@ -258,11 +258,7 @@ bool GlobalShortcutsManager::processKey(Qt::KeyboardModifiers mods, int keyQt)
             return retVal;
         };
         if (check(mods, keyQt)) {
-            qDebug() << "---------GlobalShortcutsManager::" << __func__ << mods;
-            //NOTE: by passing down the key event, so modifier shortcut registered by
-            //x11 client at xwayland side works.
-            //not sure if there is any side effect yet.
-            return false;
+            return true;
         } else if (keyQt == Qt::Key_Backtab) {
             // KGlobalAccel on X11 has some workaround for Backtab
             // see kglobalaccel/src/runtime/plugins/xcb/kglobalccel_x11.cpp method x11KeyPress
