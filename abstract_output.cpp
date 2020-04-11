@@ -234,7 +234,7 @@ void AbstractOutput::initWaylandOutput()
     connect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, this,
         [this] (KWayland::Server::OutputInterface::DpmsMode mode) {
             updateDpms(mode);
-        }, Qt::QueuedConnection
+        }, Qt::DirectConnection
     );
 }
 
