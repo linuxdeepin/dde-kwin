@@ -96,3 +96,7 @@ CommandAll1=Nothing
 CommandAll2=Nothing
 #禁用Alt+鼠标右键绑定的改变窗口大小的功能
 CommandAll3=Nothing
+
+# for wayland platform
+[ModifierOnlyShortcuts]
+Meta=com.deepin.dde.Launcher,/com/deepin/dde/Launcher,com.deepin.dde.Launcher,Toggle
