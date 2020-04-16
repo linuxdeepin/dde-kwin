@@ -78,7 +78,7 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
         auto& p = m_cachedPixmaps[uri];
         if (p.first != size) {
             p.first = size;
-            p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding);
+            p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
         }
         return p.second;
     }
@@ -89,7 +89,7 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
         pm.load(uri);
     }
 
-    pm = pm.scaled(size, Qt::KeepAspectRatioByExpanding);
+    pm = pm.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
     m_cachedPixmaps[uri] = qMakePair(size, pm);
     //qCDebug(BLUR_CAT) << "--------- " << __func__ << workspace << uri << pm.isNull();
     return pm;
