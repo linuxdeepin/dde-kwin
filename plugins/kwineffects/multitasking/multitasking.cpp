@@ -615,7 +615,8 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
 
         //qCDebug(BLUR_CAT) << "-------------- " << __func__ << time << m_toggleTimeline.currentValue();
 
-        data.mask |= PAINT_SCREEN_TRANSFORMED;
+        //The window that displays all screens during the multitasking preview
+        //data.mask |= PAINT_SCREEN_TRANSFORMED;
         data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
 
         for (auto& mm: m_motionManagers) {
