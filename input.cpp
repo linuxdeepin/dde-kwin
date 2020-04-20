@@ -1987,7 +1987,7 @@ void InputRedirection::reconfigure()
         const auto config = inputConfig->group(QStringLiteral("keyboard"));
         const int delay = config.readEntry("RepeatDelay", 660);
         const int rate = config.readEntry("RepeatRate", 25);
-        const bool enabled = config.readEntry("KeyboardRepeating", 0) == 0;
+        const bool enabled = config.readEntry("KeyboardRepeating", 1) == 0;
 
         waylandServer()->seat()->setKeyRepeatInfo(enabled ? rate : 0, delay);
     }

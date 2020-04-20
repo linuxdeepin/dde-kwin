@@ -348,6 +348,8 @@ void Xkb::updateKey(uint32_t key, InputRedirection::KeyboardKeyState state)
         } else {
             m_keysym = sym;
         }
+    } else {
+        m_keysym = toKeysym(key);
     }
     updateModifiers();
     updateConsumedModifiers(key);
