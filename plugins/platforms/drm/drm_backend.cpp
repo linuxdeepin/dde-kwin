@@ -503,6 +503,7 @@ void DrmBackend::updateOutputs()
     }
 
     readOutputsConfiguration();
+    outputDpmsChanged();
     if (!m_outputs.isEmpty()) {
         emit screensQueried();
     }

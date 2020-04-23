@@ -658,6 +658,11 @@ qint64 SceneOpenGL::paint(QRegion damage, ToplevelList toplevels)
         m_backend->prepareRenderingFrame();
         for (int i = 0; i < screens()->count(); ++i) {
             const QRect &geo = screens()->geometry(i);
+            if (geo.isNull() || !geo.isValid()) {
+                qDebug() << "------- paint: invalid geometry";
+                continue;
+            }
+
             QRegion update;
             QRegion valid;
             // prepare rendering makes context current on the output

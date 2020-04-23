@@ -521,6 +521,10 @@ QRegion EglGbmBackend::prepareRenderingFrame()
 
 QRegion EglGbmBackend::prepareRenderingForScreen(int screenId)
 {
+    if (screenId >= m_outputs.size()) {
+        return QRegion();
+    }
+
     const Output &o = m_outputs.at(screenId);
     doneCurrent();
     makeContextCurrent(o);
@@ -551,6 +555,9 @@ void EglGbmBackend::endRenderingFrame(const QRegion &renderedRegion, const QRegi
 
 void EglGbmBackend::endRenderingFrameForScreen(int screenId, const QRegion &renderedRegion, const QRegion &damagedRegion)
 {
+    if (screenId >= m_outputs.size()) {
+        return;
+    }
     Output &o = m_outputs[screenId];
     renderPostprocess(o);
 
