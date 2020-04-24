@@ -40,6 +40,7 @@ AbstractOutput::AbstractOutput(QObject *parent)
 
 AbstractOutput::~AbstractOutput()
 {
+    disconnect(m_waylandOutput.data(), 0, 0, 0);
     delete m_waylandOutputDevice.data();
     delete m_xdgOutput.data();
     delete m_waylandOutput.data();
@@ -158,12 +159,16 @@ void AbstractOutput::setEnabled(bool enable)
     if (enable == isEnabled()) {
         return;
     }
+    qDebug() << "-------- setEnabled" << enable;
+
     if (enable) {
         updateDpms(KWayland::Server::OutputInterface::DpmsMode::On);
         initWaylandOutput();
     } else {
         updateDpms(KWayland::Server::OutputInterface::DpmsMode::Off);
+        disconnect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, 0, 0);
         delete waylandOutput().data();
+        m_waylandOutput.clear();
     }
     waylandOutputDevice()->setEnabled(enable ? KWayland::Server::OutputDeviceInterface::Enablement::Enabled :
                                                KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
@@ -197,6 +202,7 @@ void AbstractOutput::initWaylandOutput()
     Q_ASSERT(m_waylandOutputDevice);
 
     if (!m_waylandOutput.isNull()) {
+        disconnect(m_waylandOutput.data(), 0, 0, 0);
         delete m_waylandOutput.data();
         m_waylandOutput.clear();
     }
@@ -233,6 +239,8 @@ void AbstractOutput::initWaylandOutput()
     m_waylandOutput->setDpmsMode(m_dpms);
     connect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, this,
         [this] (KWayland::Server::OutputInterface::DpmsMode mode) {
+            if (m_waylandOutput.isNull()) return;
+            qDebug() << "-------- dpmsModeRequested";
             updateDpms(mode);
         }, Qt::DirectConnection
     );
