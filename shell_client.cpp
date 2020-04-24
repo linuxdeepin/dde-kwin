@@ -196,7 +196,8 @@ void ShellClient::initSurface(T *shellSurface)
     connect(shellSurface, &T::transientForChanged, this, &ShellClient::setTransient);
 
     connect(this, &ShellClient::geometryChanged, this, &ShellClient::updateClientOutputs);
-    connect(screens(), &Screens::changed, this, &ShellClient::updateClientOutputs);
+    connect(screens(), &Screens::changed, this, &ShellClient::updateClientOutputs,
+            Qt::QueuedConnection);
 
     if (!m_internal) {
         setupWindowRules(false);

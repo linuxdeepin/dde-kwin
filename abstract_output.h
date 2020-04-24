@@ -64,12 +64,12 @@ public:
 
     QString name() const;
     bool isEnabled() const {
-        return !m_waylandOutput.isNull();
+        return m_waylandOutputDevice->enabled() == KWayland::Server::OutputDeviceInterface::Enablement::Enabled;
     }
 
     virtual QSize pixelSize() const = 0;
     qreal scale() const {
-        return m_scale;
+        return m_waylandOutputDevice->scaleF();
     }
     /*
      * The geometry of this output in global compositor co-ordinates (i.e scaled)
@@ -97,7 +97,7 @@ public:
      */
     void setChanges(KWayland::Server::OutputChangeSet *changeset);
 
-    QPointer<KWayland::Server::OutputInterface> waylandOutput() const {
+    KWayland::Server::OutputInterface* waylandOutput() const {
         return m_waylandOutput;
     }
 
@@ -116,28 +116,30 @@ public:
         Q_UNUSED(gamma);
         return false;
     }
+    
+    virtual void updateEnablement(bool enable) {
+        Q_UNUSED(enable);
+    }
 
 Q_SIGNALS:
     void modeChanged();
 
 protected:
-    void initWaylandOutput();
     void initWaylandOutputDevice(const QString &model,
                                  const QString &manufacturer,
                                  const QByteArray &uuid,
                                  const QVector<KWayland::Server::OutputDeviceInterface::Mode> &modes);
 
-    QPointer<KWayland::Server::XdgOutputInterface> xdgOutput() const {
+    KWayland::Server::XdgOutputInterface* xdgOutput() const {
         return m_xdgOutput;
     }
-    void createXdgOutput();
 
-    QPointer<KWayland::Server::OutputDeviceInterface> waylandOutputDevice() const {
+    KWayland::Server::OutputDeviceInterface* waylandOutputDevice() const {
         return m_waylandOutputDevice;
     }
 
     QPoint globalPos() const {
-        return m_globalPos;
+        return m_waylandOutputDevice->globalPosition();
     }
 
     QSize rawPhysicalSize() const {
@@ -157,7 +159,7 @@ protected:
         m_internal = set;
     }
     void setDpmsSupported(bool set) {
-        m_supportsDpms = set;
+        m_waylandOutput->setDpmsSupported(set);
     }
     virtual void updateDpms(KWayland::Server::OutputInterface::DpmsMode mode) {
         Q_UNUSED(mode);
@@ -174,18 +176,15 @@ protected:
     QSize orientateSize(const QSize &size) const;
 
 private:
-    QPointer<KWayland::Server::OutputInterface> m_waylandOutput;
-    QPointer<KWayland::Server::XdgOutputInterface> m_xdgOutput;
-    QPointer<KWayland::Server::OutputDeviceInterface> m_waylandOutputDevice;
+    KWayland::Server::OutputInterface* m_waylandOutput;
+    KWayland::Server::XdgOutputInterface* m_xdgOutput;
+    KWayland::Server::OutputDeviceInterface* m_waylandOutputDevice;
 
     KWayland::Server::OutputInterface::DpmsMode m_dpms = KWayland::Server::OutputInterface::DpmsMode::On;
 
-    QPoint m_globalPos;
-    qreal m_scale = 1;
     QSize m_physicalSize;
     Qt::ScreenOrientation m_orientation = Qt::PrimaryOrientation;
     bool m_internal = false;
-    bool m_supportsDpms = false;
 };
 
 }

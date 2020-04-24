@@ -36,14 +36,24 @@ namespace KWin
 AbstractOutput::AbstractOutput(QObject *parent)
     : QObject(parent)
 {
+    m_waylandOutput = waylandServer()->display()->createOutput(this);
+    m_waylandOutputDevice = waylandServer()->display()->createOutputDevice(this);
+    m_xdgOutput = waylandServer()->xdgOutputManager()->createXdgOutput(m_waylandOutput, this);
+    connect(m_waylandOutput, &KWayland::Server::Global::aboutToDestroyGlobal, this,
+            [this]() {
+            qDebug() << "------ about to destroy output global" << m_waylandOutputDevice->uuid();
+        });
+
+    connect(m_waylandOutput, &KWayland::Server::OutputInterface::dpmsModeRequested, this,
+        [this] (KWayland::Server::OutputInterface::DpmsMode mode) {
+        qDebug() << "-------" << "dpmsModeRequested" << m_waylandOutput;
+            updateDpms(mode);
+        }, Qt::DirectConnection
+    );
 }
 
 AbstractOutput::~AbstractOutput()
 {
-    disconnect(m_waylandOutput.data(), 0, 0, 0);
-    delete m_waylandOutputDevice.data();
-    delete m_xdgOutput.data();
-    delete m_waylandOutput.data();
 }
 
 QString AbstractOutput::name() const
@@ -56,7 +66,7 @@ QString AbstractOutput::name() const
 
 QRect AbstractOutput::geometry() const
 {
-    return QRect(m_globalPos, pixelSize() / scale());
+    return QRect(globalPos(), pixelSize() / scale());
 }
 
 QSize AbstractOutput::physicalSize() const
@@ -74,44 +84,31 @@ int AbstractOutput::refreshRate() const
 
 void AbstractOutput::setGlobalPos(const QPoint &pos)
 {
-    m_globalPos = pos;
-    if (m_waylandOutput) {
-        m_waylandOutput->setGlobalPosition(pos);
-    }
-    if (m_waylandOutputDevice) {
-        m_waylandOutputDevice->setGlobalPosition(pos);
-    }
-    if (m_xdgOutput) {
-        m_xdgOutput->setLogicalPosition(pos);
-        m_xdgOutput->done();
-    }
+    m_waylandOutputDevice->setGlobalPosition(pos);
+
+    m_waylandOutput->setGlobalPosition(pos);
+    m_xdgOutput->setLogicalPosition(pos);
+    m_xdgOutput->done();
 }
 
 void AbstractOutput::setScale(qreal scale)
 {
-    m_scale = scale;
-    if (m_waylandOutput) {
-        // this is the scale that clients will ideally use for their buffers
-        // this has to be an int which is fine
+    m_waylandOutputDevice->setScaleF(scale);
 
-        // I don't know whether we want to round or ceil
-        // or maybe even set this to 3 when we're scaling to 1.5
-        // don't treat this like it's chosen deliberately
-        m_waylandOutput->setScale(std::ceil(scale));
-    }
-    if (m_waylandOutputDevice) {
-        m_waylandOutputDevice->setScaleF(scale);
-    }
-    if (m_xdgOutput) {
-        m_xdgOutput->setLogicalSize(pixelSize() / m_scale);
-        m_xdgOutput->done();
-    }
+    // this is the scale that clients will ideally use for their buffers
+    // this has to be an int which is fine
+
+    // I don't know whether we want to round or ceil
+    // or maybe even set this to 3 when we're scaling to 1.5
+    // don't treat this like it's chosen deliberately
+    m_waylandOutput->setScale(std::ceil(scale));
+    m_xdgOutput->setLogicalSize(pixelSize() / scale);
+    m_xdgOutput->done();
 }
 
 void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
 {
     qCDebug(KWIN_CORE) << "Set changes in AbstractOutput." << m_waylandOutputDevice->uuid();
-    Q_ASSERT(!m_waylandOutputDevice.isNull());
 
     bool updated = false;
     bool overallSizeCheckNeeded = false;
@@ -159,89 +156,26 @@ void AbstractOutput::setEnabled(bool enable)
     if (enable == isEnabled()) {
         return;
     }
-    qDebug() << "-------- setEnabled" << enable;
 
+    qDebug() << "-------- " << __func__ << enable << this;
     if (enable) {
-        updateDpms(KWayland::Server::OutputInterface::DpmsMode::On);
-        initWaylandOutput();
+        m_waylandOutputDevice->setEnabled(KWayland::Server::OutputDeviceInterface::Enablement::Enabled);
+        //m_waylandOutput->create();
+        //m_xdgOutput = waylandServer()->xdgOutputManager()->createXdgOutput(m_waylandOutput, this);
+        updateEnablement(true);
     } else {
-        updateDpms(KWayland::Server::OutputInterface::DpmsMode::Off);
-        disconnect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, 0, 0);
-        delete waylandOutput().data();
+        m_waylandOutputDevice->setEnabled(KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
+        //m_waylandOutput->destroy();
+        //delete m_xdgOutput;
+        updateEnablement(false);
     }
-    waylandOutputDevice()->setEnabled(enable ? KWayland::Server::OutputDeviceInterface::Enablement::Enabled :
-                                               KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
 }
 
 void AbstractOutput::setWaylandMode(const QSize &size, int refreshRate)
 {
-    if (m_waylandOutput.isNull()) {
-        return;
-    }
     m_waylandOutput->setCurrentMode(size, refreshRate);
-    if (m_xdgOutput) {
-        m_xdgOutput->setLogicalSize(pixelSize() / scale());
-        m_xdgOutput->done();
-    }
-}
-
-void AbstractOutput::createXdgOutput()
-{
-    if (!m_waylandOutput || m_xdgOutput) {
-        return;
-    }
-    m_xdgOutput = waylandServer()->xdgOutputManager()->createXdgOutput(m_waylandOutput, m_waylandOutput);
     m_xdgOutput->setLogicalSize(pixelSize() / scale());
-    m_xdgOutput->setLogicalPosition(globalPos());
     m_xdgOutput->done();
-}
-
-void AbstractOutput::initWaylandOutput()
-{
-    Q_ASSERT(m_waylandOutputDevice);
-
-    if (!m_waylandOutput.isNull()) {
-        disconnect(m_waylandOutput.data(), 0, 0, 0);
-        delete m_waylandOutput.data();
-    }
-    m_waylandOutput = waylandServer()->display()->createOutput();
-    createXdgOutput();
-
-    /*
-     *  add base wayland output data
-     */
-    m_waylandOutput->setManufacturer(m_waylandOutputDevice->manufacturer());
-    m_waylandOutput->setModel(m_waylandOutputDevice->model());
-    m_waylandOutput->setPhysicalSize(rawPhysicalSize());
-
-    /*
-     *  add modes
-     */
-    for(const auto &mode: m_waylandOutputDevice->modes()) {
-        KWayland::Server::OutputInterface::ModeFlags flags;
-        if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Current) {
-            flags |= KWayland::Server::OutputInterface::ModeFlag::Current;
-        }
-        if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred) {
-            flags |= KWayland::Server::OutputInterface::ModeFlag::Preferred;
-        }
-        m_waylandOutput->addMode(mode.size, flags, mode.refreshRate);
-    }
-    m_waylandOutput->create();
-
-    /*
-     *  set dpms
-     */
-    m_waylandOutput->setDpmsSupported(m_supportsDpms);
-    // set to last known mode
-    m_waylandOutput->setDpmsMode(m_dpms);
-    connect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, this,
-        [this] (KWayland::Server::OutputInterface::DpmsMode mode) {
-            if (m_waylandOutput.isNull()) return;
-            qDebug() << "-------- dpmsModeRequested";
-            updateDpms(mode);
-        }, Qt::DirectConnection
-    );
 }
 
 void AbstractOutput::initWaylandOutputDevice(const QString &model,
@@ -249,11 +183,7 @@ void AbstractOutput::initWaylandOutputDevice(const QString &model,
                                              const QByteArray &uuid,
                                              const QVector<KWayland::Server::OutputDeviceInterface::Mode> &modes)
 {
-    if (!m_waylandOutputDevice.isNull()) {
-        delete m_waylandOutputDevice.data();
-        m_waylandOutputDevice.clear();
-    }
-    m_waylandOutputDevice = waylandServer()->display()->createOutputDevice();
+    qDebug() << "-------" << __func__ << model << manufacturer << uuid;
     m_waylandOutputDevice->setUuid(uuid);
 
     if (!manufacturer.isEmpty()) {
@@ -264,20 +194,37 @@ void AbstractOutput::initWaylandOutputDevice(const QString &model,
 
     m_waylandOutputDevice->setModel(model);
     m_waylandOutputDevice->setPhysicalSize(m_physicalSize);
+    /*
+     *  add base wayland output data
+     */
+    m_waylandOutput->setManufacturer(m_waylandOutputDevice->manufacturer());
+    m_waylandOutput->setModel(m_waylandOutputDevice->model());
+    m_waylandOutput->setPhysicalSize(rawPhysicalSize());
 
     int i = 0;
     for (auto mode : modes) {
-        QString flags;
+        QString flags_str;
+        KWayland::Server::OutputInterface::ModeFlags flags;
+
         if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Preferred) {
-            flags += " preferred";
+            flags_str += " preferred";
+            flags |= KWayland::Server::OutputInterface::ModeFlag::Preferred;
         }
         if (mode.flags & KWayland::Server::OutputDeviceInterface::ModeFlag::Current) {
-            flags += " current";
+            flags_str += " current";
+            flags |= KWayland::Server::OutputInterface::ModeFlag::Current;
         }
-        qCDebug(KWIN_CORE).nospace() << "Adding mode " << ++i << ": " << mode.size << " [" << mode.refreshRate << "]" << flags;
+        qCDebug(KWIN_CORE).nospace() << "Adding mode " << ++i << ": " << mode.size
+            << " [" << mode.refreshRate << "]" << flags_str;
+
         m_waylandOutputDevice->addMode(mode);
+        m_waylandOutput->addMode(mode.size, flags, mode.refreshRate);
     }
     m_waylandOutputDevice->create();
+
+    m_waylandOutput->create();
+    m_xdgOutput->setLogicalSize(pixelSize() / scale());
+    m_xdgOutput->done();
 }
 
 QSize AbstractOutput::orientateSize(const QSize &size) const

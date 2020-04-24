@@ -93,7 +93,7 @@ void DrmOutput::teardown()
         delete m_cursor[1];
     } else {
         if (!m_pageFlipPending) {
-            qDebug() << "-------" << __func__ << waylandOutput().data();
+            qDebug() << "-------" << __func__ << waylandOutput();
             setEnabled(false);
             deleteLater();
         } //else will be deleted in the page flip handler
@@ -267,7 +267,7 @@ bool DrmOutput::init(drmModeConnector *connector)
 
     initOutputDevice(connector);
 
-    setEnabled(true);
+    updateDpms(KWayland::Server::OutputInterface::DpmsMode::On);
     return true;
 }
 
@@ -683,6 +683,78 @@ static KWayland::Server::OutputInterface::DpmsMode toWaylandDpmsMode(DrmOutput::
     }
 }
 
+void DrmOutput::updateEnablement(bool enable)
+{
+    if (enable) {
+        m_dpmsModePending = DpmsMode::On;
+        if (m_backend->atomicModeSetting()) {
+            atomicEnable();
+        } else {
+            if (dpmsLegacyApply()) {
+                m_backend->enableOutput(this, true);
+            }
+        }
+
+    } else {
+        m_dpmsModePending = DpmsMode::Off;
+        if (m_backend->atomicModeSetting()) {
+            atomicDisable();
+        } else {
+            if (dpmsLegacyApply()) {
+                m_backend->enableOutput(this, false);
+            }
+        }
+    }
+}
+
+bool DrmOutput::dpmsLegacyApply()
+{
+    if (drmModeConnectorSetProperty(m_backend->fd(), m_conn->id(), m_dpms->prop_id, uint64_t(m_dpmsModePending)) < 0) {
+        m_dpmsModePending = m_dpmsMode;
+        qCWarning(KWIN_DRM) << "Setting DPMS failed";
+        return false;
+    }
+    if (m_dpmsModePending == DpmsMode::On) {
+        dpmsOnHandler();
+    } else {
+        dpmsOnHandler();
+    }
+    m_dpmsMode = m_dpmsModePending;
+    return true;
+}
+
+void DrmOutput::atomicEnable()
+{
+    m_modesetRequested = true;
+
+    if (m_dpmsAtomicOffPending) {
+        Q_ASSERT(m_pageFlipPending);
+        m_dpmsAtomicOffPending = false;
+    }
+    m_backend->enableOutput(this, true);
+
+    if (Compositor *compositor = Compositor::self()) {
+        compositor->addRepaintFull();
+    }
+}
+
+void DrmOutput::atomicDisable()
+{
+    if (m_teardown) {
+        return;
+    }
+
+    m_modesetRequested = true;
+
+    m_backend->enableOutput(this, false);
+    m_dpmsAtomicOffPending = true;
+    if (!m_pageFlipPending) {
+        dpmsAtomicOff();
+    } else {
+        qDebug() << "------- " << __func__ << "pending dpms off" << m_dpmsAtomicOffPending;
+    }
+}
+
 void DrmOutput::updateDpms(KWayland::Server::OutputInterface::DpmsMode mode)
 {
     if (m_dpms.isNull()) {
@@ -712,17 +784,7 @@ void DrmOutput::updateDpms(KWayland::Server::OutputInterface::DpmsMode mode)
             }
         }
     } else {
-        if (drmModeConnectorSetProperty(m_backend->fd(), m_conn->id(), m_dpms->prop_id, uint64_t(drmMode)) < 0) {
-            m_dpmsModePending = m_dpmsMode;
-            qCWarning(KWIN_DRM) << "Setting DPMS failed";
-            return;
-        }
-        if (drmMode == DpmsMode::On) {
-            dpmsOnHandler();
-        } else {
-            dpmsOffHandler();
-        }
-        m_dpmsMode = m_dpmsModePending;
+        dpmsLegacyApply();
     }
 }
 

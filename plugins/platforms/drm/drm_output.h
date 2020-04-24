@@ -94,6 +94,11 @@ public:
 
     void advertiseLastState();
 
+    void updateEnablement(bool enable);
+
+    void atomicEnable();
+    void atomicDisable();
+
 Q_SIGNALS:
     void dpmsChanged();
 
@@ -123,6 +128,7 @@ private:
     bool initPrimaryPlane();
     bool initCursorPlane();
 
+    bool dpmsLegacyApply();
     void dpmsOnHandler();
     void dpmsOffHandler();
     bool dpmsAtomicOff();

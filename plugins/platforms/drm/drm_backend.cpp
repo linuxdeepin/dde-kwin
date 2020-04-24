@@ -544,6 +544,26 @@ QByteArray DrmBackend::generateOutputConfigurationUuid() const
     return hash.result().toHex().left(10);
 }
 
+void DrmBackend::enableOutput(DrmOutput *output, bool enable)
+{
+    qDebug() << "------- " << __func__ << output << enable;
+    if (enable) {
+        Q_ASSERT(!m_enabledOutputs.contains(output));
+        m_enabledOutputs << output;
+        emit outputAdded(output);
+    } else {
+        if (m_enabledOutputs.contains(output)) {
+            //m_enabledOutputs.removeOne(output);
+            m_enabledOutputs.removeAll(output);
+            Q_ASSERT(!m_enabledOutputs.contains(output));
+            emit outputRemoved(output);
+        } 
+    }
+    outputDpmsChanged();
+    checkOutputsAreOn();
+    emit screensQueried();
+}
+
 void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurationInterface *config)
 {
     const auto changes = config->changes();
@@ -559,10 +579,8 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
             continue;
         }
         if (changeset->enabledChanged() && changeset->enabled() == KWayland::Server::OutputDeviceInterface::Enablement::Enabled) {
+            qDebug() << "-----------" << __func__ << "enable" << drmoutput->uuid() << drmoutput->geometry();
             drmoutput->setEnabled(true);
-            qDebug() << "-----------" << __func__ << drmoutput->uuid() << drmoutput->geometry();
-            m_enabledOutputs << drmoutput;
-            emit outputAdded(drmoutput);
             countChanged = true;
         }
         drmoutput->setChanges(changeset);
@@ -582,8 +600,6 @@ void DrmBackend::configurationChangeRequested(KWayland::Server::OutputConfigurat
             }
             qDebug() << "-----------" << __func__ << "disable" << drmoutput->uuid();
             drmoutput->setEnabled(false);
-            m_enabledOutputs.removeOne(drmoutput);
-            emit outputRemoved(drmoutput);
             countChanged = true;
         }
     }

@@ -129,6 +129,8 @@ public:
 
     QString supportInformation() const override;
 
+    void enableOutput(DrmOutput *output, bool enable);
+
 public Q_SLOTS:
     void turnOutputsOn();
 
