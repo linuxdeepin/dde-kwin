@@ -293,6 +293,27 @@ void DeepinWMFaker::SetCurrentWorkspaceBackground(const QString &uri)
     SetWorkspaceBackground(m_windowSystem->currentDesktop(), uri);
 }
 
+QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QString &strMonitorName) const
+{
+    const QString &uri = getWorkspaceBackgroundForMonitor( index, strMonitorName  );
+    return uri;
+}
+
+void DeepinWMFaker::SetWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
+{
+    m_transientBackgroundUri.clear();
+    setWorkspaceBackgroundForMonitor( index,strMonitorName,uri );
+}
+
+QString DeepinWMFaker::GetCurrentWorkspaceBackgroundForMonitor(const QString &strMonitorName)
+{
+    return GetWorkspaceBackgroundForMonitor( m_windowSystem->currentDesktop(), strMonitorName);
+}
+void DeepinWMFaker::SetCurrentWorkspaceBackgroundForMonitor(const QString &uri, const QString &strMonitorName)
+{
+    SetWorkspaceBackgroundForMonitor(  m_windowSystem->currentDesktop(), strMonitorName, uri );
+}
+
 void DeepinWMFaker::SetTransientBackground(const QString &uri)
 {
     int current = m_windowSystem->currentDesktop();
@@ -308,6 +329,14 @@ void DeepinWMFaker::SetTransientBackground(const QString &uri)
 #endif // DISABLE_DEEPIN_WM
 
     Q_EMIT WorkspaceBackgroundChanged(current, uri);
+}
+
+void DeepinWMFaker::SetTransientBackgroundForMonitor(const QString &uri, const QString &strMonitorName)
+{
+     int current = m_windowSystem->currentDesktop();
+
+     m_transientBackgroundUri = uri;
+     Q_EMIT WorkspaceBackgroundChangedForMonitor( current,strMonitorName,uri );
 }
 
 #ifndef DISABLE_DEEPIN_WM
@@ -928,6 +957,17 @@ void DeepinWMFaker::setWorkspaceBackground(const int index, const QString &uri)
     m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString::number(index), uri);
 
     Q_EMIT WorkspaceBackgroundChanged(index, uri);
+
+}
+
+QString DeepinWMFaker::getWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName) const
+{
+    return m_deepinWMWorkspaceBackgroundGroup->readEntry(QString("%1%2%3").arg(index ,"@" ,strMonitorName));
+}
+void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
+{
+    m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString("%1%2%3").arg(index ,"@" ,strMonitorName), uri);
+    Q_EMIT WorkspaceBackgroundChangedForMonitor( index ,strMonitorName,uri );
 }
 
 void DeepinWMFaker::quitTransientBackground()
