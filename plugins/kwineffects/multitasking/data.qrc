@@ -21,8 +21,4 @@
         <file>data/unsticked_normal.svg</file>
         <file>data/unsticked_press.svg</file>
     </qresource>
-    <qresource prefix="/">
-        <file>translations/multitasking_zh_CN.qm</file>
-        <file>translations/multitasking.qm</file>
-    </qresource>
 </RCC>

@@ -429,8 +429,8 @@ QRegion BlurEffect::expand(const QRegion &region) const
 {
     QRegion expanded;
 
-    for (const QRect &rect : region.rects()) {
-        expanded += expand(rect);
+    for (auto it = region.begin(); it != region.end(); ++it) {
+        expanded += expand(*it);
     }
 
     return expanded;
@@ -470,7 +470,8 @@ void BlurEffect::uploadRegion(QVector2D *&map, const QRegion &region, const int 
     for (int i = 0; i <= downSampleIterations; i++) {
         const int divisionRatio = (1 << i);
 
-        for (const QRect &r : region.rects()) {
+        for (auto it = region.begin(); it != region.end(); ++it) {
+            const QRect& r = *it;
             const QVector2D topLeft(     r.x() / divisionRatio,               r.y() / divisionRatio);
             const QVector2D topRight(   (r.x() + r.width()) / divisionRatio,  r.y() / divisionRatio);
             const QVector2D bottomLeft(  r.x() / divisionRatio,              (r.y() + r.height()) / divisionRatio);
@@ -536,7 +537,8 @@ void BlurEffect::prePaintWindow(EffectWindow* w, WindowPrePaintData& data, int t
     // to blur an area partially we have to shrink the opaque area of a window
     QRegion newClip;
     const QRegion oldClip = data.clip;
-    for (const QRect &rect : data.clip.rects()) {
+    for (auto it = data.clip.begin(); it != data.clip.end(); ++it) {
+        const QRect &rect = *it;
         newClip |= rect.adjusted(m_expandSize, m_expandSize, -m_expandSize, -m_expandSize);
     }
     data.clip = newClip;
@@ -623,7 +625,8 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
         if (scaled) {
             QPoint pt = shape.boundingRect().topLeft();
             QRegion scaledShape;
-            for (QRect r : shape.rects()) {
+            for (auto it = shape.cbegin(); it != shape.cend(); ++it) {
+                QRect r = *it;
                 r.moveTo(pt.x() + (r.x() - pt.x()) * data.xScale() + data.xTranslation(),
                             pt.y() + (r.y() - pt.y()) * data.yScale() + data.yTranslation());
                 r.setWidth(r.width() * data.xScale());
@@ -647,7 +650,7 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
     effects->drawWindow(w, mask, region, data);
 }
 
-void BlurEffect::paintEffectFrame(EffectFrame *frame, QRegion region, double opacity, double frameOpacity)
+void BlurEffect::paintEffectFrame(EffectFrame* frame, const QRegion &region, double opacity, double frameOpacity)
 {
     const QRect screen = effects->virtualScreenGeometry();
     bool valid = m_renderTargetsValid && m_shader && m_shader->isValid();

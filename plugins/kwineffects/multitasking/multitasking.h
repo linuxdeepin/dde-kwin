@@ -248,7 +248,7 @@ public:
 
     // Screen painting
     virtual void prePaintScreen(ScreenPrePaintData &data, int time) override;
-    virtual void paintScreen(int mask, QRegion region, ScreenPaintData &data) override;
+    virtual void paintScreen(int mask, const QRegion& region, ScreenPaintData &data) override;
     virtual void postPaintScreen() override;
 
     // Window painting

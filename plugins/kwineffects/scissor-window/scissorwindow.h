@@ -39,7 +39,7 @@ public:
 
     explicit ScissorWindow(QObject *parent = nullptr, const QVariantList &args = QVariantList());
 
-    void drawWindow(KWin::EffectWindow* w, int mask, QRegion region, KWin::WindowPaintData& data) override;
+    void drawWindow(KWin::EffectWindow* w, int mask, const QRegion& orig_region, KWin::WindowPaintData& data) override;
 
 private:
     KWin::GLShader *m_shader = nullptr;

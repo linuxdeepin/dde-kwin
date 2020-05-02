@@ -652,7 +652,7 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
     effects->prePaintScreen(data, time);
 }
 
-void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &data)
+void MultitaskingEffect::paintScreen(int mask, const QRegion& region, ScreenPaintData &data)
 {
     effects->paintScreen(mask, region, data);
 

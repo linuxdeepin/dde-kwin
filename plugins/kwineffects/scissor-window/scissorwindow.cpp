@@ -189,21 +189,22 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     }
 }
 
-void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, KWin::WindowPaintData &data)
+void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, const QRegion& orig_region, KWin::WindowPaintData &data)
 {
     // 工作区特效会使用PAINT_WINDOW_LANCZOS绘制，此时不支持多次调用Effect::drawWindow，
     // 否则只会显示第一次调用绘制的内容, 因此在这种模式下禁用掉窗口裁剪特效
     if (!w->isPaintingEnabled() || (mask & PAINT_WINDOW_LANCZOS)) {
-        return Effect::drawWindow(w, mask, region, data);
+        return Effect::drawWindow(w, mask, orig_region, data);
     }
 
     MaskCache::TextureData mask_texture = MaskCache::instance()->getTextureByWindow(w);
 
     if (!mask_texture) {
-        return Effect::drawWindow(w, mask, region, data);
+        return Effect::drawWindow(w, mask, orig_region, data);
     }
 
     QRegion corner_region;
+    QRegion region = orig_region;
 
     if (!mask_texture->customMask) {
         const QRect window_rect = w->geometry();
