@@ -321,6 +321,44 @@ void ScreenShotEffect::screenshotWindowUnderCursor(int mask)
     }
 }
 
+QString ScreenShotEffect::screenshotForWindowExtend(qulonglong winid, int mask)
+{
+    if (!calledFromDBus()) {
+        return QString();
+    }
+    m_type = (ScreenShotType) mask;
+    m_replyMessage = message();
+    setDelayedReply(true);
+    EffectWindow* w = effects->findWindow(winid);
+    if(w && !w->isMinimized() && !w->isDeleted()) {
+        m_windowMode = WindowMode::File;
+        m_scheduledScreenshot = w;
+        m_scheduledScreenshot->addRepaintFull();
+    }
+
+    return QString();
+}
+
+void ScreenShotEffect::screenshotForWindowExtend(QDBusUnixFileDescriptor fd, qulonglong winid, int mask)
+{
+    if (!calledFromDBus()) {
+        return;
+    }
+    m_type = (ScreenShotType) mask;
+    EffectWindow* w = effects->findWindow(winid);
+    if(w && !w->isMinimized() && !w->isDeleted()) {
+        m_fd = dup(fd.fileDescriptor());
+        if (m_fd == -1) {
+            sendErrorReply(s_errorFd, s_errorFdMsg);
+            return;
+        }
+        m_windowMode = WindowMode::FileDescriptor;
+        m_scheduledScreenshot = w;
+        m_scheduledScreenshot->addRepaintFull();
+    }
+
+}
+
 void ScreenShotEffect::screenshotForWindow(qulonglong winid, int mask)
 {
     m_type = (ScreenShotType) mask;

@@ -267,6 +267,16 @@ void DBusInterface::quitPreviewWindows()
     previewWindows({});
 }
 
+bool DBusInterface::globalShortcutsDisabled() const
+{
+    return workspace()->globalShortcutsDisabled();
+}
+
+void DBusInterface::disableGlobalShortcutsForClient(bool disable)
+{
+    workspace()->disableGlobalShortcutsForClient(disable);
+}
+
 CompositorDBusInterface::CompositorDBusInterface(Compositor *parent)
     : QObject(parent)
     , m_compositor(parent)

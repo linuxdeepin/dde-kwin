@@ -57,6 +57,16 @@ public:
 public Q_SLOTS:
     Q_SCRIPTABLE void screenshotForWindow(qulonglong winid, int mask = 0);
     /**
+     * take screenshot and save into a file and return the path
+     */
+    Q_SCRIPTABLE QString screenshotForWindowExtend(qulonglong winid, int mask = 0);
+    /**
+     * take screenshot
+     * It is intended to be used with a pipe, so that the invoking side can just
+     * read from the pipe. The image gets written into the fd using a QDataStream.
+     */
+    Q_SCRIPTABLE void screenshotForWindowExtend(QDBusUnixFileDescriptor fd, qulonglong winid, int mask = 0);
+    /**
      * Starts an interactive window screenshot session. The user can select a window to
      * screenshot.
      *

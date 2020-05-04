@@ -75,6 +75,9 @@ public Q_SLOTS: // METHODS
     Q_NOREPLY void previewWindows(const QList<uint> wids);
     Q_NOREPLY void quitPreviewWindows();
 
+    bool globalShortcutsDisabled() const;
+    void disableGlobalShortcutsForClient(bool disable);
+
 private Q_SLOTS:
     void becomeKWinService(const QString &service);
 
