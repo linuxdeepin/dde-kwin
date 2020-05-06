@@ -123,6 +123,7 @@ Workspace::Workspace(const QString &sessionKey)
     , client_keys_dialog(NULL)
     , client_keys_client(NULL)
     , global_shortcuts_disabled_for_client(false)
+    , global_shortcuts_disabled_by_user(false)
     , workspaceInit(true)
     , startup(0)
     , set_active_client_recursion(0)
@@ -1367,10 +1368,22 @@ bool Workspace::previewingClient(const AbstractClient *c) const
     return previewClients.contains(const_cast<AbstractClient*>(c));
 }
 
+void Workspace::setDisableGlobalShortcutsByUser(bool yes)
+{
+    if (global_shortcuts_disabled_by_user != yes) {
+        global_shortcuts_disabled_by_user = yes;
+    }
+}
+
 void Workspace::disableGlobalShortcutsForClient(bool disable)
 {
     if (global_shortcuts_disabled_for_client == disable)
         return;
+
+    if (global_shortcuts_disabled_by_user && !disable) {
+        return;
+    }
+
     QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.kde.kglobalaccel"),
                                                           QStringLiteral("/kglobalaccel"),
                                                           QStringLiteral("org.kde.KGlobalAccel"),

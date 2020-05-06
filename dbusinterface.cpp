@@ -274,6 +274,7 @@ bool DBusInterface::globalShortcutsDisabled() const
 
 void DBusInterface::disableGlobalShortcutsForClient(bool disable)
 {
+    workspace()->setDisableGlobalShortcutsByUser(disable);
     workspace()->disableGlobalShortcutsForClient(disable);
 }
 
