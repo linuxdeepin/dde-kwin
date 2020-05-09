@@ -319,6 +319,8 @@ private slots:
 
     void desktopRemoved(int d);
 
+    void slotCloseEffect(bool isSleepBefore);
+
 private:
     struct WindowData {
         bool isAbove {false};

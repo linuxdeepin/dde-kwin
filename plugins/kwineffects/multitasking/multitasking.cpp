@@ -293,6 +293,7 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::windowAdded, this, &MultitaskingEffect::onWindowAdded);
     connect(effects, &EffectsHandler::windowDeleted, this, &MultitaskingEffect::onWindowDeleted);
     connect(effects, &EffectsHandler::windowClosed, this, &MultitaskingEffect::onWindowClosed);
+    connect(effects, SIGNAL(closeEffect(bool)), this, SLOT(slotCloseEffect(bool)));
 
     connect(effects, &EffectsHandler::numberDesktopsChanged, this, &MultitaskingEffect::onNumberDesktopsChanged);
     connect(effects, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SLOT(onCurrentDesktopChanged()));
@@ -369,7 +370,6 @@ void MultitaskingEffect::onPropertyNotify(KWin::EffectWindow *w, long atom)
         updateGtkFrameExtents(w);
     }
 }
-
 
 void MultitaskingEffect::updateGtkFrameExtents(EffectWindow *w)
 {
@@ -1648,6 +1648,13 @@ void MultitaskingEffect::desktopRemoved(int d)
     remanageAll();
     updateDesktopWindows();
     effects->addRepaintFull();
+}
+
+void MultitaskingEffect::slotCloseEffect(bool isSleepBefore)
+{
+    if (isSleepBefore && isActive()) {
+        toggleActive();
+    }
 }
 
 WId MultitaskingEffect::findWId(EffectWindow* ew)
