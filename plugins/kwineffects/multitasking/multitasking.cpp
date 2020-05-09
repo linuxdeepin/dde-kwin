@@ -356,7 +356,6 @@ void MultitaskingEffect::onPropertyNotify(KWin::EffectWindow *w, long atom)
     }
 }
 
-
 void MultitaskingEffect::updateGtkFrameExtents(EffectWindow *w)
 {
     if (!m_activated) return;
