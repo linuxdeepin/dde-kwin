@@ -67,8 +67,8 @@ Rectangle {
             border.color: manager.currentDesktop == desktop ? Qt.rgba(0.14, 0.67, 1.0, 1.0) : Qt.rgba(0, 0, 0, 0.1)
 
             Drag.keys: ["wsThumb"]
-            //NOTE: need to bind to thumbArea.pressed 
-            //when mouse pressed and leave DesktopThumbnailManager, drag keeps active 
+            //NOTE: need to bind to thumbArea.pressed
+            //when mouse pressed and leave DesktopThumbnailManager, drag keeps active
             //while mouse released or not later.
             Drag.active: manager.desktopCount > 1 && thumbArea.pressed && thumbArea.drag.active
             //TOOD: should be cursor position?
@@ -106,10 +106,10 @@ Rectangle {
                 }
             }
 
-            /* 
+            /*
              * this is a hack to make a smooth bounce back animation
              * thumbRoot'll be reparnet back to loader and make a sudden visual
-             * change of thumbRoot's position. we can disable behavior animation 
+             * change of thumbRoot's position. we can disable behavior animation
              * and set position to the same visual point in the scene (where mouse
              * resides), and then issue the behavior animation.
              */
@@ -172,7 +172,7 @@ Rectangle {
                         thumbRoot.Drag.drop()
                     }
 
-                    //NOTE: since current the parent is still chagned (by ParentChange), 
+                    //NOTE: since current the parent is still chagned (by ParentChange),
                     //delay (x,y) reset into timerBack
                     timerBack.running = true
                     log('----- mouse release: ' + parent.x + ',' + parent.y)
@@ -189,6 +189,13 @@ Rectangle {
                 onExited: {
                     close.opacity = 0.0
                     close.enabled = false
+                }
+
+                Accessible.role: Accessible.Button
+                Accessible.name: "Ma_thumbArea_"+componentDesktop //index+ parent.index+"-"+parent.parent.index+"-"+ parent.parent.parent.index+"-"+ parent.parent.parent.parent.index+"-"+ parent.parent.parent.parent.parent.index
+                Accessible.description: "thumbArea mouseArea"
+                Accessible.onPressAction: {
+                     pressed()
                 }
             }
 
@@ -229,7 +236,7 @@ Rectangle {
                 }
             }
 
-            
+
             DesktopThumbnail {
                 id: thumb
                 desktop: thumbRoot.desktop
@@ -336,9 +343,15 @@ Rectangle {
 
                         MouseArea {
                             id: itemArea
-
                             anchors.fill: parent
                             drag.target: null
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: "Ma_item"+index
+                            Accessible.description: "itemArea mouseArea"
+                            Accessible.onPressAction: {
+                                 pressed()
+                            }
 
                             onPositionChanged: {
                                 // this could happen when mouse press-hold and leave DesktopThumbnailManager
@@ -356,7 +369,7 @@ Rectangle {
                                 if (viewItem.Drag.target != null) {
                                     // target must be a DesktopThumbnail
                                     viewItem.Drag.drop()
-                                } 
+                                }
                                 timerBack.running = true
                                 parent.lastDragX = parent.x
                                 parent.lastDragY = parent.y
@@ -377,6 +390,7 @@ Rectangle {
                 color: "transparent"
                 opacity: 0.0
 
+
                 Image {
                     id: closeImg
                     source: "qrc:///icons/data/close_normal.svg"
@@ -390,6 +404,14 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "Ma_close_" + componentDesktop //parent.index+"-"+parent.parent.index+"-"+ parent.parent.parent.index+"-"+ parent.parent.parent.parent.index+"-"+ parent.parent.parent.parent.parent.index
+                    Accessible.description: "desktopThumbnail close mousearea"
+                    Accessible.onPressAction: {
+                         clicked()
+                    }
+
                     onClicked: {
                         log("----------- close desktop " + thumb.desktop)
                         qmlRequestDeleteDesktop(thumb.desktop)
@@ -446,7 +468,7 @@ Rectangle {
 
             onDropped: {
                 /* NOTE:
-                 * during dropping, PropertyChanges is still in effect, which means 
+                 * during dropping, PropertyChanges is still in effect, which means
                  * drop.source.parent should not be Loader
                  * and drop.source.z == 100
                  */
@@ -629,6 +651,12 @@ Rectangle {
             onExited: {
                 background.opacity = 0.0
             }
+            Accessible.role: Accessible.Button
+            Accessible.name: "Ma_plus"
+            Accessible.description: "plus mouseArea"
+            Accessible.onPressAction: {
+                 pressed()
+            }
         }
     } //~ plus button
 
@@ -637,7 +665,7 @@ Rectangle {
 
         var src = 'import QtQuick 2.0; Loader { sourceComponent: desktopItem; \n' +
             ' property bool loading: true;' +
-            ' Behavior on x { ' + 
+            ' Behavior on x { ' +
             '   enabled: animateLayouting && !loading; ' +
             '   PropertyAnimation {' +
             '     onRunningChanged: { log("--------- running " + running); }\n' +
@@ -645,14 +673,14 @@ Rectangle {
             ' x: ' + r.x + ';' +
             ' y: ' + r.y + ';' +
             ' property int componentDesktop: ' + desktop + '}';
-        var obj = Qt.createQmlObject(src, root, "dynamicSnippet"); 
+        var obj = Qt.createQmlObject(src, root, "dynamicSnippet");
         obj.z = 2
         obj.loading = false;
         thumbs.append({'obj': obj});
 
-        var src2 = 'import QtQuick 2.0; Loader { sourceComponent: wsDropComponent; ' + 
+        var src2 = 'import QtQuick 2.0; Loader { sourceComponent: wsDropComponent; ' +
         'property int index: ' + desktop + '}';
-        var obj2 = Qt.createQmlObject(src2, root, "dynamicSnippet2"); 
+        var obj2 = Qt.createQmlObject(src2, root, "dynamicSnippet2");
         obj2.x = r.x
         obj2.y = r.y
         obj2.z = 1
@@ -709,7 +737,7 @@ Rectangle {
 
         for (var i = 0; i < thumbs.count; i++) {
             var r = manager.calculateDesktopThumbRect(i);
-            //log('   ----- ' + (i+1) + ': ' + thumbs.get(i).obj.x + ',' + thumbs.get(i).obj.y + 
+            //log('   ----- ' + (i+1) + ': ' + thumbs.get(i).obj.x + ',' + thumbs.get(i).obj.y +
                 //'  => ' + r.x + ',' + r.y)
             thumbs.get(i).obj.x = r.x
             thumbs.get(i).obj.y = r.y
