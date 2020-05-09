@@ -349,6 +349,8 @@ private slots:
         m_multitaskingViewEffectWindow = w;
     }
 
+    void slotCloseEffect(bool isSleepBefore);
+
 private:
     struct WindowData {
         bool isAbove {false};
