@@ -105,6 +105,7 @@ PresentWindowsEffect::PresentWindowsEffect()
     connect(effects, SIGNAL(windowDeleted(KWin::EffectWindow*)), this, SLOT(slotWindowDeleted(KWin::EffectWindow*)));
     connect(effects, SIGNAL(windowGeometryShapeChanged(KWin::EffectWindow*,QRect)), this, SLOT(slotWindowGeometryShapeChanged(KWin::EffectWindow*,QRect)));
     connect(effects, SIGNAL(propertyNotify(KWin::EffectWindow*,long)), this, SLOT(slotPropertyNotify(KWin::EffectWindow*,long)));
+    connect(effects, SIGNAL(closeEffect(bool)), this, SLOT(slotCloseEffect(bool)));
     connect(effects, &EffectsHandler::numberScreensChanged, this,
         [this] {
             if (isActive())
@@ -898,6 +899,13 @@ void PresentWindowsEffect::slotPropertyNotify(EffectWindow* w, long a)
         m_mode = ModeWindowGroup;
         m_managerWindow = w;
         setActive(true);
+    }
+}
+
+void PresentWindowsEffect::slotCloseEffect(bool isSleepBefore)
+{
+    if (isSleepBefore && isActive()) {
+        toggleActive();
     }
 }
 

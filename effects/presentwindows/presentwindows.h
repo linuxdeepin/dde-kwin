@@ -227,6 +227,8 @@ public Q_SLOTS:
     // atoms
     void slotPropertyNotify(KWin::EffectWindow* w, long atom);
 
+    void slotCloseEffect(bool isSleepBefore);
+
 private Q_SLOTS:
     void closeWindow();
     void elevateCloseWindow();

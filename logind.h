@@ -66,10 +66,14 @@ Q_SIGNALS:
     void sessionActiveChanged(bool);
     void virtualTerminalChanged(int);
 
+    void signalPrepareForSleep(bool isSleepBefore);
+
 private Q_SLOTS:
     void getSessionActive();
     void getVirtualTerminal();
     void pauseDevice(uint major, uint minor, const QString &type);
+
+    void slotHandlePrepareForSleep(bool isSleepBefore);
 
 private:
     friend class LogindTest;
@@ -82,6 +86,9 @@ private:
     explicit LogindIntegration(const QDBusConnection &connection, QObject *parent = nullptr);
     void logindServiceRegistered();
     void connectSessionPropertiesChanged();
+
+    void connectSessionPrepareForSleep();
+
     enum SessionController {
         SessionControllerLogind,
         SessionControllerConsoleKit,

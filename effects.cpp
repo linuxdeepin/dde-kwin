@@ -61,6 +61,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "decorations/decorationbridge.h"
 #include <KDecoration2/DecorationSettings>
 
+#include "logind.h"
+
 namespace KWin
 {
 //---------------------
@@ -203,6 +205,7 @@ EffectsHandlerImpl::EffectsHandlerImpl(Compositor *compositor, Scene *scene)
     }
 #endif
     connect(ws, &Workspace::stackingOrderChanged, this, &EffectsHandler::stackingOrderChanged);
+    connect(LogindIntegration::self(), SIGNAL(signalPrepareForSleep(bool)), this, SIGNAL(closeEffect(bool)));
 #ifdef KWIN_BUILD_TABBOX
     TabBox::TabBox *tabBox = TabBox::TabBox::self();
     connect(tabBox, &TabBox::TabBox::tabBoxAdded,    this, &EffectsHandler::tabBoxAdded);

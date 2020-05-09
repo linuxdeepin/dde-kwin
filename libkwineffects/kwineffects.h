@@ -1770,6 +1770,8 @@ Q_SIGNALS:
      **/
     void windowFullScreenChanged(KWin::EffectWindow *w);
 
+    void closeEffect(bool isSleepBefore);
+
 protected:
     QVector< EffectPair > loaded_effects;
     //QHash< QString, EffectFactory* > effect_factories;

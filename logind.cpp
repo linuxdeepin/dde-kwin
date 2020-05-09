@@ -218,6 +218,7 @@ void LogindIntegration::logindServiceRegistered()
             qCDebug(KWIN_CORE) << "Session path:" << m_sessionPath;
             m_connected = true;
             connectSessionPropertiesChanged();
+            connectSessionPrepareForSleep();
             // activate the session, in case we are not on it
             QDBusMessage message = QDBusMessage::createMethodCall(m_sessionControllerService,
                                                                 m_sessionPath,
@@ -250,6 +251,16 @@ void LogindIntegration::connectSessionPropertiesChanged()
                   SLOT(getVirtualTerminal()));
 }
 
+void LogindIntegration::connectSessionPrepareForSleep()
+{
+    m_bus.connect(m_sessionControllerService,
+                  m_sessionControllerPath,
+                  m_sessionControllerManagerInterface,
+                  QStringLiteral("PrepareForSleep"),
+                  this,
+                  SLOT(slotHandlePrepareForSleep(bool)));
+}
+
 void LogindIntegration::getSessionActive()
 {
     if (!m_connected || m_sessionPath.isEmpty()) {
@@ -277,6 +288,12 @@ void LogindIntegration::getSessionActive()
             }
         }
     );
+}
+
+void LogindIntegration::slotHandlePrepareForSleep(bool isSleepBefore)
+{
+    if (isSleepBefore)
+        emit signalPrepareForSleep(isSleepBefore);
 }
 
 void LogindIntegration::getVirtualTerminal()
