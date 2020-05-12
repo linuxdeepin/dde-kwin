@@ -168,7 +168,6 @@ void AbstractOutput::setEnabled(bool enable)
         updateDpms(KWayland::Server::OutputInterface::DpmsMode::Off);
         disconnect(m_waylandOutput.data(), &KWayland::Server::OutputInterface::dpmsModeRequested, 0, 0);
         delete waylandOutput().data();
-        m_waylandOutput.clear();
     }
     waylandOutputDevice()->setEnabled(enable ? KWayland::Server::OutputDeviceInterface::Enablement::Enabled :
                                                KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
@@ -204,7 +203,6 @@ void AbstractOutput::initWaylandOutput()
     if (!m_waylandOutput.isNull()) {
         disconnect(m_waylandOutput.data(), 0, 0, 0);
         delete m_waylandOutput.data();
-        m_waylandOutput.clear();
     }
     m_waylandOutput = waylandServer()->display()->createOutput();
     createXdgOutput();
