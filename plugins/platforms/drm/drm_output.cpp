@@ -93,6 +93,8 @@ void DrmOutput::teardown()
         delete m_cursor[1];
     } else {
         if (!m_pageFlipPending) {
+            qDebug() << "-------" << __func__ << waylandOutput().data();
+            setEnabled(false);
             deleteLater();
         } //else will be deleted in the page flip handler
         //this is needed so that the pageflipcallback handle isn't deleted
