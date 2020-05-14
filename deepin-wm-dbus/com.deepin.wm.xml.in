@@ -124,6 +124,13 @@
         <arg type="i" name="index"/>
         <arg type="s" name="newUri"/>
     </signal>
+
+    <signal name="WorkspaceBackgroundChangedForMonitor">
+        <arg type="i" name="index"/>
+        <arg type="s" name="strMonitorName"/>
+        <arg type="s" name="uri"/>
+    </signal>
+
     <signal name="compositingEnabledChanged">
         <arg type="b" name="enabled"/>
     </signal>

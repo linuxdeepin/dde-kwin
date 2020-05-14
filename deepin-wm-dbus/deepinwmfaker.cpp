@@ -962,12 +962,13 @@ void DeepinWMFaker::setWorkspaceBackground(const int index, const QString &uri)
 
 QString DeepinWMFaker::getWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName) const
 {
-    return m_deepinWMWorkspaceBackgroundGroup->readEntry(QString("%1%2%3").arg(index).arg("@" ,strMonitorName));
+    return  m_deepinWMConfig->group("WorkspaceBackground").readEntry( QString("%1%2%3").arg(index).arg("@" ,strMonitorName)) ;
 }
 void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
 {
     m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString("%1%2%3").arg(index).arg("@" ,strMonitorName), uri);
     Q_EMIT WorkspaceBackgroundChangedForMonitor( index ,strMonitorName,uri );
+    m_deepinWMConfig->sync();
 }
 
 void DeepinWMFaker::quitTransientBackground()
