@@ -2259,6 +2259,10 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
                          scale * w->width(), scale * w->height());
         }
         motionManager.moveWindow(w, target);
+        qInfo() << QString("winThumbInfo x:%1 y:%2 w:%3 h:%4 WId:%5")
+                   .arg(target.x()).arg(target.y())
+                   .arg(target.width()).arg(target.height())
+                   .arg(w->parent()->property("windowId").toULongLong());
     }
 }
 
