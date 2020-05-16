@@ -1973,6 +1973,12 @@ void ShellClient::updateClientOutputs()
 {
     QVector<OutputInterface*> clientOutputs;
     const auto outputs = waylandServer()->display()->outputs();
+    int count = screens()->count();
+    if (outputs.size() != count) {
+        qWarning() << "------- screens' size mismatch outputs, ignore update";
+        return;
+    }
+
     for (OutputInterface* output: qAsConst(outputs)) {
         const QRect outputGeom(output->globalPosition(), output->pixelSize() / output->scale());
         if (geometry().intersects(outputGeom)) {
