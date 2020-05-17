@@ -41,16 +41,7 @@ static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEH
 
 BlurEffect::BlurEffect(QObject *, const QVariantList &)
 {
-    // 禁用kwin自己的模糊特效，防止两个特效之间出现冲突
-    {
-        bool blur_loaded = false;
-        QMetaObject::invokeMethod(effects, "isEffectLoaded", Qt::DirectConnection, Q_RETURN_ARG(bool, blur_loaded), Q_ARG(QString, "blur"));
-
-        if (blur_loaded) {
-            qWarning() << "will try unload builtIn blur effect of kwin";
-            QMetaObject::invokeMethod(effects, "unloadEffect", Qt::DirectConnection, Q_ARG(QString, "blur"));
-        }
-    }
+    unloadBuiltinBlur();
 
     m_shader = new BlurShader(this);
 
@@ -687,8 +678,21 @@ void BlurEffect::generateNoiseTexture()
     m_noiseTexture.setWrapMode(GL_REPEAT);
 }
 
+void BlurEffect::unloadBuiltinBlur()
+// 禁用kwin自己的模糊特效，防止两个特效之间出现冲突
+{
+    bool blur_loaded = false;
+    QMetaObject::invokeMethod(effects, "isEffectLoaded", Qt::DirectConnection, Q_RETURN_ARG(bool, blur_loaded), Q_ARG(QString, "blur"));
+
+    if (blur_loaded) {
+        qWarning() << "will try unload builtIn blur effect of kwin";
+        QMetaObject::invokeMethod(effects, "unloadEffect", Qt::DirectConnection, Q_ARG(QString, "blur"));
+    }
+}
+
 void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float opacity, const QMatrix4x4 &screenProjection, bool isDock, QRect windowRect)
 {
+    unloadBuiltinBlur();
     // Blur would not render correctly on a secondary monitor because of wrong coordinates
     // BUG: 393723
     const int xTranslate = -screen.x();

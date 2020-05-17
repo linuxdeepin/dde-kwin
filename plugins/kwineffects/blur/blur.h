@@ -88,6 +88,7 @@ private:
     void uploadRegion(QVector2D *&map, const QRegion &region, const int downSampleIterations);
     void uploadGeometry(GLVertexBuffer *vbo, const QRegion &blurRegion, const QRegion &windowRegion);
     void generateNoiseTexture();
+    void unloadBuiltinBlur();
 
     void upscaleRenderToScreen(GLVertexBuffer *vbo, int vboStart, int blurRectCount, QMatrix4x4 screenProjection, QPoint windowPosition);
     void downSampleTexture(GLVertexBuffer *vbo, int blurRectCount);
