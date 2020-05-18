@@ -409,14 +409,6 @@ bool BlurEffect::supported()
 {
     bool supported = effects->isOpenGLCompositing() && GLRenderTarget::supported() && GLRenderTarget::blitSupported();
 
-    GLPlatform *gl = GLPlatform::instance();
-    if (gl->isRadeon() && gl->chipClass() == SouthernIslands
-            && gl->glRendererString().contains("AMD OLAND")) {
-        supported = false;
-    }
-    qDebug() << Q_FUNC_INFO << "isRadeon " << gl->isRadeon() << " chipClass " << gl->chipClass()
-            << "glRendererString" << gl->glRendererString() << " supported " << supported;
-
     if (supported) {
         int maxTexSize;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
