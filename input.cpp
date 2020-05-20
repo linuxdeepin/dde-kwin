@@ -1981,7 +1981,9 @@ void InputRedirection::setupInputFilters()
 
 void InputRedirection::reconfigure()
 {
-    if (Application::usesLibinput()) {
+    // xwayland has its own repeat settings, disable this configuration
+    bool disableRepeat = true;
+    if (Application::usesLibinput() && !disableRepeat) {
         auto inputConfig = kwinApp()->inputConfig();
         //inputConfig->reparseConfiguration();
         const auto config = inputConfig->group(QStringLiteral("keyboard"));
