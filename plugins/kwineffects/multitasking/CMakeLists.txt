@@ -10,7 +10,7 @@ find_package(Qt5LinguistTools REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 
-set(SRCS multitasking.cpp background.cpp factory.cpp thumbmanager.qml)
+set(SRCS multitasking.cpp multitasking_model.cpp background.cpp factory.cpp thumbmanager.qml)
 
 # translations
 file(GLOB TS LIST_DIRECTORIES false translations/${PLUGIN_NAME}*.ts)

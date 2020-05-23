@@ -21,7 +21,7 @@
 
 
 #ifndef _DEEPIN_MULTITASKING_H
-#define _DEEPIN_MULTITASKING_H 
+#define _DEEPIN_MULTITASKING_H
 
 #include <QObject>
 #include <QPoint>
@@ -60,7 +60,7 @@ public:
     }
 
     int desktop() const { return m_desktop; }
-    void setDesktop(int d) { 
+    void setDesktop(int d) {
         if (m_desktop != d) {
             qCDebug(BLUR_CAT) << "[dm]: desktop changed from " << m_desktop << "->" << d;
             m_desktop = d;
@@ -69,7 +69,7 @@ public:
                 m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
             }
 
-            emit desktopChanged(); 
+            emit desktopChanged();
 
             update();
         }
@@ -79,7 +79,7 @@ public:
     void setRadius(float d) {
         if (m_radius != d) {
             m_radius = d;
-            emit radiusChanged(); 
+            emit radiusChanged();
         }
     }
 
@@ -270,7 +270,7 @@ public:
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {
-        setActive(!m_activated);
+        setActive(!m_multaskingViewVisible);
     }
     void globalShortcutChanged(QAction *action, const QKeySequence &seq);
     void onWindowAdded(KWin::EffectWindow*);
@@ -346,7 +346,7 @@ private:
     void cleanup();
 
     void updateGtkFrameExtents(EffectWindow *w);
- 
+
     void updateWindowStates(QMouseEvent* me);
 
     QRectF highlightedGeometry(QRectF geometry);
@@ -418,7 +418,12 @@ private:
     QAction *m_showAction;
 
     QMargins desktopMargins();
+
+    QQuickWidget *m_multaskingView { nullptr };
+    bool          m_multaskingViewVisible { false };
+
 };
+
 
 
 #endif /* ifndef _DEEPIN_MULTITASKING_H */

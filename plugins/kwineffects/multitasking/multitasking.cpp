@@ -30,6 +30,8 @@
 #include <KGlobalAccel>
 #include <KLocalizedString>
 
+#include "multitasking_model.h"
+
 #define ACTION_NAME  "ShowMultitasking"
 
 Q_LOGGING_CATEGORY(BLUR_CAT, "kwin.blur", QtCriticalMsg);
@@ -54,7 +56,7 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     } else {
         qCDebug(BLUR_CAT) << "load " << qm << "failed";
     }
-
+/*
     m_view = new QQuickWidget(this);
     m_view->setGeometry(0, 0, width(), height());
     m_view->setClearColor(Qt::transparent);
@@ -84,7 +86,7 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     connect(root, SIGNAL(qmlRequestSwitchDesktop(int, int)), this, SIGNAL(requestSwitchDesktop(int, int)));
 
     connect(m_handler, SIGNAL(desktopChanged(int, int, KWin::EffectWindow*)), this, SIGNAL(currentDesktopChanged()));
-
+*/
 }
 
 void DesktopThumbnailManager::debugLog(const QString& msg)
@@ -672,7 +674,7 @@ void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &
 
 void MultitaskingEffect::postPaintScreen()
 {
-    if ((m_activated && m_toggleTimeline.currentValue() != 1) 
+    if ((m_activated && m_toggleTimeline.currentValue() != 1)
             || (!m_activated && m_toggleTimeline.currentValue() != 0))
         effects->addRepaintFull();
 
@@ -692,7 +694,7 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
         w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
     }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w)) 
+    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w))
             && (w != m_thumbManager->effectWindow())) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
         w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
@@ -748,7 +750,7 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
             d += QPoint(qRound(geo.x() - w->x()), qRound(geo.y() - w->y()));
             d.setScale(QVector2D((float)geo.width() / w->width(), (float)geo.height() / w->height()));
-            
+
 
             auto wd = m_windowDatas.constFind(w);
             if (m_selectedWindow == w) {
@@ -1176,7 +1178,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 }
                 break;
 
-            case Qt::Key_Left: 
+            case Qt::Key_Left:
                 if (e->modifiers() == Qt::MetaModifier) {
                     changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
                 } else if (e->modifiers() == Qt::NoModifier) {
@@ -1211,7 +1213,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_4:
                 if (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::MetaModifier) {
                     changeCurrentDesktop(e->key() - Qt::Key_0);
-                } 
+                }
                 break;
 
             case Qt::Key_Exclam: // shift+1
@@ -1233,7 +1235,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                         moveEffectWindow2Desktop(m_selectedWindow, target_desktop);
                 }
                 break;
-                
+
             case Qt::Key_Equal:
                 if (e->modifiers() == Qt::AltModifier) {
                     appendDesktop();
@@ -1366,7 +1368,7 @@ void MultitaskingEffect::selectPrevWindow()
                 }
 
                 int nextslot = row * columns + col;
-                if (nextslot < 0 || nextslot >= takenSlots.size()) 
+                if (nextslot < 0 || nextslot >= takenSlots.size())
                     return;
 
                 qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
@@ -1420,7 +1422,7 @@ void MultitaskingEffect::selectNextWindow()
                 }
 
                 int nextslot = row * columns + col;
-                if (nextslot < 0 || nextslot >= takenSlots.size()) 
+                if (nextslot < 0 || nextslot >= takenSlots.size())
                     return;
 
                 qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
@@ -1453,7 +1455,7 @@ void MultitaskingEffect::selectFirstWindow()
     int max = columns * rows;
     while (max-- > 0) {
         int nextslot = row * columns + col;
-        if (nextslot < 0 || nextslot >= takenSlots.size()) 
+        if (nextslot < 0 || nextslot >= takenSlots.size())
             return;
 
         if (takenSlots[nextslot]) {
@@ -1492,7 +1494,7 @@ void MultitaskingEffect::selectLastWindow()
     int max = columns * rows;
     while (max-- > 0) {
         int nextslot = row * columns + col;
-        if (nextslot < 0 || nextslot >= takenSlots.size()) 
+        if (nextslot < 0 || nextslot >= takenSlots.size())
             return;
 
         qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
@@ -1536,7 +1538,7 @@ void MultitaskingEffect::selectNextWindowVert(int dir)
 
             int nextrow = row + dir;
             int nextslot = nextrow * columns + col;
-            if (nextrow < 0 || nextslot < 0 || nextslot >= takenSlots.size()) 
+            if (nextrow < 0 || nextslot < 0 || nextslot >= takenSlots.size())
                 return;
 
             qCDebug(BLUR_CAT) << "---------- next " << nextrow << col << nextslot;
@@ -1553,7 +1555,7 @@ void MultitaskingEffect::selectWindow(EffectWindow* w)
     if (m_selectedWindow == w) {
         return;
     }
-    
+
     qCDebug(BLUR_CAT) << "------ select window " << w;
 
     if (m_selectedWindow) {
@@ -1616,11 +1618,17 @@ void MultitaskingEffect::appendDesktop()
 
 void MultitaskingEffect::removeDesktop(int d)
 {
-    if (d <= 0 || d > effects->numberOfDesktops() || effects->numberOfDesktops() == 1)
+
+    qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d << effects->numberOfDesktops();
+    if (d <= 0 || d > effects->numberOfDesktops() || effects->numberOfDesktops() == 1) {
         return;
+	}
 
-    qCDebug(BLUR_CAT) << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d;
-
+    effects->setNumberOfDesktops(effects->numberOfDesktops() - 1);
+    QTimer::singleShot(400, [=]() {
+        changeCurrentDesktop(effects->numberOfDesktops());
+    });
+/*
     for (const auto& ew: effects->stackingOrder()) {
         if (ew->isOnAllDesktops())
             continue;
@@ -1640,15 +1648,17 @@ void MultitaskingEffect::removeDesktop(int d)
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
     effects->addRepaintFull();
 
+
     // delay this process, make sure layoutChanged has been handled
     QTimer::singleShot(10, [=]() { desktopRemoved(d); });
+*/
 }
 
 void MultitaskingEffect::desktopRemoved(int d)
 {
     remanageAll();
     updateDesktopWindows();
-    effects->addRepaintFull();
+//    effects->addRepaintFull();
 }
 
 WId MultitaskingEffect::findWId(EffectWindow* ew)
@@ -1785,6 +1795,41 @@ void MultitaskingEffect::clearGrids()
 
 void MultitaskingEffect::setActive(bool active)
 {
+	if (!m_thumbManager) {
+		m_thumbManager = new DesktopThumbnailManager(effects);
+		connect(m_thumbManager, &DesktopThumbnailManager::requestAppendDesktop,
+				this, &MultitaskingEffect::appendDesktop);
+		connect(m_thumbManager, &DesktopThumbnailManager::requestDeleteDesktop,
+				this, &MultitaskingEffect::removeDesktop);
+	}
+
+	m_multaskingViewVisible = active;
+	if (m_multaskingViewVisible) {
+
+		MultitaskingModel *model = new MultitaskingModel;
+		if (!m_multaskingView) {
+			m_multaskingView = new QQuickWidget;
+			qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
+			m_multaskingView->setGeometry(effects->virtualScreenGeometry());
+			m_multaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
+			m_multaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
+			m_multaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
+			m_multaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
+			m_multaskingView->rootContext()->setContextProperty("$Model", model);
+			m_multaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
+			auto root = m_multaskingView->rootObject();
+			connect(model, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
+			connect(model, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
+
+			for (int i = 1; i <= m_thumbManager->desktopCount(); ++i) {
+				model->append();	
+				model->setWindows(i, windowsFor(i));
+			}
+		}
+	}
+	m_multaskingView->setVisible(m_multaskingViewVisible);
+
+    /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
         return;
 
@@ -1876,6 +1921,7 @@ void MultitaskingEffect::setActive(bool active)
     }
 
     effects->addRepaintFull();
+    */
 }
 
 void MultitaskingEffect::globalShortcutChanged(QAction *action, const QKeySequence &seq)
