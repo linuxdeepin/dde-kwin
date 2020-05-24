@@ -112,6 +112,8 @@ void Workspace::updateClientLayer(AbstractClient* c)
 
 void Workspace::updateStackingOrder(bool propagate_new_clients)
 {
+    if (!screens()->count()) return;
+
     if (block_stacking_updates > 0) {
         if (propagate_new_clients)
             blocked_propagating_new_clients = true;
