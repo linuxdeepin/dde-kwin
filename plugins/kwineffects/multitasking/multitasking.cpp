@@ -533,27 +533,6 @@ QList<WId> MultitaskingEffect::windowsFor(int screen, int desktop)
     return vl;
 }
 
-/*
-QMap<int, WId> MultitaskingEffect::windowsFor(int screen)
-{
-    QMap<int, WId> vl; 
-    QDesktopWidget desktop;
-    for (const auto& ew : effects->stackingOrder()) {
-        if (isRelevantWithPresentWindows(ew)) {
-            if (desktop.screenGeometry(screen).contains(ew->pos())) { 
-                auto wid = findWId(ew);
-                assert (effects->findWindow(wid) == ew);
-                vl.insertMulti(ew->desktop(), wid);
-qDebug()<<screen<<ew->desktop()<<wid;
-            }   
-        }   
-    }   
-
-    return vl; 
-} 
-*/
-
-
 void MultitaskingEffect::onScreenSizeChanged()
 {
     qCDebug(BLUR_CAT) << "------- screen size changed" << effects->virtualScreenGeometry();
@@ -1846,10 +1825,13 @@ void MultitaskingEffect::setActive(bool active)
 
 			for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
 				model->append();	
-				for (int screen = 0; screen < 2; ++screen) {
-					auto windows = windowsFor(screen, d);
-					model->setWindows(screen, d, windows);
-				}
+			}
+		}
+
+		for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
+			for (int screen = 0; screen < effects->numScreens(); ++screen) {
+				auto windows = windowsFor(screen, d);
+				model->setWindows(screen, d, windows);
 			}
 		}
 	}

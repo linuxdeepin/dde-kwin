@@ -53,7 +53,7 @@ Rectangle {
                         MouseArea{
                             anchors.fill: parent;
 							onClicked: {
-								windowThumbnail.model = $Model.windows(currentScreen, desktopThumbnail.desktop);
+								$Model.setCurrentIndex(index);
 							}
                         }
 
@@ -105,6 +105,13 @@ Rectangle {
 					//default value 1
 					windowThumbnail.model = $Model.windows(currentScreen, 1); 
                 }
+
+				Connections {
+					target: $Model;
+					onCurrentIndexChanged: {
+						windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
+					}
+				}
             }
 
             Button {
