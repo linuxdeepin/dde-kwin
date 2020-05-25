@@ -270,6 +270,7 @@ void ScreenShotEffect::sendReplyImage(const QImage &img)
         m_fd = -1;
     } else {
         QDBusConnection::sessionBus().send(m_replyMessage.createReply(saveTempImage(img)));
+        qDebug() << "------ ScreenShotEffect::sendReplyImage done";
     }
     m_scheduledGeometry = QRect();
     m_multipleOutputsImage = QImage();
@@ -326,14 +327,18 @@ QString ScreenShotEffect::screenshotForWindowExtend(qulonglong winid, int mask)
     if (!calledFromDBus()) {
         return QString();
     }
-    m_type = (ScreenShotType) mask;
-    m_replyMessage = message();
-    setDelayedReply(true);
     EffectWindow* w = effects->findWindow(winid);
     if(w && !w->isMinimized() && !w->isDeleted()) {
+        m_fd = -1;
+        m_type = (ScreenShotType) mask;
+        m_replyMessage = message();
+        setDelayedReply(true);
+
         m_windowMode = WindowMode::File;
         m_scheduledScreenshot = w;
         m_scheduledScreenshot->addRepaintFull();
+    } else {
+        qDebug() << "------- " << __func__ << "invalid " << winid;
     }
 
     return QString();
