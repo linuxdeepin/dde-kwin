@@ -55,6 +55,7 @@ bool DpmsInputEventFilter::keyEvent(QKeyEvent *event)
 {
     Q_UNUSED(event)
     notify();
+    passToWaylandServer(event);
     return true;
 }
 
