@@ -58,9 +58,11 @@ public:
         return m_desktopThumbnailItemList;
     }
 	
-	Q_INVOKABLE void setWindows(int desktop, const QList<WId> &windows);
-	Q_INVOKABLE QVariantList windows(int desktop) const; 
+	Q_INVOKABLE void setWindows(int screen, int desktop, QList<WId> &windows);
+	Q_INVOKABLE QVariantList windows(int screen, int desktop) const; 
 
+	Q_INVOKABLE int numScreens() const;
+	Q_INVOKABLE QRect geometry(int screen) const;
 signals:
     void countChanged(int count);
 	void appendDesktop();
@@ -71,7 +73,8 @@ protected: // interface QAbstractListModel
 
 private:
     QList<DesktopThumbnailItem> m_desktopThumbnailItemList;
-	QMap<int, QVariantList> m_windows;
+	//QMap<screen, QMap<desktop, window>;
+	QMap<int, QMap<int, QVariantList> > m_windows;
 };
 
 #endif // DATAMODEL_H

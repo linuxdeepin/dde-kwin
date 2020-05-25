@@ -505,7 +505,7 @@ void MultitaskingEffect::updateDesktopWindows(int desktop)
     if (desktop <= 0 || desktop > effects->numberOfDesktops())
         return;
 
-    m_thumbManager->updateWindowsFor(desktop, windowsFor(desktop));
+    //m_thumbManager->updateWindowsFor(desktop, windowsFor(desktop));
     m_thumbManager->updateWindowThumbsGeometry(desktop, m_motionManagers[desktop-1]);
 }
 
@@ -517,18 +517,42 @@ void MultitaskingEffect::updateDesktopWindows()
 }
 
 
-QList<WId> MultitaskingEffect::windowsFor(int desktop)
+QList<WId> MultitaskingEffect::windowsFor(int screen, int desktop)
 {
     QList<WId> vl;
+	QDesktopWidget dw;
     for (const auto& ew: effects->stackingOrder()) {
-        if (ew->isOnDesktop(desktop) && isRelevantWithPresentWindows(ew)) {
-            auto wid = findWId(ew);
-            assert (effects->findWindow(wid) == ew);
-            vl.append(wid);
+        if (isRelevantWithPresentWindows(ew)) {
+			if (dw.screenGeometry(screen).contains(ew->pos()) && ew->desktop() == desktop) {
+				auto wid = findWId(ew);
+				assert (effects->findWindow(wid) == ew);
+				vl.append(wid);
+			}
         }
     }
     return vl;
 }
+
+/*
+QMap<int, WId> MultitaskingEffect::windowsFor(int screen)
+{
+    QMap<int, WId> vl; 
+    QDesktopWidget desktop;
+    for (const auto& ew : effects->stackingOrder()) {
+        if (isRelevantWithPresentWindows(ew)) {
+            if (desktop.screenGeometry(screen).contains(ew->pos())) { 
+                auto wid = findWId(ew);
+                assert (effects->findWindow(wid) == ew);
+                vl.insertMulti(ew->desktop(), wid);
+qDebug()<<screen<<ew->desktop()<<wid;
+            }   
+        }   
+    }   
+
+    return vl; 
+} 
+*/
+
 
 void MultitaskingEffect::onScreenSizeChanged()
 {
@@ -1805,25 +1829,27 @@ void MultitaskingEffect::setActive(bool active)
 
 	m_multaskingViewVisible = active;
 	if (m_multaskingViewVisible) {
-
 		MultitaskingModel *model = new MultitaskingModel;
 		if (!m_multaskingView) {
 			m_multaskingView = new QQuickWidget;
 			qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
-			m_multaskingView->setGeometry(effects->virtualScreenGeometry());
-			m_multaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
-			m_multaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
 			m_multaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
 			m_multaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
 			m_multaskingView->rootContext()->setContextProperty("$Model", model);
+			m_multaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
 			m_multaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
+			m_multaskingView->setGeometry(effects->virtualScreenGeometry());
+			m_multaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
 			auto root = m_multaskingView->rootObject();
 			connect(model, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
 			connect(model, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
 
-			for (int i = 1; i <= m_thumbManager->desktopCount(); ++i) {
+			for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
 				model->append();	
-				model->setWindows(i, windowsFor(i));
+				for (int screen = 0; screen < 2; ++screen) {
+					auto windows = windowsFor(screen, d);
+					model->setWindows(screen, d, windows);
+				}
 			}
 		}
 	}

@@ -18,7 +18,7 @@ Rectangle {
 			color: "red";
 			Grid {
 				Repeater {
-					model: $Model.windows(desktop);
+					model: $Model.windows(screen, desktop);
 					PlasmaCore.WindowThumbnail {
 						width: thumbnailWidth;
 						height: thumbnailHeight;
@@ -53,7 +53,7 @@ Rectangle {
                         MouseArea{
                             anchors.fill: parent;
 							onClicked: {
-								windowThumbnail.model = $Model.windows(desktopThumbnail.desktop);
+								windowThumbnail.model = $Model.windows(currentScreen, desktopThumbnail.desktop);
 							}
                         }
 
@@ -62,6 +62,7 @@ Rectangle {
 							sourceComponent: windowThumbnailView	
 							property int thumbnailWidth: 50;
 							property int thumbnailHeight: 50;
+							property int screen: currentScreen; 
 							property int desktop: desktopThumbnail.desktop;
 						}
 
@@ -102,7 +103,7 @@ Rectangle {
                     plusBtn.visible = count < 4;
 
 					//default value 1
-					windowThumbnail.model = $Model.windows(1); 
+					windowThumbnail.model = $Model.windows(currentScreen, 1); 
                 }
             }
 
@@ -139,19 +140,20 @@ Rectangle {
 		}
 	}
 
-    Loader {
-        sourceComponent: desktopThumbmailView;
-        width: parent.width;
-        height: 300;
-    }
-
-/*
-    Loader {
-        sourceComponent: desktopThumbmailView;
-        x: width / 2;
-        width: parent.width;
-        height: 100;
-    }
-*/
+	Component.onCompleted: {
+		for (var i = 0; i < $Model.numScreens(); ++i) {
+			var geom = $Model.geometry(i);
+			var src = 
+				'import QtQuick 2.0;' +
+				'Loader {' + 
+				'	x: ' + geom.x + ';' + 
+				'	width: ' + geom.width + ';' +
+				'	height: 260;' +
+				'	property int currentScreen: ' + i + ';' +
+				'	sourceComponent: desktopThumbmailView;' + 
+				'}';
+			Qt.createQmlObject(src, root, "dynamicSnippet");
+		}	
+	}
 }
 
