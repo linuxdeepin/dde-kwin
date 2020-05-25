@@ -302,7 +302,9 @@ public Q_SLOTS:
     void switchTwoDesktop(int to, int from);
 
     WId findWId(EffectWindow* ew);
-    QList<WId> windowsFor(int desktop);
+
+    QList<WId> windowsFor(int screen, int destop);
+    //QMap<int, WId> windowsFor(int screen);
     void updateDesktopWindows();
     void updateDesktopWindows(int desktop);
 

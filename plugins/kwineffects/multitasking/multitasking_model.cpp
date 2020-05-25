@@ -69,18 +69,30 @@ QHash<int, QByteArray> MultitaskingModel::roleNames() const
     return roles;
 }
 
-void MultitaskingModel::setWindows(int desktop, const QList<WId> &windows) 
+void MultitaskingModel::setWindows(int screen, int desktop, QList<WId> &windows)
 {
 	QVariantList windowList;
-	for (auto id: windows) {
-		windowList.append(id);
+	for (auto wid : windows) {
+		windowList.append(wid);
 	}
-	m_windows.insert(desktop, windowList);
+	m_windows[screen][desktop] = windowList;
 }
 
-QVariantList MultitaskingModel::windows(int desktop) const 
+QVariantList MultitaskingModel::windows(int screen, int desktop) const 
 {
-	return m_windows.value(desktop);
+	return m_windows[screen][desktop];
+}
+
+
+int MultitaskingModel::numScreens() const
+{
+	return effects->numScreens();
+}
+
+QRect MultitaskingModel::geometry(int screen) const
+{
+	QDesktopWidget desktop;
+	return desktop.screenGeometry(screen);
 }
 
 void MultitaskingModel::insert(int index, const DesktopThumbnailItem &data)
