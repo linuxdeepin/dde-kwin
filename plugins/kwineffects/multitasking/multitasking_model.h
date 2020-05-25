@@ -63,10 +63,13 @@ public:
 
 	Q_INVOKABLE int numScreens() const;
 	Q_INVOKABLE QRect geometry(int screen) const;
+	Q_INVOKABLE void setCurrentIndex(int index);
+	Q_INVOKABLE int currentIndex() const;
 signals:
     void countChanged(int count);
 	void appendDesktop();
 	void removeDesktop(int desktop);
+	void currentIndexChanged(int currentIndex);
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;
@@ -75,6 +78,7 @@ private:
     QList<DesktopThumbnailItem> m_desktopThumbnailItemList;
 	//QMap<screen, QMap<desktop, window>;
 	QMap<int, QMap<int, QVariantList> > m_windows;
+	int m_currentIndex;
 };
 
 #endif // DATAMODEL_H

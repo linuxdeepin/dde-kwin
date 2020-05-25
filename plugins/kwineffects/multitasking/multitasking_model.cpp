@@ -29,6 +29,7 @@ DesktopThumbnailItem::DesktopThumbnailItem()
 
 MultitaskingModel::MultitaskingModel(QObject *parent)
     : QAbstractListModel(parent)
+	, m_currentIndex(1)
 {
 }
 
@@ -95,6 +96,20 @@ QRect MultitaskingModel::geometry(int screen) const
 	return desktop.screenGeometry(screen);
 }
 
+
+void MultitaskingModel::setCurrentIndex(int index)
+{
+	if (m_currentIndex != index) {
+		m_currentIndex = index;
+		emit currentIndexChanged(m_currentIndex);
+	}
+}
+
+int MultitaskingModel::currentIndex() const
+{
+	return m_currentIndex;
+}
+
 void MultitaskingModel::insert(int index, const DesktopThumbnailItem &data)
 {
     if(index < 0 || index >= 4) {
@@ -129,7 +144,6 @@ void MultitaskingModel::remove(int index)
 
 void MultitaskingModel::append()
 {
-    const QString &filePath = "/home/mac/Workspace/untitled6/abc-123.jpg";
     insert(count(), DesktopThumbnailItem());
 }
 
