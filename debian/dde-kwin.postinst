@@ -1,0 +1,104 @@
+#!/bin/bash
+
+DEEPINVER_FILENAME=/etc/deepin-version
+KWINRC_FILENAME=/etc/xdg/kwinrc
+
+
+#DEEPINVER_FILENAME=./deepin-version
+#KWINRC_FILENAME=./kwinrc
+
+DEEPINVER=Server
+
+iniOptions=()
+iniSections=()
+
+
+iniValue=
+
+
+function ReadINIfile()  
+{   
+     iniFile=$1
+     section=$2
+     option=$3
+
+     
+
+     if [ "${section}" = "" ];then
+        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
+        iniSections=(${allSections// /})
+        echo "[info]:iniSections size:-${#iniSections[@]}- eles:-${iniSections[@]}- "
+    elif [ "${section}" != "" ] && [ "${option}" = "" ];then
+        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
+        echo $allSections|grep ${section}
+        if [ "$?" = "1" ];then
+            echo "[error]:section --${section}-- not exist!"
+            return 0
+        fi
+        a=$(awk "/\[${section}\]/{a=1}a==1"  ${iniFile}|sed -e'1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e 's/[ ]/@G@/g' -e '/\[/,$d' )
+        b=(${a})
+        for i in ${b[@]};do
+          if [ -n "${i}" ]||[ "${i}" i!= "@S@" ];then
+              iniOptions[${#iniOptions[@]}]=${i//@G@/ }
+          fi
+        done
+        echo "[info]:iniOptions size:-${#iniOptions[@]}- eles:-${iniOptions[@]}-"
+    elif [ "${section}" != "" ] && [ "${option}" != "" ];then
+        iniValue=$(awk -F '=' '/\['${section}'\]/{a=1} (a==1 && "'${option}'"==$1){a=0;print $2}' ${iniFile}) 
+ 
+        #iniValue=`awk -F '=' "/\[${section}\]/{a=1}a==1" ${iniFile}|sed -e '1d' -e '/^$/d' -e '/^\[.*\]/,$d' -e "/^${option}.*=.*/!d" -e "s/^${option}.*= *//"`
+        echo $iniValue
+    fi
+
+}
+
+
+function writeInifile()
+{
+	iniFile=$1
+	section=$2
+	option=$3
+	value=$4
+
+#	echo "INPUT "$1 $2 $3 $4 
+	iniValue='default'
+	iniOptions=()
+	iniSections=()
+
+    allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
+    iniSections=(${allSections// /})
+    sectionFlag="0"
+    for temp in ${iniSections[@]};do
+        if [ "${temp}" = "${section}" ];then
+            sectionFlag="1"
+            break
+        fi
+    done
+ 
+    if [ "$sectionFlag" = "0" ];then
+        echo "[${section}]" >>${iniFile}
+    fi
+    awk "/\[${section}\]/{a=1}a==1" ${iniFile}|sed -e '1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e '/\[/,$d'|grep "${option}.\?=">/dev/null
+    if [ "$?" = "0" ];then
+        sectionNum=$(sed -n -e "/\[${section}\]/=" ${iniFile})
+
+	echo "section num  "+$sectionNum
+        sed -i "${sectionNum},/^\[.*\]/s/\(${option}.\?=\).*/\1 ${value}/g" ${iniFile}
+        echo "[success] update [$iniFile][$section][$option][$value]"
+    else
+        sed -i "/^\[${section}\]/a\\${option} = ${value}" ${iniFile}
+        echo "[success] add [$iniFile][$section][$option][$value]"
+    fi
+}
+
+
+
+
+   ReadINIfile  $DEEPINVER_FILENAME "Release" "Type" 
+#echo $iniValue
+#echo $DEEPINVER
+
+if [ $iniValue = $DEEPINVER ]; then 
+    writeInifile $KWINRC_FILENAME "Compositing" "OpenGLIsUnsafe" "true"  
+fi
+
