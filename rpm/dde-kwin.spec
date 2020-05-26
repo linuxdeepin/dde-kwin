@@ -8,7 +8,7 @@
 %endif
 
 Name:           dde-kwin
-Version:        5.1.0.20
+Version:        5.1.0.26
 Release:        %{specrelease}
 Summary:        KWin configuration for Deepin Desktop Environment
 License:        GPLv3+
