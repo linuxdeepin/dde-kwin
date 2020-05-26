@@ -84,6 +84,7 @@ int AbstractOutput::refreshRate() const
 
 void AbstractOutput::setGlobalPos(const QPoint &pos)
 {
+    if (!isEnabled()) return;
     m_waylandOutputDevice->setGlobalPosition(pos);
 
     m_waylandOutput->setGlobalPosition(pos);
@@ -93,6 +94,7 @@ void AbstractOutput::setGlobalPos(const QPoint &pos)
 
 void AbstractOutput::setScale(qreal scale)
 {
+    if (!isEnabled()) return;
     m_waylandOutputDevice->setScaleF(scale);
 
     // this is the scale that clients will ideally use for their buffers
@@ -116,6 +118,7 @@ void AbstractOutput::setChanges(KWayland::Server::OutputChangeSet *changes)
     if (!changes) {
         qCDebug(KWIN_CORE) << "No changes.";
         // No changes to an output is an entirely valid thing
+        return;
     }
     //enabledChanged is handled by plugin code
     if (changes->modeChanged()) {
@@ -160,19 +163,18 @@ void AbstractOutput::setEnabled(bool enable)
     qDebug() << "-------- " << __func__ << enable << this;
     if (enable) {
         m_waylandOutputDevice->setEnabled(KWayland::Server::OutputDeviceInterface::Enablement::Enabled);
-        //m_waylandOutput->create();
-        //m_xdgOutput = waylandServer()->xdgOutputManager()->createXdgOutput(m_waylandOutput, this);
+        m_waylandOutput->create();
         updateEnablement(true);
     } else {
         m_waylandOutputDevice->setEnabled(KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
-        //m_waylandOutput->destroy();
-        //delete m_xdgOutput;
+        m_waylandOutput->destroy();
         updateEnablement(false);
     }
 }
 
 void AbstractOutput::setWaylandMode(const QSize &size, int refreshRate)
 {
+    if (!isEnabled()) return;
     m_waylandOutput->setCurrentMode(size, refreshRate);
     m_xdgOutput->setLogicalSize(pixelSize() / scale());
     m_xdgOutput->done();
