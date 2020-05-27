@@ -5,7 +5,7 @@ fi
 
 EXECUTE_PATH=$(cd `dirname $0`; pwd)
 
-export "LD_PRELOAD=${PLUGIN_INSTALL_PATH}/libdde-kwin-xcb.so;$LD_PRELOAD"
+export "LD_PRELOAD=${PLUGIN_INSTALL_PATH}/libdde-kwin-xcb.so:$LD_PRELOAD"
 export QT_SCALE_FACTOR=1
 #":"后的"appFilePath=..."会传递给QPlatformIntegration::create调用
 # appFilePath 的值会覆盖 QCoreApplication::applicationPath，以确保kwin崩溃自动重启时也是启动的kwin_no_scale脚本
