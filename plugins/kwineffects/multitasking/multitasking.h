@@ -40,6 +40,8 @@
 
 using namespace KWin;
 
+class MultitaskingModel;
+
 class DesktopThumbnail: public QQuickPaintedItem
 {
     Q_OBJECT
@@ -270,7 +272,7 @@ public:
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {
-        setActive(!m_multaskingViewVisible);
+        setActive(!m_multitaskingViewVisible);
     }
     void globalShortcutChanged(QAction *action, const QKeySequence &seq);
     void onWindowAdded(KWin::EffectWindow*);
@@ -421,9 +423,9 @@ private:
 
     QMargins desktopMargins();
 
-    QQuickWidget *m_multaskingView { nullptr };
-    bool          m_multaskingViewVisible { false };
-
+    QQuickWidget *m_multitaskingView { nullptr };
+    bool          m_multitaskingViewVisible { false };
+	MultitaskingModel *m_multitaskingModel { nullptr };
 };
 
 

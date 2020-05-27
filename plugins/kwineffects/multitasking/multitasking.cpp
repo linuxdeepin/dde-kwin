@@ -275,7 +275,8 @@ void DesktopThumbnailManager::mouseMoveEvent(QMouseEvent* e)
 MultitaskingEffect::MultitaskingEffect()
     : Effect(),
     m_activated(false),
-    m_showAction(new QAction(this))
+    m_showAction(new QAction(this)),
+	m_multitaskingModel(new MultitaskingModel)
 {
     QAction* a = m_showAction;
     a->setObjectName(QStringLiteral(ACTION_NAME));
@@ -1806,35 +1807,34 @@ void MultitaskingEffect::setActive(bool active)
 				this, &MultitaskingEffect::removeDesktop);
 	}
 
-	m_multaskingViewVisible = active;
-	if (m_multaskingViewVisible) {
-		MultitaskingModel *model = new MultitaskingModel;
-		if (!m_multaskingView) {
-			m_multaskingView = new QQuickWidget;
+	m_multitaskingViewVisible = active;
+	if (m_multitaskingViewVisible) {
+		if (!m_multitaskingView) {
+			m_multitaskingView = new QQuickWidget;
 			qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
-			m_multaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
-			m_multaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
-			m_multaskingView->rootContext()->setContextProperty("$Model", model);
-			m_multaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
-			m_multaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
-			m_multaskingView->setGeometry(effects->virtualScreenGeometry());
-			m_multaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
-			auto root = m_multaskingView->rootObject();
-			connect(model, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
-			connect(model, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
+			m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
+			m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
+			m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
+			m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
+			m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
+			m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
+			m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
+			auto root = m_multitaskingView->rootObject();
+			connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
+			connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
 
 			const int desktopCount = m_thumbManager->desktopCount();
-			model->load(desktopCount);	
+			m_multitaskingModel->load(desktopCount);
 		}
 
 		for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
 			for (int screen = 0; screen < effects->numScreens(); ++screen) {
 				auto windows = windowsFor(screen, d);
-				model->setWindows(screen, d, windows);
+				m_multitaskingModel->setWindows(screen, d, windows);
 			}
 		}
 	}
-	m_multaskingView->setVisible(m_multaskingViewVisible);
+	m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
     /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
