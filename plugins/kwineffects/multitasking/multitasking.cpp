@@ -1823,9 +1823,8 @@ void MultitaskingEffect::setActive(bool active)
 			connect(model, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
 			connect(model, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
 
-			for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
-				model->append();	
-			}
+			const int desktopCount = m_thumbManager->desktopCount();
+			model->load(desktopCount);	
 		}
 
 		for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {

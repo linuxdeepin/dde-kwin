@@ -46,12 +46,10 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    // Add data:
-    Q_INVOKABLE void insert(int index, const DesktopThumbnailItem &desktopThumbnailItem);
-
     // Remove data:
-    Q_INVOKABLE void remove(int index);
+	Q_INVOKABLE void load(int desktopCount);
     Q_INVOKABLE void append();
+    Q_INVOKABLE void remove(int index);
     int count() const;
 
     QList<DesktopThumbnailItem> desktopThumbnailItemList() const {

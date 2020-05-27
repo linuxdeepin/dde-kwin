@@ -110,12 +110,26 @@ int MultitaskingModel::currentIndex() const
 	return m_currentIndex;
 }
 
-void MultitaskingModel::insert(int index, const DesktopThumbnailItem &data)
+void MultitaskingModel::load(int desktopCount)
 {
-    if(index < 0 || index >= 4) {
+	int index = m_desktopThumbnailItemList.count();
+	for (int i = 0; i < desktopCount; ++i) { 
+		DesktopThumbnailItem data;
+		emit beginInsertRows(QModelIndex(), index, index);
+		m_desktopThumbnailItemList.append(data);
+		emit endInsertRows();
+		emit countChanged(m_desktopThumbnailItemList.count());
+	}
+}
+
+void MultitaskingModel::append()
+{
+	int index = m_desktopThumbnailItemList.count();
+	if(index < 0 || index >= 4) {
         return;
     }
 
+	DesktopThumbnailItem data;
     emit beginInsertRows(QModelIndex(), index, index);
     m_desktopThumbnailItemList.append(data);
     emit endInsertRows();
@@ -140,13 +154,6 @@ void MultitaskingModel::remove(int index)
 	emit removeDesktop(index + 1);
     emit countChanged(m_desktopThumbnailItemList.count());
 }
-
-
-void MultitaskingModel::append()
-{
-    insert(count(), DesktopThumbnailItem());
-}
-
 
 int MultitaskingModel::count() const
 {
