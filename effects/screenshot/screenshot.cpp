@@ -328,7 +328,7 @@ QString ScreenShotEffect::screenshotForWindowExtend(qulonglong winid, int mask)
         return QString();
     }
     EffectWindow* w = effects->findWindow(winid);
-    if(w && !w->isMinimized() && !w->isDeleted()) {
+    if(w && !w->isDeleted()) {
         m_fd = -1;
         m_type = (ScreenShotType) mask;
         m_replyMessage = message();
@@ -351,7 +351,7 @@ void ScreenShotEffect::screenshotForWindowExtend(QDBusUnixFileDescriptor fd, qul
     }
     m_type = (ScreenShotType) mask;
     EffectWindow* w = effects->findWindow(winid);
-    if(w && !w->isMinimized() && !w->isDeleted()) {
+    if(w && !w->isDeleted()) {
         m_fd = dup(fd.fileDescriptor());
         if (m_fd == -1) {
             sendErrorReply(s_errorFd, s_errorFdMsg);
