@@ -1156,7 +1156,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             return;
         }
 
-        if (!isActive()) return;
+        //if (!isActive()) return;
 
         qCDebug(BLUR_CAT) << e;
         if (e->isAutoRepeat()) return;
@@ -1176,7 +1176,11 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Right:  // include super+->
                 if (e->modifiers() == Qt::MetaModifier) {
-                    changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
+                    if (m_multitaskingModel->currentIndex()+1 < 4) {
+                        m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()+1);
+                    } else {
+                        m_multitaskingModel->setCurrentIndex(0);
+                    }
                 } else if (e->modifiers() == Qt::NoModifier) {
                     selectNextWindow();
                 }
@@ -1184,7 +1188,11 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Left:
                 if (e->modifiers() == Qt::MetaModifier) {
-                    changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
+                     if (m_multitaskingModel->currentIndex()-1 >= 0) {
+                         m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
+                    } else {
+                         m_multitaskingModel->setCurrentIndex(3);
+                    }
                 } else if (e->modifiers() == Qt::NoModifier) {
                     selectPrevWindow();
                 }
@@ -1216,7 +1224,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_3:
             case Qt::Key_4:
                 if (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::MetaModifier) {
-                    changeCurrentDesktop(e->key() - Qt::Key_0);
+                    m_multitaskingModel->setCurrentIndex(e->key() - Qt::Key_1);
                 }
                 break;
 
@@ -1233,6 +1241,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                         case Qt::Key_Dollar:  target_desktop = 4; break;
                         default: break;
                     }
+                    m_multitaskingModel->setCurrentIndex(target_desktop-1);
                     qCDebug(BLUR_CAT) << "----------- super+shift+"<<target_desktop;
 
                     if (m_selectedWindow)
@@ -1833,7 +1842,10 @@ void MultitaskingEffect::setActive(bool active)
 		m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
 		m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
 		m_multitaskingModel->load(desktopCount);
-	}
+        m_hasKeyboardGrab = effects->grabKeyboard(this);
+	} else {
+        effects->ungrabKeyboard();
+    }
 	m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
     /*
