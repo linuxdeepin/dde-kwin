@@ -1639,23 +1639,18 @@ void MultitaskingEffect::appendDesktop()
 
 void MultitaskingEffect::removeDesktop(int d)
 {
-    qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d << effects->numberOfDesktops();
     if (d <= 0 || d > effects->numberOfDesktops() || effects->numberOfDesktops() == 1) {
         return;
-	}
+    }
 
-    effects->setNumberOfDesktops(effects->numberOfDesktops() - 1);
-    QTimer::singleShot(400, [=]() {
-        changeCurrentDesktop(effects->numberOfDesktops());
-    });
-/*
     for (const auto& ew: effects->stackingOrder()) {
-        if (ew->isOnAllDesktops())
+        if (ew->isOnAllDesktops()) {
             continue;
-
+        }
         auto dl = ew->desktops();
-        if (dl.size() == 0 || dl[0] < d) continue;
-
+        if (dl.size() == 0 || dl[0] < d) {
+            continue;
+        }
         int newd = dl[0] == 1 ? 1 : dl[0] - 1;
         QVector<uint> desks {(uint)newd};
         qCDebug(BLUR_CAT) << "     ---- move" << ew << "from" << dl[0] << "to" << newd;
@@ -1666,12 +1661,9 @@ void MultitaskingEffect::removeDesktop(int d)
     // shift wallpapers before acutally removing it
     BackgroundManager::instance().desktopAboutToRemoved(d);
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
-    effects->addRepaintFull();
-
-
-    // delay this process, make sure layoutChanged has been handled
-    QTimer::singleShot(10, [=]() { desktopRemoved(d); });
-*/
+    //effects->addRepaintFull();
+    // elay this process, make sure layoutChanged has been handled
+    //QTimer::singleShot(10, [=]() { desktopRemoved(d); });
 }
 
 void MultitaskingEffect::desktopRemoved(int d)
