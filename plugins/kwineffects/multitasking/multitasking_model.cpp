@@ -90,7 +90,7 @@ int MultitaskingModel::numScreens() const
 	return effects->numScreens();
 }
 
-QRect MultitaskingModel::geometry(int screen) const
+QRect MultitaskingModel::screenGeometry(int screen) const
 {
 	QDesktopWidget desktop;
 	return desktop.screenGeometry(screen);

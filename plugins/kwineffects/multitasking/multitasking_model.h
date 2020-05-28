@@ -61,7 +61,7 @@ public:
 	Q_INVOKABLE QVariantList windows(int screen, int desktop) const; 
 
 	Q_INVOKABLE int numScreens() const;
-	Q_INVOKABLE QRect geometry(int screen) const;
+	Q_INVOKABLE QRect screenGeometry(int screen) const;
 	Q_INVOKABLE void setCurrentIndex(int index);
 	Q_INVOKABLE int currentIndex() const;
 signals:
