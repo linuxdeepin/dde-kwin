@@ -32,7 +32,7 @@ Rectangle {
 	Component {
         id: desktopThumbmailView;
         Rectangle {
-            width: parent.width / 2;
+            width: screenWidth; 
             height: parent.height;
             ListView {
                 id: view
@@ -149,12 +149,12 @@ Rectangle {
 
 	Component.onCompleted: {
 		for (var i = 0; i < $Model.numScreens(); ++i) {
-			var geom = $Model.geometry(i);
+			var geom = $Model.screenGeometry(i);
 			var src = 
 				'import QtQuick 2.0;' +
 				'Loader {' + 
 				'	x: ' + geom.x + ';' + 
-				'	width: ' + geom.width + ';' +
+				'	property int screenWidth: ' + geom.width + ';' +
 				'	height: 260;' +
 				'	property int currentScreen: ' + i + ';' +
 				'	sourceComponent: desktopThumbmailView;' + 
