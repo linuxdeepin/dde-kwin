@@ -1631,7 +1631,6 @@ void MultitaskingEffect::appendDesktop()
 
 void MultitaskingEffect::removeDesktop(int d)
 {
-
     qDebug() << "~~~~~~~~~~~~~~~~~~~~ remove desktop " << d << effects->numberOfDesktops();
     if (d <= 0 || d > effects->numberOfDesktops() || effects->numberOfDesktops() == 1) {
         return;
