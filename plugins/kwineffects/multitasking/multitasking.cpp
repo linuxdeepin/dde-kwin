@@ -1809,6 +1809,15 @@ void MultitaskingEffect::setActive(bool active)
 
 	m_multitaskingViewVisible = active;
 	if (m_multitaskingViewVisible) {
+
+		const int desktopCount = m_thumbManager->desktopCount();
+		for (int d = 1; d <= desktopCount; ++d) {
+			for (int screen = 0; screen < effects->numScreens(); ++screen) {
+				auto windows = windowsFor(screen, d);
+				m_multitaskingModel->setWindows(screen, d, windows);
+			}
+		}
+
 		if (!m_multitaskingView) {
 			m_multitaskingView = new QQuickWidget;
 			qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
@@ -1816,23 +1825,14 @@ void MultitaskingEffect::setActive(bool active)
 			m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
 			m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
 			m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
-			m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
-			m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
 			m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
 			auto root = m_multitaskingView->rootObject();
 			connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
 			connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
-
-			const int desktopCount = m_thumbManager->desktopCount();
-			m_multitaskingModel->load(desktopCount);
 		}
-
-		for (int d = 1; d <= m_thumbManager->desktopCount(); ++d) {
-			for (int screen = 0; screen < effects->numScreens(); ++screen) {
-				auto windows = windowsFor(screen, d);
-				m_multitaskingModel->setWindows(screen, d, windows);
-			}
-		}
+		m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
+		m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
+		m_multitaskingModel->load(desktopCount);
 	}
 	m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
