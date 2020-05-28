@@ -11,6 +11,11 @@ Rectangle {
     id: root
 	width: Screen.width;
 	height: Screen.height;
+    color: "transparent"
+
+    function log(msg) {
+        manager.debugLog(msg)
+    }
 
 	Component {
 		id: windowThumbnailView;
@@ -40,21 +45,71 @@ Rectangle {
                 height: parent.height;
                 orientation: ListView.Horizontal;
                 model: $Model
+                interactive : false;
+                clip: true;
 
                 delegate: Rectangle {
+                    id: thumbDelegate;
                     width: manager.thumbSize.width;
                     height: manager.thumbSize.height;
                     color: "gray";
-
-                    DesktopThumbnail {
+                    
+					DesktopThumbnail {
 						id: desktopThumbnail;
-						desktop: index + 1;
-                        anchors.fill: parent;
-                        MouseArea{
+						desktop: index + 1; 
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        width: thumbDelegate.width
+                        height: thumbDelegate.height
+                        MouseArea {
+                            id: desktopThumbMouseArea
                             anchors.fill: parent;
 							onClicked: {
 								$Model.setCurrentIndex(index);
 							}
+
+                            drag.target: desktopThumbnail;
+                            onReleased: {
+                                if (manager.desktopCount == 1) {
+                                    return
+                                }
+                            }
+                            onPressed: {
+                                desktopThumbnail.Drag.hotSpot.x = mouse.x;
+                                desktopThumbnail.Drag.hotSpot.y = mouse.y;
+                            }
+                            drag.onActiveChanged: {
+                                if (!desktopThumbMouseArea.drag.active) {
+                                    log('------- release ws on ' + thumbDelegate.Drag.target)
+                                    desktopThumbnail.Drag.drop();
+                                }
+                            }
+                        }
+                        property bool pendingDragRemove: false
+                        Drag.keys: ["workspaceThumb"];
+                        Drag.active: manager.desktopCount > 1 && desktopThumbMouseArea.drag.active 
+                        Drag.hotSpot {
+                            x: width/2
+                            y: height/2
+                        }
+                    
+                        states: State {
+                            when: desktopThumbnail.Drag.active;
+                            ParentChange {
+                                target: desktopThumbnail;
+                                parent: root;
+                            }
+
+                            PropertyChanges {
+                                target: desktopThumbnail;
+                                z: 100;
+                            }
+                            AnchorChanges {
+                                target: desktopThumbnail;
+                                anchors.horizontalCenter: undefined
+                                anchors.verticalCenter: undefined
+                            }
                         }
 
 						//window thumbnail
@@ -94,6 +149,106 @@ Rectangle {
 							}
 						}
 					}
+
+                    DropArea {
+                        id: workspaceThumbDrop
+                        anchors.fill: parent;
+                        // width: manager.thumbSize.width
+                        // height: manager.thumbSize.height
+                        property int designated: index + 1;
+
+                        z: 1
+                        keys: ['workspaceThumb']
+
+                        onDropped: {
+                            /* NOTE:
+                            * during dropping, PropertyChanges is still in effect, which means 
+                            * drop.source.parent should not be Loader
+                            * and drop.source.z == 100
+                            */
+                            log("----------- workspaceThumb onDrop")
+                            if (drop.keys[0] === 'workspaceThumb') {
+                                var from = drop.source.desktop
+                                var to = workspaceThumbDrop.designated
+                                if (workspaceThumbDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
+                                    //FIXME: could be a delete operation but need more calculation
+                                    log("----------- workspaceThumbDrop: close desktop " + from)
+                                    $Model.remove(index);
+                                } else {
+                                    if (from == to) {
+                                        return
+                                    }
+                                    console.log("----------- workspaceThumbDrop: reorder desktop ")
+                                }
+                            }
+                            
+                        }
+
+                        onEntered: {
+                            if (drag.keys[0] === 'workspaceThumb') {
+                                log('------[workspaceThumbDrop]: Enter ' + workspaceThumbDrop.designated + ' from ' + drag.source
+                                    + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
+                            }
+                        }
+
+                        onExited: {
+                            log("----------- workspaceThumb onExited")
+                            if (drag.source.pendingDragRemove) {
+                                hint.visible = false
+                                drag.source.pendingDragRemove = hint.visible
+                            }
+
+                        }
+
+                        onPositionChanged: {
+                            log("----------- workspaceThumb onPositionChanged")
+                            if (drag.keys[0] === 'workspaceThumb') {
+                                var diff = workspaceThumbDrop.parent.y - drag.source.y
+                                log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
+                                if (diff > 0 && diff > drag.source.height/2) {
+                                    hint.visible = true
+                                } else {
+                                    hint.visible = false
+                                }
+                                drag.source.pendingDragRemove = hint.visible
+                            }
+                        }
+
+                        Rectangle {
+                            id: hint
+                            visible: false
+                            anchors.fill: parent
+                            color: "transparent"
+
+                            Text {
+                                text: qsTr("Drag upwards to remove")
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                y: parent.height * 0.572
+
+                                font.family: "Helvetica"
+                                font.pointSize: 14
+                                color: Qt.rgba(1, 1, 1, 0.5)
+                            }
+
+                            Canvas {
+                                anchors.fill: parent
+                                onPaint: {
+                                    var ctx = getContext("2d");
+                                    ctx.lineWidth = 0.5;
+                                    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+
+                                    var POSITION_PERCENT = 0.449;
+                                    var LINE_START = 0.060;
+
+                                    ctx.beginPath();
+                                    ctx.moveTo(width * LINE_START, height * POSITION_PERCENT);
+                                    ctx.lineTo(width * (1.0 - 2.0 * LINE_START), height * POSITION_PERCENT);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                    }
+
 				}
 
                 //center
