@@ -50,6 +50,7 @@ public:
 	Q_INVOKABLE void load(int desktopCount);
     Q_INVOKABLE void append();
     Q_INVOKABLE void remove(int index);
+	void clear();
     int count() const;
 
     QList<DesktopThumbnailItem> desktopThumbnailItemList() const {
