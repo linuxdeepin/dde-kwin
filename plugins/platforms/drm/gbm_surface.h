@@ -32,7 +32,15 @@ namespace KWin
 class GbmSurface
 {
 public:
-    explicit GbmSurface(gbm_device *gbm, uint32_t width, uint32_t height, uint32_t format, uint32_t flags);
+    explicit GbmSurface(gbm_device *gbm, uint32_t width, uint32_t height,
+                        uint32_t format, uint32_t flags);
+
+    // TODO: ld issue of calling gbm_surface_create_with_modifiers.
+    //       m_surface set by setSurface()!
+    explicit GbmSurface() {
+
+    }
+
     ~GbmSurface();
 
     gbm_bo *lockFrontBuffer();
@@ -44,6 +52,11 @@ public:
 
     gbm_surface* surface() const {
         return m_surface;
+    }
+
+    // TODO
+    void setSurface(gbm_surface *surface) {
+        m_surface = surface;
     }
 
 private:

@@ -99,6 +99,10 @@ public:
     void atomicEnable();
     void atomicDisable();
 
+    DrmPlane* getPrimaryPlane() {
+        return m_primaryPlane;
+    }
+
 Q_SIGNALS:
     void dpmsChanged();
 

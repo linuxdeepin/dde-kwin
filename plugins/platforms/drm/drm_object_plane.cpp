@@ -57,6 +57,8 @@ bool DrmPlane::atomicInit()
     if (!initProps()) {
         return false;
     }
+    initFormatsWithModifiers();
+    //dumpFormatsWithModifiers();
     return true;
 }
 
@@ -124,6 +126,59 @@ bool DrmPlane::initProps()
 
     drmModeFreeObjectProperties(properties);
     return true;
+}
+
+void DrmPlane::dumpFormatsWithModifiers()
+{
+    for (auto it_h = m_formatsWithModifiers.constBegin(); it_h != m_formatsWithModifiers.constEnd(); ++it_h){
+        uint32_t format = it_h.key();
+        QVector<uint64_t> modifiers = it_h.value();
+        qDebug("plane = %d, drm dump format = %d", m_id, format);
+        for (auto it_s = modifiers.constBegin(); it_s != modifiers.constEnd(); it_s++ ) {
+            qDebug("        ---------- plane = %d, drm dump modifier = %ld", m_id, *it_s);
+        }
+    }
+}
+
+void DrmPlane::initFormatsWithModifiers()
+{
+    drmModeObjectProperties *props =
+            drmModeObjectGetProperties(m_fd, m_id, DRM_MODE_OBJECT_PLANE);
+
+    uint32_t idx = 0;
+    for (uint32_t i = 0; i < props->count_props; i++) {
+        drmModePropertyPtr property = drmModeGetProperty(m_fd, props->props[i]);
+        if (!strcmp(property->name, "IN_FORMATS")) {
+            idx = i;
+        }
+        drmModeFreeProperty(property);
+
+        if (idx)
+            break;
+    }
+
+    uint32_t blob_id = props->prop_values[idx];
+    drmModePropertyBlobPtr blob = drmModeGetPropertyBlob(m_fd, blob_id);
+    if(blob) {
+        struct drm_format_modifier_blob *header = static_cast<drm_format_modifier_blob *>(blob->data);
+        uint32_t *formats = (uint32_t *)((char *)header + header->formats_offset);
+        struct drm_format_modifier *modifiers = (struct drm_format_modifier *)
+                ((char *)header + header->modifiers_offset);
+
+        for (uint32_t m = 0; m < header->count_formats; m++) {
+            if (!header->count_modifiers) {
+                m_formatsWithModifiers.insert(formats[m], QVector<uint64_t>());
+                continue;
+            }
+
+            QVector<uint64_t> modifierVector;
+            for (uint32_t n = 0; n < header->count_modifiers; n++) {
+                modifierVector.append(modifiers[n].modifier);
+            }
+            m_formatsWithModifiers.insert(formats[m], modifierVector);
+        }
+    }
+    drmModeFreeObjectProperties(props);
 }
 
 DrmPlane::TypeIndex DrmPlane::type()

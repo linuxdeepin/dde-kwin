@@ -36,6 +36,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace KWin
 {
 
+typedef EGLBoolean (*eglQueryDmaBufFormatsEXT_func) (EGLDisplay dpy, EGLint max_formats, EGLint *formats, EGLint *num_formats);
+typedef EGLBoolean (*eglQueryDmaBufModifiersEXT_func) (EGLDisplay dpy, EGLint format, EGLint max_modifiers,
+                                                       EGLuint64KHR *modifiers, EGLBoolean *external_only, EGLint *num_modifiers);
+
+eglQueryDmaBufFormatsEXT_func eglQueryDmaBufFormatsEXT = nullptr;
+eglQueryDmaBufModifiersEXT_func eglQueryDmaBufModifiersEXT = nullptr;
+
+
 EglGbmBackend::EglGbmBackend(DrmBackend *b)
     : AbstractEglBackend()
     , m_backend(b)
@@ -123,6 +131,10 @@ void EglGbmBackend::init()
         setFailed("Could not initialize egl");
         return;
     }
+
+    initEglFormatsWithModifiers();
+    //dumpFormatsWithModifiers();
+
     if (!initRenderingContext()) {
         setFailed("Could not initialize rendering context");
         return;
@@ -132,6 +144,62 @@ void EglGbmBackend::init()
     initBufferAge();
     initWayland();
     initRemotePresent();
+}
+
+void EglGbmBackend::dumpFormatsWithModifiers()
+{
+    for (auto it_h = m_eglFormatsWithModifiers.constBegin(); it_h != m_eglFormatsWithModifiers.constEnd(); ++it_h){
+        uint32_t format = it_h.key();
+        QVector<uint64_t> modifiers = it_h.value();
+        qDebug("format = %d", format);
+        for (auto it_s = modifiers.constBegin(); it_s != modifiers.constEnd(); it_s++ ) {
+            qDebug("         ---------- modifier = %ld", *it_s);
+        }
+    }
+}
+
+void EglGbmBackend::initEglFormatsWithModifiers()
+{
+    EGLint count = 0;
+
+    if (!hasExtension(QByteArrayLiteral("EGL_EXT_image_dma_buf_import"))) {
+        qDebug("Formats&Modifiers haven't supported: EGL_EXT_image_dma_buf_import isn't supported!");
+        return;
+    }
+    if (hasExtension(QByteArrayLiteral("EGL_EXT_image_dma_buf_import_modifiers"))) {
+        eglQueryDmaBufFormatsEXT = (eglQueryDmaBufFormatsEXT_func)eglGetProcAddress("eglQueryDmaBufFormatsEXT");
+        eglQueryDmaBufModifiersEXT = (eglQueryDmaBufModifiersEXT_func)eglGetProcAddress("eglQueryDmaBufModifiersEXT");
+    }
+    if (eglQueryDmaBufFormatsEXT == nullptr) {
+        qDebug("Formats&Modifiers haven't supported: eglQueryDmaBufFormatsEXT failed!");
+        return;
+    }
+
+    EGLBoolean success = eglQueryDmaBufFormatsEXT(eglDisplay(), 0, nullptr, &count);
+    QVector<uint32_t> formats(count);
+    if (!success || count == 0) {
+        qDebug("Formats&Modifiers haven't supported: eglQueryDmaBufFormatsEXT Failed to get count! 1st call.");
+        return;
+    }
+    if (!eglQueryDmaBufFormatsEXT(eglDisplay(), count, (EGLint*)formats.data(), &count)) {
+        qDebug("Formats&Modifiers haven't supported: eglQueryDmaBufFormatsEXT Failed to get formats! 2nd call.");
+        return;
+    }
+    for (auto format : qAsConst(formats)) {
+        if (eglQueryDmaBufModifiersEXT != nullptr) {
+            count = 0;
+            success = eglQueryDmaBufModifiersEXT(eglDisplay(), format, 0, nullptr, nullptr, &count);
+
+            if (success && count > 0) {
+                QVector<uint64_t> modifiers(count);
+                if (eglQueryDmaBufModifiersEXT(eglDisplay(), format, count, modifiers.data(), nullptr, &count)) {
+                    m_eglFormatsWithModifiers.insert(format, modifiers);
+                    continue;
+                }
+            }
+        }
+        m_eglFormatsWithModifiers.insert(format, QVector<uint64_t>());
+    }
 }
 
 bool EglGbmBackend::initRenderingContext()
@@ -341,8 +409,23 @@ bool EglGbmBackend::resetOutput(Output &o, DrmOutput *drmOutput)
 
     qDebug() << "-----------" << __func__ << "size" << size << drmOutput->geometry();
 
-    auto gbmSurface = std::make_shared<GbmSurface>(m_backend->gbmDevice(), size.width(), size.height(),
-                                        GBM_FORMAT_XRGB8888, GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    std::shared_ptr<GbmSurface> gbmSurface;
+
+    if (o.m_modifiersEnabled) {
+        qDebug("---------- formats&modifiers have been enabled!");
+        gbmSurface = std::make_shared<GbmSurface>();
+        gbm_surface *gbmS = gbm_surface_create_with_modifiers(m_backend->gbmDevice(),
+                                                              size.width(), size.height(),
+                                                              drmOutput->getPrimaryPlane()->getCurrentFormat(),
+                                                              o.m_eglModifiers.data(), o.m_eglModifiers.count());
+        gbmSurface->setSurface(gbmS);
+    } else {
+        gbmSurface = std::make_shared<GbmSurface>(m_backend->gbmDevice(),
+                                                  size.width(), size.height(),
+                                                  drmOutput->getPrimaryPlane()->getCurrentFormat(),
+                                                  GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+    }
+
     if (!gbmSurface) {
         qCCritical(KWIN_DRM) << "Create gbm surface failed";
         return false;
@@ -370,6 +453,38 @@ bool EglGbmBackend::resetOutput(Output &o, DrmOutput *drmOutput)
 void EglGbmBackend::createOutput(DrmOutput *drmOutput)
 {
     Output o;
+    auto drmFormatsWithModifiers = drmOutput->getPrimaryPlane()->getFormatsWithModifiers();
+    auto itDrmH = drmFormatsWithModifiers.find(drmOutput->getPrimaryPlane()->getCurrentFormat());
+    auto itEglH = m_eglFormatsWithModifiers.find(drmOutput->getPrimaryPlane()->getCurrentFormat());
+
+    int envModifiersSupport = qEnvironmentVariableIntValue("KWIN_WAYLAND_MODIFIERS_SUPPORT");
+
+    if (itDrmH != drmFormatsWithModifiers.end() && itEglH != m_eglFormatsWithModifiers.end()) {
+        QVector<uint64_t> drmModifiers = itDrmH.value();
+        QVector<uint64_t> eglModifiers = itEglH.value();
+
+
+        for (auto itDrmV = drmModifiers.constBegin(); itDrmV != drmModifiers.constEnd();
+             itDrmV++) {
+            if (*itDrmV == 0)
+                continue;
+
+            for (auto itEglV = eglModifiers.constBegin(); itEglV!= eglModifiers.constEnd();
+                 itEglV++) {
+                if (*itEglV == *itDrmV && envModifiersSupport) {
+                    o.m_modifiersEnabled = true;
+                    break;
+                }
+            }
+            if (o.m_modifiersEnabled) {
+                o.m_drmModifiers = drmModifiers;
+                o.m_eglModifiers = eglModifiers;
+                break;
+            }
+        }
+
+    }
+
     if (resetOutput(o, drmOutput)) {
         connect(drmOutput, &DrmOutput::modeChanged, this,
             [drmOutput, this] {
@@ -488,7 +603,15 @@ void EglGbmBackend::present()
 void EglGbmBackend::presentOnOutput(EglGbmBackend::Output &o)
 {
     eglSwapBuffers(eglDisplay(), o.eglSurface);
-    o.buffer = m_backend->createBuffer(o.gbmSurface);
+
+    if (o.m_modifiersEnabled) {
+        o.buffer = m_backend->createBuffer(o.gbmSurface,
+                                           o.output->getPrimaryPlane()->getCurrentFormat(),
+                                           o.m_drmModifiers);
+    } else {
+        o.buffer = m_backend->createBuffer(o.gbmSurface);
+    }
+
     if(m_remoteaccessManager && gbm_surface_has_free_buffers(o.gbmSurface->surface())) {
         // GBM surface is released on page flip so
         // we should pass the buffer before it's presented

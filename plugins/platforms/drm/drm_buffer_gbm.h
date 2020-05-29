@@ -36,6 +36,8 @@ class DrmSurfaceBuffer : public DrmBuffer
 {
 public:
     DrmSurfaceBuffer(int fd, const std::shared_ptr<GbmSurface> &surface);
+    DrmSurfaceBuffer(int fd, const std::shared_ptr<GbmSurface> &surface,
+                     uint32_t format, QVector<uint64_t> &modifiers);
     ~DrmSurfaceBuffer();
 
     bool needsModeChange(DrmBuffer *b) const override {

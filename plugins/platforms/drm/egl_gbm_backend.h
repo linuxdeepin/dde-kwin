@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 #ifndef KWIN_EGL_GBM_BACKEND_H
 #define KWIN_EGL_GBM_BACKEND_H
+
 #include "abstract_egl_backend.h"
 #include "remoteaccess_manager.h"
 
@@ -78,6 +79,17 @@ private:
             std::shared_ptr<GLRenderTarget> fbo;
             std::shared_ptr<GLShader> shader;
         } rotation;
+
+        /**
+        * @brief  Hisilicon libmali platform.
+        *           Get modifiers by two ways: 1st by drm* api, 2ed by egl* api.
+        *           compare modifiers vector of the same format,
+        *           if there have one equal modifier of these two modifiers vector,
+        *           formats&modifiers have been supported. UMMMMMMMMM :(
+        */
+        Bool m_modifiersEnabled = false;
+        QVector<uint64_t> m_drmModifiers;
+        QVector<uint64_t> m_eglModifiers;
     };
     bool resetOutput(Output &output, DrmOutput *drmOutput);
     bool makeContextCurrent(const Output &output);
@@ -95,6 +107,10 @@ private:
     QVector<Output> m_outputs;
     QScopedPointer<RemoteAccessManager> m_remoteaccessManager;
     friend class EglGbmTexture;
+
+    QHash<uint32_t, QVector<uint64_t>> m_eglFormatsWithModifiers;
+    void initEglFormatsWithModifiers();
+    void dumpFormatsWithModifiers();
 };
 
 /**

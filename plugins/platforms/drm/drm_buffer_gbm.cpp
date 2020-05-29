@@ -45,9 +45,39 @@ DrmSurfaceBuffer::DrmSurfaceBuffer(int fd, const std::shared_ptr<GbmSurface> &su
         return;
     }
     m_size = QSize(gbm_bo_get_width(m_bo), gbm_bo_get_height(m_bo));
-    if (drmModeAddFB(fd, m_size.width(), m_size.height(), 24, 32, gbm_bo_get_stride(m_bo), gbm_bo_get_handle(m_bo).u32, &m_bufferId) != 0) {
+    if (drmModeAddFB(fd, m_size.width(), m_size.height(), 24, 32, gbm_bo_get_stride(m_bo),
+                     gbm_bo_get_handle(m_bo).u32, &m_bufferId) != 0) {
         qCWarning(KWIN_DRM) << "drmModeAddFB failed";
     }
+    gbm_bo_set_user_data(m_bo, this, nullptr);
+}
+
+DrmSurfaceBuffer::DrmSurfaceBuffer(int fd, const std::shared_ptr<GbmSurface> &surface,
+                                   uint32_t format, QVector<uint64_t> &modifiers)
+    : DrmBuffer(fd)
+    , m_surface(surface)
+{
+    m_bo = m_surface->lockFrontBuffer();
+    if (!m_bo) {
+        qCWarning(KWIN_DRM) << "Locking front buffer failed";
+        return;
+    }
+    m_size = QSize(gbm_bo_get_width(m_bo), gbm_bo_get_height(m_bo));
+    uint32_t strides[4] = { };
+    uint32_t handles[4] = { };
+    uint32_t offsets[4] = { };
+    uint64_t mods[4] = { };
+
+    handles[0] = gbm_bo_get_handle(m_bo).u32;
+    strides[0] = gbm_bo_get_stride(m_bo);
+    mods[0] = modifiers.data()[0];
+
+    if (drmModeAddFB2WithModifiers(fd, m_size.width(), m_size.height(), format,
+                                   handles, strides,
+                                   offsets, mods, &m_bufferId, DRM_MODE_FB_MODIFIERS) != 0) {
+        qCWarning(KWIN_DRM) << "drmModeAddFB2WithModifiers failed";
+    }
+
     gbm_bo_set_user_data(m_bo, this, nullptr);
 }
 

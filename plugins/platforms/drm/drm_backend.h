@@ -84,6 +84,8 @@ public:
     DrmDumbBuffer *createBuffer(const QSize &size);
 #if HAVE_GBM
     DrmSurfaceBuffer *createBuffer(const std::shared_ptr<GbmSurface> &surface);
+    DrmSurfaceBuffer *createBuffer(const std::shared_ptr<GbmSurface> &surface,
+                                   uint32_t format, QVector<uint64_t> &modifiers);
 #endif
     void present(DrmBuffer *buffer, DrmOutput *output);
 

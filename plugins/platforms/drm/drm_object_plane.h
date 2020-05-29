@@ -23,6 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "drm_object.h"
 // drm
 #include <xf86drmMode.h>
+#include <QHash>
+
+#include <gbm.h>
 
 namespace KWin
 {
@@ -71,6 +74,7 @@ public:
 
     bool atomicInit();
     bool initProps();
+    void initFormatsWithModifiers();
     TypeIndex type();
 
     bool isCrtcSupported(int resIndex) const {
@@ -101,6 +105,13 @@ public:
         return m_supportedTransformations;
     }
 
+    QHash<uint32_t, QVector<uint64_t> > getFormatsWithModifiers() {
+        return m_formatsWithModifiers;
+    }
+    uint32_t getCurrentFormat() {
+        return m_currentFormat;
+    }
+
 private:
     DrmBuffer *m_current = nullptr;
     DrmBuffer *m_next = nullptr;
@@ -112,6 +123,10 @@ private:
     uint32_t m_possibleCrtcs;
 
     Transformations m_supportedTransformations = Transformation::Rotate0;
+
+    QHash<uint32_t, QVector<uint64_t> > m_formatsWithModifiers;
+    void dumpFormatsWithModifiers();
+    uint32_t m_currentFormat = GBM_FORMAT_XRGB8888;
 };
 
 }

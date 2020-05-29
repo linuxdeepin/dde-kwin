@@ -780,6 +780,12 @@ DrmSurfaceBuffer *DrmBackend::createBuffer(const std::shared_ptr<GbmSurface> &su
     DrmSurfaceBuffer *b = new DrmSurfaceBuffer(m_fd, surface);
     return b;
 }
+
+DrmSurfaceBuffer *DrmBackend::createBuffer(const std::shared_ptr<GbmSurface> &surface, uint32_t format, QVector<uint64_t> &modifiers)
+{
+    DrmSurfaceBuffer *b = new DrmSurfaceBuffer(m_fd, surface, format, modifiers);
+    return b;
+}
 #endif
 
 void DrmBackend::outputDpmsChanged()
