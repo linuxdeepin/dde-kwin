@@ -1807,54 +1807,56 @@ void MultitaskingEffect::clearGrids()
 
 void MultitaskingEffect::setActive(bool active)
 {
-	if (!m_thumbManager) {
-		m_thumbManager = new DesktopThumbnailManager(effects);
-		connect(m_thumbManager, &DesktopThumbnailManager::requestAppendDesktop,
-				this, &MultitaskingEffect::appendDesktop);
-		connect(m_thumbManager, &DesktopThumbnailManager::requestDeleteDesktop,
-				this, &MultitaskingEffect::removeDesktop);
-	}
+    if (!m_thumbManager) {
+        m_thumbManager = new DesktopThumbnailManager(effects);
+        connect(m_thumbManager, &DesktopThumbnailManager::requestAppendDesktop,
+                this, &MultitaskingEffect::appendDesktop);
+        connect(m_thumbManager, &DesktopThumbnailManager::requestDeleteDesktop,
+                this, &MultitaskingEffect::removeDesktop);
+        connect(m_thumbManager, &DesktopThumbnailManager::requestChangeCurrentDesktop,
+                this, &MultitaskingEffect::changeCurrentDesktop);
+    }
 
-	m_multitaskingViewVisible = active;
-	if (m_multitaskingViewVisible) {
+    m_multitaskingViewVisible = active;
+    if (m_multitaskingViewVisible) {
+        const int desktopCount = m_thumbManager->desktopCount();
+        for (int d = 1; d <= desktopCount; ++d) {
+            for (int screen = 0; screen < effects->numScreens(); ++screen) {
+                auto windows = windowsFor(screen, d);
+                m_multitaskingModel->setWindows(screen, d, windows);
+            }
+        }
 
-		const int desktopCount = m_thumbManager->desktopCount();
-		for (int d = 1; d <= desktopCount; ++d) {
-			for (int screen = 0; screen < effects->numScreens(); ++screen) {
-				auto windows = windowsFor(screen, d);
-				m_multitaskingModel->setWindows(screen, d, windows);
-			}
-		}
-
-		if (!m_multitaskingView) {
-			m_multitaskingView = new QQuickWidget;
-			qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
-			m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
-			m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
-			m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
-			m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
-			m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
-			auto root = m_multitaskingView->rootObject();
-			connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
-			connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
-		}
-		m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
-		m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
-		m_multitaskingModel->load(desktopCount);
+        if (!m_multitaskingView) {
+            m_multitaskingView = new QQuickWidget;
+            qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
+            m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
+            m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
+            m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
+            m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
+            m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
+            auto root = m_multitaskingView->rootObject();
+            connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
+            connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
+            connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));
+        }
+        m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
+        m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
+        m_multitaskingModel->load(desktopCount);
         m_hasKeyboardGrab = effects->grabKeyboard(this);
         effects->startMouseInterception(this, Qt::PointingHandCursor);
-	} else {
+    } else {
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
     }
-	m_multitaskingView->setVisible(m_multitaskingViewVisible);
+    m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
     /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
-        return;
+    return;
 
-    if (m_activated == active)
-        return;
+       if (m_activated == active)
+       return;
 
     if (!m_activated && m_toggleTimeline.currentValue() != 0) {
         // closing animation is still in effect

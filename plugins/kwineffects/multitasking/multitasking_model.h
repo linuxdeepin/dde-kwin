@@ -66,9 +66,10 @@ public:
 	Q_INVOKABLE int currentIndex() const;
 signals:
     void countChanged(int count);
-	void appendDesktop();
-	void removeDesktop(int desktop);
-	void currentIndexChanged(int currentIndex);
+    void appendDesktop();
+    void removeDesktop(int desktop);
+    void currentIndexChanged(int currentIndex);
+    void currentDesktopChanged(int desktop);
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;

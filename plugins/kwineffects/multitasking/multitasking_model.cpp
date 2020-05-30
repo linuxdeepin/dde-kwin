@@ -99,10 +99,11 @@ QRect MultitaskingModel::screenGeometry(int screen) const
 
 void MultitaskingModel::setCurrentIndex(int index)
 {
-	if (m_currentIndex != index) {
-		m_currentIndex = index;
-		emit currentIndexChanged(m_currentIndex);
-	}
+    if (m_currentIndex != index) {
+        m_currentIndex = index;
+        emit currentIndexChanged(m_currentIndex);
+        emit currentDesktopChanged(m_currentIndex + 1);
+    }
 }
 
 int MultitaskingModel::currentIndex() const
