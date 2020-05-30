@@ -1265,7 +1265,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Minus:
                 if (e->modifiers() == Qt::AltModifier) {
-                    removeDesktop(m_targetDesktop);
+                    m_multitaskingModel->remove(m_targetDesktop - 1);
                 }
                 break;
 
