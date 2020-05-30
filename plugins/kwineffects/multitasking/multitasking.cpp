@@ -861,45 +861,45 @@ void MultitaskingEffect::windowInputMouseEvent(QEvent *e)
 {
     static bool s_insideThumbManager = false;
 
-    switch (e->type()) {
-        case QEvent::MouseMove:
-        case QEvent::MouseButtonPress:
-        case QEvent::MouseButtonRelease:
-            if (m_toggleTimeline.currentValue() != 1) {
-                return;
-            }
-            break;
+    // switch (e->type()) {
+    //     case QEvent::MouseMove:
+    //     case QEvent::MouseButtonPress:
+    //     case QEvent::MouseButtonRelease:
+    //         if (m_toggleTimeline.currentValue() != 1) {
+    //             return;
+    //         }
+    //         break;
 
-        default:
-            return;
-    }
+    //     default:
+    //         return;
+    // }
 
-    auto me = static_cast<QMouseEvent*>(e);
+     auto me = static_cast<QMouseEvent*>(e);
 
-    if (m_thumbManager && !m_isWindowMoving) {
-        if (m_thumbManager->geometry().contains(me->pos())) {
-            if (!s_insideThumbManager) {
-                s_insideThumbManager = true;
-                QEnterEvent ee(me->localPos(), me->windowPos(), me->screenPos());
-                qApp->sendEvent(m_thumbManager, &ee);
-            }
+    // if (m_thumbManager && !m_isWindowMoving) {
+    //     if (m_thumbManager->geometry().contains(me->pos())) {
+    //         if (!s_insideThumbManager) {
+    //             s_insideThumbManager = true;
+    //             QEnterEvent ee(me->localPos(), me->windowPos(), me->screenPos());
+    //             qApp->sendEvent(m_thumbManager, &ee);
+    //         }
 
-            auto pos = m_thumbManager->mapFromGlobal(me->pos());
-            QMouseEvent new_event(me->type(), pos, me->pos(), me->button(), me->buttons(), me->modifiers());
-            m_thumbManager->windowInputMouseEvent(&new_event);
-            return;
-        } else if (s_insideThumbManager) {
-            s_insideThumbManager = false;
+    //         auto pos = m_thumbManager->mapFromGlobal(me->pos());
+    //         QMouseEvent new_event(me->type(), pos, me->pos(), me->button(), me->buttons(), me->modifiers());
+    //         m_thumbManager->windowInputMouseEvent(&new_event);
+    //         return;
+    //     } else if (s_insideThumbManager) {
+    //         s_insideThumbManager = false;
 
-            QEvent le(QEvent::Leave);
-            qApp->sendEvent(m_thumbManager, &le);
-        }
-    }
+    //         QEvent le(QEvent::Leave);
+    //         qApp->sendEvent(m_thumbManager, &le);
+    //     }
+    // }
 
-    if (m_thumbManager) {
-        m_thumbManager->update();
-    }
-
+    // if (m_thumbManager) {
+    //     m_thumbManager->update();
+    // }
+    qApp->sendEvent(m_multitaskingView, e);
     updateWindowStates(me);
 }
 
@@ -915,175 +915,183 @@ QRectF MultitaskingEffect::highlightedGeometry(QRectF geometry)
 
 void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 {
-    static bool is_smooth_scrolling = false;
+     static bool is_smooth_scrolling = false;
 
-    if (!m_activated) return;
+    // if (!m_activated) return;
 
-    EffectWindow* target = nullptr;
-    WindowMotionManager& mm = m_motionManagers[m_targetDesktop-1];
+    // EffectWindow* target = nullptr;
+    // WindowMotionManager& mm = m_motionManagers[m_targetDesktop-1];
 
-    bool highlight_changed = true;
-    if (m_highlightWindow) {
-        auto geom = highlightedGeometry(mm.transformedGeometry(m_highlightWindow));
-        if (geom.contains(me->pos())) {
-            highlight_changed = false;
-            target = m_highlightWindow;
-        }
-    }
+    // bool highlight_changed = true;
+    // if (m_highlightWindow) {
+    //     auto geom = highlightedGeometry(mm.transformedGeometry(m_highlightWindow));
+    //     if (geom.contains(me->pos())) {
+    //         highlight_changed = false;
+    //         target = m_highlightWindow;
+    //     }
+    // }
 
-    if (highlight_changed) {
-        auto windows = mm.managedWindows();
-        for (auto win: windows) {
-            // add margins to receive events for `close` and `pin` buttons
-            auto geom = highlightedGeometry(mm.transformedGeometry(win));
-            if (m_closingdWindow != win && geom.contains(me->pos())) {
-                target = win;
-                break;
-            }
-        }
-    }
+    // if (highlight_changed) {
+    //     auto windows = mm.managedWindows();
+    //     for (auto win: windows) {
+    //         // add margins to receive events for `close` and `pin` buttons
+    //         auto geom = highlightedGeometry(mm.transformedGeometry(win));
+    //         if (m_closingdWindow != win && geom.contains(me->pos())) {
+    //             target = win;
+    //             break;
+    //         }
+    //     }
+    // }
 
-    if (m_isWindowMoving)
-        updateHighlightWindow(nullptr);
-    else
-        updateHighlightWindow(target);
+    // if (m_isWindowMoving)
+    //     updateHighlightWindow(nullptr);
+    // else
+    //     updateHighlightWindow(target);
 
-    if (me->button() == Qt::ForwardButton || me->button() == Qt::BackButton) {
+   if (me->button() == Qt::ForwardButton || me->button() == Qt::BackButton) {
         if (me->type() != QEvent::MouseButtonPress || is_smooth_scrolling) return;
 
         if (me->buttons() == Qt::ForwardButton) {
             is_smooth_scrolling = true;
-            changeCurrentDesktop(m_targetDesktop == effects->numberOfDesktops() ? 1 : m_targetDesktop+1);
+            if (m_multitaskingModel->currentIndex()+1 < 4) {
+                m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()+1);
+            } else {
+                m_multitaskingModel->setCurrentIndex(0);
+            }
         } else if (me->buttons() == Qt::BackButton) {
             is_smooth_scrolling = true;
-            changeCurrentDesktop(m_targetDesktop == 1 ? effects->numberOfDesktops() : m_targetDesktop-1);
+             if (m_multitaskingModel->currentIndex()-1 >= 0) {
+                 m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
+             } else {
+                 m_multitaskingModel->setCurrentIndex(3);
+            }
         }
 
         QTimer::singleShot(400, [&]() { is_smooth_scrolling = false; });
         return;
     }
 
-    switch (me->type()) {
-        case QEvent::Wheel:
-            break;
+    // switch (me->type()) {
+    //     case QEvent::Wheel:
+    //         break;
 
-        case QEvent::MouseMove:
-            if (m_movingWindow) {
-                if (!m_isWindowMoving) {
-                    if (me->buttons() == Qt::LeftButton &&
-                            (me->pos() - m_dragStartPos).manhattanLength() > QApplication::startDragDistance()) {
+    //     case QEvent::MouseMove:
+    //         if (m_movingWindow) {
+    //             if (!m_isWindowMoving) {
+    //                 if (me->buttons() == Qt::LeftButton &&
+    //                         (me->pos() - m_dragStartPos).manhattanLength() > QApplication::startDragDistance()) {
 
-                        auto ids = desktopList(m_movingWindow);
-                        //Do not handle sticky windows right now
-                        //It does not make sense to drag them to other desktops
-                        if (ids.size() > 1) return;
+    //                     auto ids = desktopList(m_movingWindow);
+    //                     //Do not handle sticky windows right now
+    //                     //It does not make sense to drag them to other desktops
+    //                     if (ids.size() > 1) return;
 
-                        qCDebug(BLUR_CAT) << "----- start drag";
+    //                     qCDebug(BLUR_CAT) << "----- start drag";
 
-                        WindowMotionManager& wmm = m_motionManagers[ids[0]-1];
-                        const QRectF transformedGeo = wmm.transformedGeometry(m_movingWindow);
-                        const QPointF pos = transformedGeo.topLeft();
+    //                     WindowMotionManager& wmm = m_motionManagers[ids[0]-1];
+    //                     const QRectF transformedGeo = wmm.transformedGeometry(m_movingWindow);
+    //                     const QPointF pos = transformedGeo.topLeft();
 
-                        float scale = 150.0 / transformedGeo.width();
-                        const QSize size(150, scale * transformedGeo.height());
-                        m_movingWindowGeometry = QRect(pos.toPoint(), size);
-                        m_movingWindowGeometry.moveCenter(me->pos());
-                        m_movingWindowStartPoint = me->pos();
+    //                     float scale = 150.0 / transformedGeo.width();
+    //                     const QSize size(150, scale * transformedGeo.height());
+    //                     m_movingWindowGeometry = QRect(pos.toPoint(), size);
+    //                     m_movingWindowGeometry.moveCenter(me->pos());
+    //                     m_movingWindowStartPoint = me->pos();
 
-                        wmm.unmanage(m_movingWindow);
-                        if (EffectWindow* modal = m_movingWindow->findModal()) {
-                            if (wmm.isManaging(modal))
-                                wmm.unmanage(modal);
-                        }
+    //                     wmm.unmanage(m_movingWindow);
+    //                     if (EffectWindow* modal = m_movingWindow->findModal()) {
+    //                         if (wmm.isManaging(modal))
+    //                             wmm.unmanage(modal);
+    //                     }
 
-                        calculateWindowTransformations(wmm.managedWindows(), wmm);
+    //                     calculateWindowTransformations(wmm.managedWindows(), wmm);
 
-                        updateHighlightWindow(nullptr);
-                        m_isWindowMoving = true;
-                        effects->defineCursor(Qt::ClosedHandCursor);
-                    }
-                }
+    //                     updateHighlightWindow(nullptr);
+    //                     m_isWindowMoving = true;
+    //                     effects->defineCursor(Qt::ClosedHandCursor);
+    //                 }
+    //             }
 
-                effects->addRepaintFull();
-            }
+    //             effects->addRepaintFull();
+    //         }
 
-            break;
+    //         break;
 
-        case QEvent::MouseButtonPress:
+    //     case QEvent::MouseButtonPress:
 
-            if (target) {
-                effects->setElevatedWindow(target, true);
-                m_movingWindow = target;
-                m_dragStartPos = me->pos();
-                effects->addRepaintFull();
-            }
-            break;
+    //         if (target) {
+    //             effects->setElevatedWindow(target, true);
+    //             m_movingWindow = target;
+    //             m_dragStartPos = me->pos();
+    //             effects->addRepaintFull();
+    //         }
+    //         break;
 
-        case QEvent::MouseButtonRelease:
-            if (m_movingWindow && m_isWindowMoving) {
-                auto switch_to = m_thumbManager->desktopAtPos(me->pos());
-                //qCDebug(BLUR_CAT) << "---------- switch_to " << switch_to;
-                effects->defineCursor(Qt::PointingHandCursor);
-                effects->setElevatedWindow(m_movingWindow, false);
+    //     case QEvent::MouseButtonRelease:
+    //         if (m_movingWindow && m_isWindowMoving) {
+    //             auto switch_to = m_thumbManager->desktopAtPos(me->pos());
+    //             //qCDebug(BLUR_CAT) << "---------- switch_to " << switch_to;
+    //             effects->defineCursor(Qt::PointingHandCursor);
+    //             effects->setElevatedWindow(m_movingWindow, false);
 
-                if (switch_to <= 0) {
-                    auto last_rect = m_thumbManager->calculateDesktopThumbRect(effects->numberOfDesktops()-1);
-                    auto pos = m_thumbManager->mapToGlobal(last_rect.topRight());
-                    if (me->pos().x() > pos.x() && effects->numberOfDesktops() < 4) {
-                        appendDesktop();
+    //             if (switch_to <= 0) {
+    //                 auto last_rect = m_thumbManager->calculateDesktopThumbRect(effects->numberOfDesktops()-1);
+    //                 auto pos = m_thumbManager->mapToGlobal(last_rect.topRight());
+    //                 if (me->pos().x() > pos.x() && effects->numberOfDesktops() < 4) {
+    //                     appendDesktop();
 
-                        auto target_window = m_movingWindow;
-                        // wait for thumbmanager handles layout change (add new ws thumb)
-                        QTimer::singleShot(100, [=]() {
-                            moveEffectWindow2Desktop(target_window, effects->numberOfDesktops());
-                        });
+    //                     auto target_window = m_movingWindow;
+    //                     // wait for thumbmanager handles layout change (add new ws thumb)
+    //                     QTimer::singleShot(100, [=]() {
+    //                         moveEffectWindow2Desktop(target_window, effects->numberOfDesktops());
+    //                     });
 
-                    } else {
-                        // restore
-                        auto ids = desktopList(m_movingWindow);
-                        if (ids.size() > 0) {
-                            qCDebug(BLUR_CAT) << "---------- no new desktop, restore window to " << ids[0];
-                            auto& wmm = m_motionManagers[ids[0]-1];
-                            wmm.manage(m_movingWindow);
-                            if (EffectWindow* modal = m_movingWindow->findModal()) {
-                                wmm.manage(modal);
-                            }
+    //                 } else {
+    //                     // restore
+    //                     auto ids = desktopList(m_movingWindow);
+    //                     if (ids.size() > 0) {
+    //                         qCDebug(BLUR_CAT) << "---------- no new desktop, restore window to " << ids[0];
+    //                         auto& wmm = m_motionManagers[ids[0]-1];
+    //                         wmm.manage(m_movingWindow);
+    //                         if (EffectWindow* modal = m_movingWindow->findModal()) {
+    //                             wmm.manage(modal);
+    //                         }
 
-                            calculateWindowTransformations(wmm.managedWindows(), wmm);
-                            effects->addRepaintFull();
-                        }
-                    }
-                } else {
-                    moveEffectWindow2Desktop(m_movingWindow, switch_to);
-                }
+    //                         calculateWindowTransformations(wmm.managedWindows(), wmm);
+    //                         effects->addRepaintFull();
+    //                     }
+    //                 }
+    //             } else {
+    //                 moveEffectWindow2Desktop(m_movingWindow, switch_to);
+    //             }
 
-                m_movingWindow = nullptr;
-                m_isWindowMoving = false;
+    //             m_movingWindow = nullptr;
+    //             m_isWindowMoving = false;
 
-            } else if (target) { // this must be m_highlightWindow now
-                if (m_highlightWindow != target) break;
+    //         } else if (target) { // this must be m_highlightWindow now
+    //             if (m_highlightWindow != target) break;
 
-                auto wd = m_windowDatas.find(target);
-                if (wd != m_windowDatas.end()) {
-                    if (wd->close->geometry().contains(me->pos())) {
-                        QMetaObject::invokeMethod(this, "closeWindow", Qt::QueuedConnection);
-                    } else if (wd->isAbove && wd->unpin->geometry().contains(me->pos())) {
-                        QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
-                    } else if (!wd->isAbove && wd->pin->geometry().contains(me->pos())) {
-                        QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
-                    } else {
-                        updateHighlightWindow(nullptr);
-                        effects->activateWindow(target);
-                        setActive(false);
-                    }
-                }
-            } else {
-                setActive(false);
-            }
-            break;
+    //             auto wd = m_windowDatas.find(target);
+    //             if (wd != m_windowDatas.end()) {
+    //                 if (wd->close->geometry().contains(me->pos())) {
+    //                     QMetaObject::invokeMethod(this, "closeWindow", Qt::QueuedConnection);
+    //                 } else if (wd->isAbove && wd->unpin->geometry().contains(me->pos())) {
+    //                     QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
+    //                 } else if (!wd->isAbove && wd->pin->geometry().contains(me->pos())) {
+    //                     QMetaObject::invokeMethod(this, "toggleWindowKeepAbove", Qt::QueuedConnection);
+    //                 } else {
+    //                     updateHighlightWindow(nullptr);
+    //                     effects->activateWindow(target);
+    //                     setActive(false);
+    //                 }
+    //             }
+    //         } else {
+    //             setActive(false);
+    //         }
+    //         break;
 
-        default: break;
-    }
+    //     default: break;
+    // }
 
 }
 
@@ -1842,8 +1850,10 @@ void MultitaskingEffect::setActive(bool active)
 		m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
 		m_multitaskingModel->load(desktopCount);
         m_hasKeyboardGrab = effects->grabKeyboard(this);
+        effects->startMouseInterception(this, Qt::PointingHandCursor);
 	} else {
         effects->ungrabKeyboard();
+        effects->stopMouseInterception(this);
     }
 	m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
