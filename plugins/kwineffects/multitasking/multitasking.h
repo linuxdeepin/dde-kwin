@@ -151,6 +151,7 @@ signals:
     void windowsChanged();
     void windowsLayoutChanged();
 
+
 private:
     int m_desktop {0};
     float m_radius {0};
@@ -217,7 +218,7 @@ signals:
     void requestChangeCurrentDesktop(int d);
     void requestAppendDesktop();
     void requestDeleteDesktop(int);
-    void requestMove2Desktop(QVariant, int);
+    void requestMove2Desktop(int, int, QVariant);
     void requestSwitchDesktop(int, int);
 
     void mouseLeaved();
@@ -299,7 +300,7 @@ public Q_SLOTS:
 
     void changeCurrentDesktop(int d);
 
-    void moveWindow2Desktop(QVariant wid, int desktop);
+    void moveWindow2Desktop(int screen, int desktop, QVariant winId);
     void moveEffectWindow2Desktop(KWin::EffectWindow* ew, int desktop);
     void switchTwoDesktop(int to, int from);
 
@@ -309,6 +310,8 @@ public Q_SLOTS:
     //QMap<int, WId> windowsFor(int screen);
     void updateDesktopWindows();
     void updateDesktopWindows(int desktop);
+
+    
 
 private slots:
     void onNumberDesktopsChanged(int old);
@@ -322,6 +325,9 @@ private slots:
     void remanageAll();
 
     void desktopRemoved(int d);
+    //zhd add start 
+    void OnWindowLocateChanged(int screen, int desktop, int winId);
+    //zhd add end 
 
 private:
     struct WindowData {

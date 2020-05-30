@@ -1709,9 +1709,9 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
 
 }
 
-void MultitaskingEffect::moveWindow2Desktop(QVariant wid, int desktop)
+void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId) 
 {
-    auto* ew = effects->findWindow(wid.toULongLong());
+    auto* ew = effects->findWindow(winId.toULongLong());
     if (!ew) {
         return;
     }
@@ -1750,11 +1750,12 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
 
     QVector<uint> ids {(uint)desktop};
     effects->windowToDesktops(ew, ids);
-
+/*
     updateDesktopWindows(prev_desktop);
     updateDesktopWindows(desktop);
 
     effects->addRepaintFull();
+    */
 }
 
 void MultitaskingEffect::changeCurrentDesktop(int d)
@@ -1815,6 +1816,8 @@ void MultitaskingEffect::setActive(bool active)
                 this, &MultitaskingEffect::removeDesktop);
         connect(m_thumbManager, &DesktopThumbnailManager::requestChangeCurrentDesktop,
                 this, &MultitaskingEffect::changeCurrentDesktop);
+        connect(m_thumbManager, &DesktopThumbnailManager::requestMove2Desktop,
+                this, &MultitaskingEffect::moveWindow2Desktop);
     }
 
     m_multitaskingViewVisible = active;
@@ -1829,13 +1832,11 @@ void MultitaskingEffect::setActive(bool active)
 
         if (!m_multitaskingView) {
             m_multitaskingView = new QQuickWidget;
-
             m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
             m_multitaskingView->setClearColor(Qt::transparent);
             QSurfaceFormat fmt = m_multitaskingView->format();
             fmt.setAlphaBufferSize(8);
             m_multitaskingView->setFormat(fmt);
-
             qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
             m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
             m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
@@ -1852,12 +1853,49 @@ void MultitaskingEffect::setActive(bool active)
         m_multitaskingModel->load(desktopCount);
         m_hasKeyboardGrab = effects->grabKeyboard(this);
         effects->startMouseInterception(this, Qt::PointingHandCursor);
+
+        auto root = m_multitaskingView->rootObject();
+        connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)), 
+                m_thumbManager, SIGNAL(requestMove2Desktop(int, int, QVariant)));
     } else {
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
     }
     m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
+    EffectWindowList windows = effects->stackingOrder();
+    EffectWindow* active_window = nullptr;
+    for (const auto& w: windows) {
+        if (!isRelevantWithPresentWindows(w)) {
+            continue;
+        }
+        auto wd = m_windowDatas.find(w);
+        if (wd != m_windowDatas.end()) {
+            qCDebug(BLUR_CAT) << "------- [init] wd exists " << w << w->windowClass();
+            continue;
+        }
+        wd = m_windowDatas.insert(w, WindowData());
+        initWindowData(wd, w);
+    }
+
+    for (int i = 1; i <= effects->numberOfDesktops(); i++) {
+        WindowMotionManager wmm;
+        for (const auto& w: windows) {
+            if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
+                // the last window is on top of the stack
+                if (i == m_targetDesktop) {
+                    active_window = w;
+                }
+                wmm.manage(w);
+            }
+        }
+
+        calculateWindowTransformations(wmm.managedWindows(), wmm);
+        m_motionManagers.append(wmm);
+
+    //    updateDesktopWindows(i);
+    }
+  
     /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
     return;
@@ -1951,6 +1989,9 @@ void MultitaskingEffect::setActive(bool active)
 
     effects->addRepaintFull();
     */
+}
+
+void MultitaskingEffect::OnWindowLocateChanged(int screen,int desktop,int winid){
 }
 
 void MultitaskingEffect::globalShortcutChanged(QAction *action, const QKeySequence &seq)

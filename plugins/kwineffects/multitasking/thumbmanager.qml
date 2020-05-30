@@ -34,21 +34,70 @@ Rectangle {
         manager.debugLog(msg)
     }
 
+    signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
+
 	Component {
 		id: windowThumbnailView;
 		Rectangle {
 			color: "red";
 			Grid {
 				Repeater {
+
 					model: $Model.windows(screen, desktop);
 					PlasmaCore.WindowThumbnail {
 						width: thumbnailWidth;
 						height: thumbnailHeight;
 						winId: modelData;
+                        
+                        //zhd add 
+                        id:winAvatar  
+                        property var draggingdata: winId
+                        Drag.keys: ["DraggingWindowAvatar"];  //for holdhand
+                        Drag.active:  avatarMousearea.drag.active 
+                        Drag.hotSpot {
+                            x: width/2
+                            y: height/2
+                        }
+						MouseArea{ //zhd add   for drag window
+                            id:avatarMousearea
+							anchors.fill:parent
+							drag.target:winAvatar
+							drag.smoothed :true
+                            
+							onPressed: {
+                                 winAvatar.Drag.hotSpot.x = mouse.x;
+                                 winAvatar.Drag.hotSpot.y = mouse.y;
+                            }
+                            drag.onActiveChanged: {
+                                if (!avatarMousearea.drag.active) {
+                                    console.log('------- release on ' + avatarMousearea.drag.target)
+                                    winAvatar.Drag.drop();
+                                }
+                            }
+                            states: State {
+                                when: avatarMousearea.drag.active;
+                                ParentChange {
+                                    target: winAvatar;
+                                    parent: root;
+                                }
+
+                                PropertyChanges {
+                                    target: winAvatar;
+                                    z: 100;
+                                    
+                                }
+                                // AnchorChanges {
+                                //     target: winAvatar;
+                                //     anchors.horizontalCenter: undefined
+                                //     anchors.verticalCenter: undefined
+                                // }
+                            }
+						}
+                        //zhd add end 
 					}
 				}
 			}
-		}
+      	}
 	}
 
 	Component {
@@ -65,6 +114,9 @@ Rectangle {
                 model: $Model
                 interactive : false;
                 clip: true;
+
+                
+
 
                 delegate: Rectangle {
                     id: thumbDelegate;
@@ -176,7 +228,8 @@ Rectangle {
                         property int designated: index + 1;
 
                         z: 1
-                        keys: ['workspaceThumb']
+                        keys: ['workspaceThumb','DraggingWindowAvatar']  //  zhd change for drop a window
+                       
 
                         onDropped: {
                             /* NOTE:
@@ -185,21 +238,32 @@ Rectangle {
                             * and drop.source.z == 100
                             */
                             log("----------- workspaceThumb onDrop")
+
                             if (drop.keys[0] === 'workspaceThumb') {
                                 var from = drop.source.desktop
                                 var to = workspaceThumbDrop.designated
                                 if (workspaceThumbDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
-                                    //FIXME: could be a delete operation but need more calculation
-                                    log("----------- workspaceThumbDrop: close desktop " + from)
-                                    $Model.remove(index);
+                                        //FIXME: could be a delete operation but need more calculation
+                                        log("----------- workspaceThumbDrop: close desktop " + from)
+                                        $Model.remove(index);
                                 } else {
-                                    if (from == to) {
-                                        return
-                                    }
-                                    console.log("----------- workspaceThumbDrop: reorder desktop ")
+                                     if (from == to) {
+                                           return
+                                      }
+                                       console.log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
-                            
+                            if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add 
+
+                                
+                                //var inx=view.indexAt(Qt.point(drag.x,drag.y));
+
+                                
+
+                                
+                                //console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
+                                qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
+                            }
                         }
 
                         onEntered: {
@@ -207,10 +271,16 @@ Rectangle {
                                 log('------[workspaceThumbDrop]: Enter ' + workspaceThumbDrop.designated + ' from ' + drag.source
                                     + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
                             }
+                            // else if(drag.keys[0] === 'DraggingWindowAvatar'){
+                            //    // console.log('------[DraggingWindowAvatar]: Enter ' + ' from ' + drag.source + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
+
+
+                            //     //drag.accepted
+                            // }
                         }
 
                         onExited: {
-                            log("----------- workspaceThumb onExited")
+                            console.log("----------- workspaceThumb onExited")
                             if (drag.source.pendingDragRemove) {
                                 hint.visible = false
                                 drag.source.pendingDragRemove = hint.visible
@@ -219,10 +289,10 @@ Rectangle {
                         }
 
                         onPositionChanged: {
-                            log("----------- workspaceThumb onPositionChanged")
+                        //    console.log("----------- workspaceThumb onPositionChanged")
                             if (drag.keys[0] === 'workspaceThumb') {
                                 var diff = workspaceThumbDrop.parent.y - drag.source.y
-                                log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
+                       //         log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
                                 if (diff > 0 && diff > drag.source.height/2) {
                                     hint.visible = true
                                 } else {
@@ -230,6 +300,10 @@ Rectangle {
                                 }
                                 drag.source.pendingDragRemove = hint.visible
                             }
+                            // if(drag.keys[0] === "DraggingWindowAvatar"){
+                            //     //console.log("----------- DraggingWindowAvatar onPositionChanged"+view.indexAt(Qt.point(drag.source.x,drag.source.y)))
+                            //    // console.log("----------- DraggingWindowAvatar onPositionChanged");
+                            // }
                         }
 
                         Rectangle {
@@ -279,11 +353,13 @@ Rectangle {
 					windowThumbnail.model = $Model.windows(currentScreen, 1); 
                 }
 
+
 				Connections {
 					target: $Model;
 					onCurrentIndexChanged: {
 						windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
 					}
+                    
 				}
             }
 
@@ -296,6 +372,7 @@ Rectangle {
 				height: manager.thumbSize.height;
                 onClicked: {
                     $Model.append();
+                    consle.log(currentScreen);
                 }
             }
 
