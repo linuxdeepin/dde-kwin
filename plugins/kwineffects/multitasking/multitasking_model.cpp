@@ -70,18 +70,14 @@ QHash<int, QByteArray> MultitaskingModel::roleNames() const
     return roles;
 }
 
-void MultitaskingModel::setWindows(int screen, int desktop, QList<WId> &windows)
+void MultitaskingModel::setWindows(int screen, int desktop, const QVariantList &windows)
 {
-	QVariantList windowList;
-	for (auto wid : windows) {
-		windowList.append(wid);
-	}
-	m_windows[screen][desktop] = windowList;
+    m_windows[screen][desktop] = windows;
 }
 
 QVariantList MultitaskingModel::windows(int screen, int desktop) const 
 {
-	return m_windows[screen][desktop];
+    return m_windows[screen][desktop];
 }
 
 

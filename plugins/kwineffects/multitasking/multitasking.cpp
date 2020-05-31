@@ -517,18 +517,17 @@ void MultitaskingEffect::updateDesktopWindows()
     }
 }
 
-
-QList<WId> MultitaskingEffect::windowsFor(int screen, int desktop)
+QVariantList MultitaskingEffect::windowsFor(int screen, int desktop)
 {
-    QList<WId> vl;
-	QDesktopWidget dw;
+    QVariantList vl;
+    QDesktopWidget dw;
     for (const auto& ew: effects->stackingOrder()) {
         if (isRelevantWithPresentWindows(ew)) {
-			if (dw.screenGeometry(screen).contains(ew->pos()) && ew->desktop() == desktop) {
-				auto wid = findWId(ew);
-				assert (effects->findWindow(wid) == ew);
-				vl.append(wid);
-			}
+            if (dw.screenGeometry(screen).contains(ew->pos()) && ew->desktop() == desktop) {
+                auto wid = findWId(ew);
+                assert (effects->findWindow(wid) == ew);
+                vl.append(wid);
+            }
         }
     }
     return vl;

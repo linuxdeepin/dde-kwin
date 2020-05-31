@@ -368,11 +368,23 @@ Rectangle {
                 text: "+";
                 anchors.top: parent.top;
                 anchors.right: parent.right;
-				width: manager.thumbSize.width; 
-				height: manager.thumbSize.height;
+                width: manager.thumbSize.width; 
+                height: manager.thumbSize.height;
                 onClicked: {
                     $Model.append();
                     consle.log(currentScreen);
+                }
+
+                DropArea {
+                    anchors.fill: plusBtn;
+                    onEntered: console.log("entered")
+                    onDropped: {
+                        var winId = drag.source.winId;
+                        $Model.append();
+                        var currentDesktop = $Model.rowCount();
+                        qmlRequestMove2Desktop(currentScreen, currentDesktop, winId);
+                        $Model.setCurrentIndex(currentDesktop - 1);
+                    }
                 }
             }
 
@@ -385,17 +397,29 @@ Rectangle {
 
 				Repeater {
 					id: windowThumbnail;
-					PlasmaCore.WindowThumbnail {
+                    PlasmaCore.WindowThumbnail {
+                        id: thumbnail;
 						x: 0;
 						y: 0;
 						width: 400;
 						height: 300;
 						winId: modelData; 
-				   }
-				}
-			}
-		}
-	}
+
+                        Drag.active: dragArea.drag.active
+                        Drag.hotSpot.x: 10
+                        Drag.hotSpot.y: 10
+
+                        MouseArea {
+                            id: dragArea
+                            anchors.fill: parent
+                            onReleased: parent.Drag.drop()
+                            drag.target: parent
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 	Component.onCompleted: {
 		for (var i = 0; i < $Model.numScreens(); ++i) {

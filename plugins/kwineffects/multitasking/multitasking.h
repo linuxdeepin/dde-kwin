@@ -306,12 +306,9 @@ public Q_SLOTS:
 
     WId findWId(EffectWindow* ew);
 
-    QList<WId> windowsFor(int screen, int destop);
-    //QMap<int, WId> windowsFor(int screen);
+    QVariantList windowsFor(int screen, int desktop);
     void updateDesktopWindows();
     void updateDesktopWindows(int desktop);
-
-    
 
 private slots:
     void onNumberDesktopsChanged(int old);
