@@ -13,6 +13,23 @@ Rectangle {
 	height: Screen.height;
     color: "transparent"
 
+    Rectangle {
+        id: background
+        x: 0
+        y: 0
+        height: root.height
+        width: {
+            var allWitdh = 0;
+            for (var i = 0; i < $Model.numScreens(); ++i) {
+                var geom = $Model.screenGeometry(i);
+                allWitdh += geom.width;
+            }
+            return allWitdh;
+        }
+        color: "black"
+        opacity: 0.6
+    }
+
     function log(msg) {
         manager.debugLog(msg)
     }
@@ -39,6 +56,7 @@ Rectangle {
         Rectangle {
             width: screenWidth; 
             height: parent.height;
+            color: "transparent"
             ListView {
                 id: view
                 width: 0;
@@ -52,7 +70,7 @@ Rectangle {
                     id: thumbDelegate;
                     width: manager.thumbSize.width;
                     height: manager.thumbSize.height;
-                    color: "gray";
+                    color: "transparent"
                     
 					DesktopThumbnail {
 						id: desktopThumbnail;

@@ -1829,6 +1829,13 @@ void MultitaskingEffect::setActive(bool active)
 
         if (!m_multitaskingView) {
             m_multitaskingView = new QQuickWidget;
+
+            m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
+            m_multitaskingView->setClearColor(Qt::transparent);
+            QSurfaceFormat fmt = m_multitaskingView->format();
+            fmt.setAlphaBufferSize(8);
+            m_multitaskingView->setFormat(fmt);
+
             qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
             m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
             m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
