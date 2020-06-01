@@ -129,12 +129,13 @@ Rectangle {
 						desktop: index + 1; 
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
-
                         width: thumbDelegate.width
                         height: thumbDelegate.height
                         MouseArea {
                             id: desktopThumbMouseArea
                             anchors.fill: parent;
+                            hoverEnabled: true;
+
 							onClicked: {
 								$Model.setCurrentIndex(index);
 							}
@@ -154,6 +155,16 @@ Rectangle {
                                     log('------- release ws on ' + thumbDelegate.Drag.target)
                                     desktopThumbnail.Drag.drop();
                                 }
+                            }
+
+                            onEntered: {
+                                if ($Model.rowCount() != 1) {
+                                    closeBtn.visible = true;
+                                }
+                            }
+
+                            onExited: {
+                                closeBtn.visible = false;
                             }
                         }
                         property bool pendingDragRemove: false
@@ -198,6 +209,7 @@ Rectangle {
 							height: closeBtnIcon.height;
 							color: "transparent";
 							property int desktop: desktopThumbnail.desktop;
+                            visible: false;
 
 							Image {
 								id: closeBtnIcon;
@@ -214,7 +226,7 @@ Rectangle {
 							Connections {
 								target: view;
 								onCountChanged: {
-									closeBtn.visible = ($Model.rowCount() != 1);
+									closeBtn.visible = false;
 								}
 							}
 						}
@@ -372,7 +384,6 @@ Rectangle {
                 height: manager.thumbSize.height;
                 onClicked: {
                     $Model.append();
-                    consle.log(currentScreen);
                 }
 
                 DropArea {
