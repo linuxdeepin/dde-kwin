@@ -1257,7 +1257,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Equal:
                 if (e->modifiers() == Qt::AltModifier) {
-                    appendDesktop();
+                    m_multitaskingModel->append();
                 }
                 break;
 
