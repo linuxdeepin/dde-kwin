@@ -1749,6 +1749,9 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
     calculateWindowTransformations(new_wmm.managedWindows(), new_wmm);;
     QVector<uint> ids {(uint)desktop};
     effects->windowToDesktops(ew, ids);
+
+    QRect area = effects->clientArea( ScreenArea,ew->screen(),desktop );
+    effects->moveWindow(ew,QPoint(area.topLeft().x(),area.topLeft().y()));
 /*
     updateDesktopWindows(prev_desktop);
     updateDesktopWindows(desktop);
