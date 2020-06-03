@@ -360,18 +360,24 @@ Rectangle {
                     view.width = manager.thumbSize.width * count;
                     view.x = (parent.width - view.width) / 2;
                     plusBtn.visible = count < 4;
-
+                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                    grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                    grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
 					//default value 1
-					windowThumbnail.model = $Model.windows(currentScreen, 1); 
+                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
                 }
 
 
 				Connections {
 					target: $Model;
 					onCurrentIndexChanged: {
+                        grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                        grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                        grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                        grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
 						windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
-					}
-                    
+					}     
 				}
             }
 
@@ -400,22 +406,20 @@ Rectangle {
             }
 
 			//window thumbnail
-			Grid {
-				x: 0;
-				y: view.y + view.height;
-                width: root.width;
-                height: root.height - view.height;
+            GridLayout {
+                id:grid
+                x: screenWidth/7;
+                y: view.y + view.height;
+                width: screenWidth*5/7;
+                height: screenHeight - view.height-15;
+                columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
 				Repeater {
 					id: windowThumbnail;
                     PlasmaCore.WindowThumbnail {
-                        id: thumbnail;
-						x: 0;
-						y: 0;
-						width: 400;
-						height: 300;
-						winId: modelData; 
-
+                        Layout.fillWidth: true;
+                        Layout.fillHeight: true;
+                        winId: modelData;
                         Drag.active: dragArea.drag.active
                         Drag.hotSpot.x: 10
                         Drag.hotSpot.y: 10
@@ -426,8 +430,25 @@ Rectangle {
                             onReleased: parent.Drag.drop()
                             drag.target: parent
                         }
-                    }
+                        Rectangle {
+                            id: closeClientBtn;
+                            anchors.right: parent.right;
+                            width: closeClientBtnIcon.width;
+                            height: closeClientBtnIcon.height;
+                            color: "transparent";
+                            Image {
+                                id: closeClientBtnIcon;
+                                source: "qrc:///icons/data/close_normal.svg"
+                            }
+                            MouseArea {
+                                anchors.fill: closeClientBtn;
+                                onClicked: {
+                                    $Model.removeClient(currentScreen,$Model.currentIndex()+1,index);
+                                }
+                            }
+                        }
                 }
+            }
             }
         }
     }
@@ -440,6 +461,7 @@ Rectangle {
 				'Loader {' + 
 				'	x: ' + geom.x + ';' + 
 				'	property int screenWidth: ' + geom.width + ';' +
+                '   property int screenHeight: '+ geom.height + ';'+
 				'	height: 260;' +
 				'	property int currentScreen: ' + i + ';' +
 				'	sourceComponent: desktopThumbmailView;' + 

@@ -61,6 +61,10 @@ public:
     Q_INVOKABLE void removeWindow(int screen, int desktop, const QVariant &winId);
     Q_INVOKABLE void setWindows(int screen, int desktop, const QVariantList &windows);
     Q_INVOKABLE QVariantList windows(int screen, int desktop) const; 
+    Q_INVOKABLE int getCalculateRowCount(int screen, int desktop);
+    Q_INVOKABLE int getCalculateColumnsCount(int screen, int desktop);
+    Q_INVOKABLE int getDesktopClientCount(int screen, int desktop);
+    Q_INVOKABLE void removeClient(int screen, int desktop, int index);
     Q_INVOKABLE int numScreens() const;
     Q_INVOKABLE QRect screenGeometry(int screen) const;
     Q_INVOKABLE void setCurrentIndex(int index);

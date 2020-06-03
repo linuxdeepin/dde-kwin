@@ -80,6 +80,45 @@ QVariantList MultitaskingModel::windows(int screen, int desktop) const
     return m_windows[screen][desktop];
 }
 
+int MultitaskingModel::getCalculateRowCount(int screen, int desktop)
+{
+    int ClientCount = getDesktopClientCount(screen,desktop);
+    int ColumnCount = getCalculateColumnsCount(screen,desktop);
+    if (ColumnCount == 0) {
+        return 0;
+    }
+    int RowCount = ClientCount/ColumnCount;
+    if (ClientCount%ColumnCount > 0) {
+        RowCount++;
+    }
+    return RowCount;
+}
+
+int MultitaskingModel::getCalculateColumnsCount(int screen, int desktop)
+{
+    int ClientCount = m_windows[screen][desktop].size();
+    int ColumnCount  = sqrt(ClientCount);
+    int surplusClientCount = ClientCount - ColumnCount*ColumnCount;
+    int ColumnCountTemp = ColumnCount;
+    while (surplusClientCount > 0) {
+        ColumnCount++;
+        surplusClientCount = surplusClientCount - ColumnCountTemp;
+    }
+    return ColumnCount;
+}
+
+int MultitaskingModel::getDesktopClientCount(int screen, int desktop)
+{
+    return m_windows[screen][desktop].size();
+}
+
+void MultitaskingModel::removeClient(int screen, int desktop, int index)
+{
+     auto* ew = effects->findWindow(m_windows[screen][desktop].at(index).toULongLong());
+     ew->closeWindow();
+     m_windows[screen][desktop].removeAt(index);
+     emit currentIndexChanged(m_currentIndex);
+}
 
 int MultitaskingModel::numScreens() const
 {
