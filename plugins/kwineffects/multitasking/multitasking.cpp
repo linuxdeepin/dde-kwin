@@ -303,7 +303,7 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::numberScreensChanged, this, &MultitaskingEffect::onNumberScreensChanged);
     connect(effects, &EffectsHandler::virtualScreenGeometryChanged, this, &MultitaskingEffect::onScreenSizeChanged);
     connect(effects, &EffectsHandler::propertyNotify, this, &MultitaskingEffect::onPropertyNotify);
-
+    connect( m_multitaskingModel,SIGNAL(countChanged(int)),this,SLOT( onNumberDesktopsChanged(int) ) );
     BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
 
     // Load all other configuration details
@@ -1250,9 +1250,8 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                     }
                     m_multitaskingModel->setCurrentIndex(target_desktop-1);
                     qCDebug(BLUR_CAT) << "----------- super+shift+"<<target_desktop;
-
-                    if (m_selectedWindow)
-                        moveEffectWindow2Desktop(m_selectedWindow, target_desktop);
+                    // now, the first param is unused,so wo just set temp-param:0.
+                    moveWindow2Desktop( 0,target_desktop ,m_multitaskingModel->currentSelectIndex());
                 }
                 break;
 
@@ -1714,7 +1713,7 @@ void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant wi
     if (!ew) {
         return;
     }
-
+    qDebug() << "--------1719" << ew << "-------" << desktop;
     moveEffectWindow2Desktop(ew, desktop);
 }
 
@@ -1726,7 +1725,10 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
         return;
     }
 
-    qCDebug(BLUR_CAT) << "---------- move " << ew << "to" << desktop;
+    if( m_motionManagers.count() < desktop )
+    {
+        return;
+    }
 
     for (auto id: desktopList(ew)) {
         WindowMotionManager& pre_wmm = m_motionManagers[id-1];
@@ -1737,7 +1739,6 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
         calculateWindowTransformations(pre_wmm.managedWindows(), pre_wmm);
         qCDebug(BLUR_CAT) << "   ---- unmanage from " << id;
     }
-
     // update new desktop
     WindowMotionManager& new_wmm = m_motionManagers[desktop-1];
     new_wmm.manage(ew);
@@ -1745,14 +1746,12 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
     if (EffectWindow* modal = ew->findModal()) {
         new_wmm.manage(modal);
     }
-    calculateWindowTransformations(new_wmm.managedWindows(), new_wmm);
-
+    calculateWindowTransformations(new_wmm.managedWindows(), new_wmm);;
     QVector<uint> ids {(uint)desktop};
     effects->windowToDesktops(ew, ids);
 /*
     updateDesktopWindows(prev_desktop);
     updateDesktopWindows(desktop);
-
     effects->addRepaintFull();
     */
 }

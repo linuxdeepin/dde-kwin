@@ -442,6 +442,18 @@ Rectangle {
                             anchors.fill: parent
                             onReleased: parent.Drag.drop()
                             drag.target: parent
+
+                            acceptedButtons: Qt.LeftButton| Qt.RightButton;
+                            hoverEnabled: true;
+
+                            onEntered: {
+                                $Model.setCurrentSelectIndex(modelData);
+                            }
+
+                            onClicked: {
+                                $Model.setCurrentSelectIndex(modelData);
+                            }
+
                         }
                         Rectangle {
                             id: closeClientBtn;

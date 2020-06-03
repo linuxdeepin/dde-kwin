@@ -29,8 +29,9 @@ DesktopThumbnailItem::DesktopThumbnailItem()
 
 MultitaskingModel::MultitaskingModel(QObject *parent)
     : QAbstractListModel(parent)
-	, m_currentIndex(1)
+       , m_currentIndex(1)
 {
+    m_nCurrentSelectIndex = 0;
 }
 
 MultitaskingModel::~MultitaskingModel()
@@ -211,3 +212,12 @@ void MultitaskingModel::move(int from, int to)
     emit switchDesktop(to+1, from+1);
 }
 
+void MultitaskingModel::setCurrentSelectIndex(int index)
+{
+   m_nCurrentSelectIndex = index;
+}
+
+int MultitaskingModel::currentSelectIndex() const
+{
+    return  m_nCurrentSelectIndex;
+}
