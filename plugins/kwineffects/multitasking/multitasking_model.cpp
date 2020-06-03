@@ -205,3 +205,9 @@ int MultitaskingModel::count() const
     return rowCount(QModelIndex());
 }
 
+void MultitaskingModel::move(int from, int to) 
+{
+    m_desktopThumbnailItemList.move(from, to);
+    emit switchDesktop(to+1, from+1);
+}
+

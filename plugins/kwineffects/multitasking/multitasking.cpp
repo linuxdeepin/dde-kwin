@@ -1817,6 +1817,8 @@ void MultitaskingEffect::setActive(bool active)
                 this, &MultitaskingEffect::changeCurrentDesktop);
         connect(m_thumbManager, &DesktopThumbnailManager::requestMove2Desktop,
                 this, &MultitaskingEffect::moveWindow2Desktop);
+        connect(m_thumbManager, &DesktopThumbnailManager::requestSwitchDesktop,
+                this, &MultitaskingEffect::switchTwoDesktop);
     }
 
     m_multitaskingViewVisible = active;
@@ -1846,6 +1848,8 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
             connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
             connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));
+            connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), m_thumbManager, SIGNAL(requestSwitchDesktop(int, int)));
+            connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
         }
         m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
         m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
@@ -2395,4 +2399,15 @@ bool MultitaskingEffect::isOverlappingAny(EffectWindow *w, const QHash<EffectWin
             return true;
     }
     return false;
+}
+
+void MultitaskingEffect::refreshWindows()
+{
+    const int desktopCount = m_thumbManager->desktopCount();
+    for (int d = 1; d <= desktopCount; ++d) {
+        for (int screen = 0; screen < effects->numScreens(); ++screen) {
+            auto windows = windowsFor(screen, d);
+            m_multitaskingModel->setWindows(screen, d, windows);
+        }
+    }
 }

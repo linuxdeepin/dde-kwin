@@ -35,6 +35,7 @@ Rectangle {
     }
 
     signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
+    signal resetModel();
 
 	Component {
 		id: windowThumbnailView;
@@ -42,7 +43,7 @@ Rectangle {
 			color: "red";
 			Grid {
 				Repeater {
-
+                    id: windowThumbnailRepeater
 					model: $Model.windows(screen, desktop);
 					PlasmaCore.WindowThumbnail {
 						width: thumbnailWidth;
@@ -96,6 +97,12 @@ Rectangle {
                         //zhd add end 
 					}
 				}
+                Connections {
+                    target: root
+                    onResetModel: {
+                        windowThumbnailRepeater.model = $Model.windows(screen, desktop)
+                    }
+                }
 			}
       	}
 	}
@@ -129,6 +136,9 @@ Rectangle {
 						desktop: index + 1; 
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
+
+                        property var originParent: view
+
                         width: thumbDelegate.width
                         height: thumbDelegate.height
                         MouseArea {
@@ -195,6 +205,7 @@ Rectangle {
 
 						//window thumbnail
 						Loader {
+                            id: winThumLoader
 							sourceComponent: windowThumbnailView	
 							property int thumbnailWidth: 50;
 							property int thumbnailHeight: 50;
@@ -235,9 +246,8 @@ Rectangle {
                     DropArea {
                         id: workspaceThumbDrop
                         anchors.fill: parent;
-                        // width: manager.thumbSize.width
-                        // height: manager.thumbSize.height
                         property int designated: index + 1;
+                        property var originParent: view
 
                         z: 1
                         keys: ['workspaceThumb','DraggingWindowAvatar']  //  zhd change for drop a window
@@ -259,10 +269,13 @@ Rectangle {
                                         log("----------- workspaceThumbDrop: close desktop " + from)
                                         $Model.remove(index);
                                 } else {
-                                     if (from == to) {
-                                           return
-                                      }
-                                       console.log("----------- workspaceThumbDrop: reorder desktop ")
+                                    if (from == to) return
+                                    if(drop.source.originParent != originParent) return
+                                    log("from:"+from + " to:"+to)
+                                    $Model.move(from-1, to-1);
+                                    $Model.refreshWindows();
+                                    resetModel()
+                                    log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
                             if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add 

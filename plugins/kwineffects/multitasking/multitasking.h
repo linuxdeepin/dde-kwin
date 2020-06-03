@@ -310,6 +310,9 @@ public Q_SLOTS:
     void updateDesktopWindows();
     void updateDesktopWindows(int desktop);
 
+    // added when refactor 
+    void refreshWindows();
+
 private slots:
     void onNumberDesktopsChanged(int old);
     void onNumberScreensChanged();

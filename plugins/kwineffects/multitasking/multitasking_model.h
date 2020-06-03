@@ -57,6 +57,7 @@ public:
         return m_desktopThumbnailItemList;
     }
 	
+
     Q_INVOKABLE void addWindow(int screen, int desktop, const QVariant &winId);
     Q_INVOKABLE void removeWindow(int screen, int desktop, const QVariant &winId);
     Q_INVOKABLE void setWindows(int screen, int desktop, const QVariantList &windows);
@@ -69,6 +70,7 @@ public:
     Q_INVOKABLE QRect screenGeometry(int screen) const;
     Q_INVOKABLE void setCurrentIndex(int index);
     Q_INVOKABLE int currentIndex() const;
+    Q_INVOKABLE void move(int from, int to);
 signals:
     void countChanged(int count);
     void appendDesktop();
@@ -76,6 +78,8 @@ signals:
     void currentIndexChanged(int currentIndex);
     void currentDesktopChanged(int desktop);
     void move2Desktop(QVariant, int);
+    void switchDesktop(int from, int to);
+    void refreshWindows();
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;
