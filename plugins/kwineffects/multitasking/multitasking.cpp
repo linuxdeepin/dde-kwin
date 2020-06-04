@@ -1714,6 +1714,7 @@ void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant wi
         return;
     }
     qDebug() << "--------1719" << ew << "-------" << desktop;
+    effects->windowToScreen(ew, screen);
     moveEffectWindow2Desktop(ew, desktop);
 }
 
