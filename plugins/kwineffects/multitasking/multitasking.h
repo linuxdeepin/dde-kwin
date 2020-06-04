@@ -269,7 +269,10 @@ public:
 
     void updateHighlightWindow(EffectWindow* w);
     QVector<int> desktopList(const EffectWindow *w) const;
-
+// zhd add 
+Q_SIGNALS:
+    void modeChanged();
+//zhd add ok
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {

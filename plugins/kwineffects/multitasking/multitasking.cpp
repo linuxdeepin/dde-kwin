@@ -1752,6 +1752,13 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
 
     QRect area = effects->clientArea( ScreenArea,ew->screen(),desktop );
     effects->moveWindow(ew,QPoint(area.topLeft().x(),area.topLeft().y()));
+
+    //zhd add 
+    refreshWindows();
+    emit modeChanged();
+    //zhd  add end 
+
+    
 /*
     updateDesktopWindows(prev_desktop);
     updateDesktopWindows(desktop);
@@ -1862,6 +1869,10 @@ void MultitaskingEffect::setActive(bool active)
         auto root = m_multitaskingView->rootObject();
         connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)), 
                 m_thumbManager, SIGNAL(requestMove2Desktop(int, int, QVariant)));
+//zhd add 
+        connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
+//zhd add end 
+
     } else {
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);

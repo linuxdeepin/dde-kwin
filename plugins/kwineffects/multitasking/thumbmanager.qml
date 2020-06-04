@@ -53,6 +53,7 @@ Rectangle {
                         //zhd add 
                         id:winAvatar  
                         property var draggingdata: winId
+                        property int dragingIndex:index
                         Drag.keys: ["DraggingWindowAvatar"];  //for holdhand
                         Drag.active:  avatarMousearea.drag.active 
                         Drag.hotSpot {
@@ -101,6 +102,9 @@ Rectangle {
                     target: root
                     onResetModel: {
                         windowThumbnailRepeater.model = $Model.windows(screen, desktop)
+                        windowThumbnailRepeater.update()
+
+                        console.log(" model is changed !!!!!!!!!!")
                     }
                 }
 			}
@@ -138,6 +142,7 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
 
                         property var originParent: view
+                        
 
                         width: thumbDelegate.width
                         height: thumbDelegate.height
@@ -280,12 +285,6 @@ Rectangle {
                             }
                             if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add 
 
-                                
-                                //var inx=view.indexAt(Qt.point(drag.x,drag.y));
-
-                                
-
-                                
                                 //console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
                             }
@@ -296,12 +295,6 @@ Rectangle {
                                 log('------[workspaceThumbDrop]: Enter ' + workspaceThumbDrop.designated + ' from ' + drag.source
                                     + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
                             }
-                            // else if(drag.keys[0] === 'DraggingWindowAvatar'){
-                            //    // console.log('------[DraggingWindowAvatar]: Enter ' + ' from ' + drag.source + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
-
-
-                            //     //drag.accepted
-                            // }
                         }
 
                         onExited: {
@@ -314,7 +307,6 @@ Rectangle {
                         }
 
                         onPositionChanged: {
-                        //    console.log("----------- workspaceThumb onPositionChanged")
                             if (drag.keys[0] === 'workspaceThumb') {
                                 var diff = workspaceThumbDrop.parent.y - drag.source.y
                        //         log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
@@ -325,10 +317,6 @@ Rectangle {
                                 }
                                 drag.source.pendingDragRemove = hint.visible
                             }
-                            // if(drag.keys[0] === "DraggingWindowAvatar"){
-                            //     //console.log("----------- DraggingWindowAvatar onPositionChanged"+view.indexAt(Qt.point(drag.source.x,drag.source.y)))
-                            //    // console.log("----------- DraggingWindowAvatar onPositionChanged");
-                            // }
                         }
 
                         Rectangle {
