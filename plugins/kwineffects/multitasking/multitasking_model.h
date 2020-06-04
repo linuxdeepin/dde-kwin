@@ -73,6 +73,7 @@ public:
     Q_INVOKABLE void move(int from, int to);
     Q_INVOKABLE void setCurrentSelectIndex(int index);
     Q_INVOKABLE int currentSelectIndex() const;
+    Q_INVOKABLE void updateWindowDestop( int nDesktop );
 
 signals:
     void countChanged(int count);

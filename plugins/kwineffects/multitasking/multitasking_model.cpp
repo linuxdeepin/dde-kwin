@@ -221,3 +221,8 @@ int MultitaskingModel::currentSelectIndex() const
 {
     return  m_nCurrentSelectIndex;
 }
+
+void MultitaskingModel::updateWindowDestop( int nDesktop )
+{
+    emit currentIndexChanged( nDesktop - 1 );
+}

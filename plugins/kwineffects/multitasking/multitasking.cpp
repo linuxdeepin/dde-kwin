@@ -1758,7 +1758,10 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
     emit modeChanged();
     //zhd  add end 
 
-    
+    //wxb add
+    m_multitaskingModel->updateWindowDestop(desktop);
+    //wxb add end
+
 /*
     updateDesktopWindows(prev_desktop);
     updateDesktopWindows(desktop);
