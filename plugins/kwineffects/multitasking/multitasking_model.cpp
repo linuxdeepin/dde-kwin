@@ -29,7 +29,7 @@ DesktopThumbnailItem::DesktopThumbnailItem()
 
 MultitaskingModel::MultitaskingModel(QObject *parent)
     : QAbstractListModel(parent)
-       , m_currentIndex(1)
+    , m_currentIndex(0)
 {
     m_nCurrentSelectIndex = 0;
 }
