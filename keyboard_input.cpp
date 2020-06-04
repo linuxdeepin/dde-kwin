@@ -229,6 +229,32 @@ void KeyboardInputRedirection::processKey(uint32_t key, InputRedirection::Keyboa
     }
 
     const xkb_keysym_t keySym = m_xkb->currentKeysym();
+
+    //During the lock screen, pressing hot keys will start the corresponding function such as show ControlCenter when we press f10, we think this is a bug
+    //Fixed: add a qdbus interface, the lock screen program calls this interface to notify kwin to shield the hotkey
+    //just return directly without handling hotkey events if found program has called qdbus interface to request kwin to shield the hotkey
+    if (workspace()->isDisableHotKeys()) {
+        Qt::Key key = m_xkb->toQtKey(keySym);
+        switch(key) {
+        case Qt::Key_MonBrightnessDown: //f1
+        case Qt::Key_MonBrightnessUp: //f2
+        case Qt::Key_KeyboardLightOnOff: //f3
+        case Qt::Key_VolumeMute: //f4
+        case Qt::Key_VolumeDown: //f5
+        case Qt::Key_VolumeUp: //f6
+        case Qt::Key_MicMute: //f7
+        case Qt::Key_Display: //f8
+        case Qt::Key_WLAN: //f9
+        case Qt::Key_Tools: //f10
+        case Qt::Key_Print: //f11
+        case Qt::Key_Insert: //f2
+            qDebug()<<Q_FUNC_INFO<<"skip key"<<key;
+            return;
+        default:
+            break;
+        }
+    }
+
     KeyEvent event(type,
                    m_xkb->toQtKey(keySym),
                    m_xkb->modifiers(),

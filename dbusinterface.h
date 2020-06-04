@@ -77,6 +77,8 @@ public Q_SLOTS: // METHODS
 
     bool globalShortcutsDisabled() const;
     void disableGlobalShortcutsForClient(bool disable);
+    void disableHotKeysForClient(bool disable);
+
 
 private Q_SLOTS:
     void becomeKWinService(const QString &service);

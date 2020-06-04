@@ -278,6 +278,11 @@ void DBusInterface::disableGlobalShortcutsForClient(bool disable)
     workspace()->disableGlobalShortcutsForClient(disable);
 }
 
+void DBusInterface::disableHotKeysForClient(bool disable)
+{
+    workspace()->disableHotKeysForClient(disable);
+}
+
 CompositorDBusInterface::CompositorDBusInterface(Compositor *parent)
     : QObject(parent)
     , m_compositor(parent)

@@ -56,5 +56,8 @@
     <method name="disableGlobalShortcutsForClient">
       <arg type="b" direction="in"/>
     </method>
+    <method name="disableHotKeysForClient">
+      <arg type="b" direction="in"/>
+    </method>
   </interface>
 </node>
