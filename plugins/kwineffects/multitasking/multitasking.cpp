@@ -1159,10 +1159,12 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
         // check for global shortcuts
         // HACK: keyboard grab disables the global shortcuts so we have to check for global shortcut (bug 156155)
         if (shortcut.contains(e->key() + e->modifiers())) {
+            m_multitaskingModel->setCurrentSelectIndex( 0 );
             toggleActive();
             return;
         }
 
+        m_pEffectWindow = effects->activeWindow();
         //if (!isActive()) return;
 
         qCDebug(BLUR_CAT) << e;
@@ -1250,7 +1252,16 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                     }
                     m_multitaskingModel->setCurrentIndex(target_desktop-1);
                     qCDebug(BLUR_CAT) << "----------- super+shift+"<<target_desktop;
-                    // now, the first param is unused,so wo just set temp-param:0.
+
+                    if( m_multitaskingModel->currentSelectIndex() == 0 )
+                    {
+                        if( !m_pEffectWindow->isDesktop() )
+                        {
+                            auto winId = findWId(m_pEffectWindow);
+                            m_multitaskingModel->setCurrentSelectIndex( (int)winId );
+                        }
+                    }
+                    // now, the first param is unused,so we just set temp-param:0.
                     moveWindow2Desktop( 0,target_desktop ,m_multitaskingModel->currentSelectIndex());
                 }
                 break;

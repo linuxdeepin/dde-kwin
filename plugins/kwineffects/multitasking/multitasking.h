@@ -435,6 +435,8 @@ private:
     QQuickWidget *m_multitaskingView { nullptr };
     bool          m_multitaskingViewVisible { false };
 	MultitaskingModel *m_multitaskingModel { nullptr };
+
+    EffectWindow *m_pEffectWindow;
 };
 
 
