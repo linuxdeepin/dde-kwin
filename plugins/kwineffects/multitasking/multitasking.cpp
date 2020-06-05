@@ -1261,8 +1261,12 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                             m_multitaskingModel->setCurrentSelectIndex( (int)winId );
                         }
                     }
-                    // now, the first param is unused,so we just set temp-param:0.
-                    moveWindow2Desktop( 0,target_desktop ,m_multitaskingModel->currentSelectIndex());
+                    QVariant  winId  = m_multitaskingModel->currentSelectIndex();
+                    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+                    if(ew)
+                    {
+                        moveWindow2Desktop( ew->screen(),target_desktop ,m_multitaskingModel->currentSelectIndex());
+                    }
                 }
                 break;
 
@@ -1764,7 +1768,7 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
 
     QRect area = effects->clientArea( ScreenArea,ew->screen(),desktop );
     effects->moveWindow(ew,QPoint(area.topLeft().x(),area.topLeft().y()));
-
+qDebug() << area;
     //zhd add 
     refreshWindows();
     emit modeChanged();
