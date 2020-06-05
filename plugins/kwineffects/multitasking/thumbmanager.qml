@@ -420,7 +420,50 @@ Rectangle {
             }
 
             //window thumbnail
-            GridLayout {
+
+
+            Rectangle{
+                id: bigWindowThrumbContainer
+                x: 0
+                y: view.y + view.height;
+                width: screenWidth  //  other area except grid  can receove
+                height: screenHeight - view.height-15;
+                color:"transparent"
+
+                property int curdesktop:1
+                z:1
+
+                DropArea {  //add for receive window thrumbnail
+                    id: workspaceThumbnailDropArea
+                    anchors.fill: parent
+                    keys: ['DraggingWindowAvatar']
+
+                    onDropped: {
+                        //console.log("bigWindowThrumbContainer droped");
+
+                        var from = drop.source.desktop
+
+                        if(from!=bigWindowThrumbContainer.curdesktop && bigWindowThrumbContainer.curdesktop!=null && drop.keys[0]==="DraggingWindowAvatar"){
+
+                            console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
+                           qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
+
+                            grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                            grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                            grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                            grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
+						    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                        }
+   
+                    }
+                    onEntered: {
+                        drag.accepted=true;
+                        console.log("bigWindowThrumbContainer enter");
+
+                    }
+                }
+
+                GridLayout {
                 id:grid
                 x: screenWidth/7;
                 y: view.y + view.height;
@@ -498,9 +541,14 @@ Rectangle {
                                 }
                             }
                         }
+                    }
                 }
+                }
+        
+
             }
-            }
+
+        
         }
     }
 
