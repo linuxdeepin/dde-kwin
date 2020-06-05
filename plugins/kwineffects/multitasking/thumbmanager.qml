@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
-import QtQuick.Layouts 1.2 
+import QtQuick.Layouts 1.2
 import QtQuick.Window 2.0
 import com.deepin.kwin 1.0
 import QtGraphicalEffects 1.0
@@ -9,8 +9,8 @@ import org.kde.kwin 2.0 as KWin
 
 Rectangle {
     id: root
-	width: Screen.width;
-	height: Screen.height;
+    width: Screen.width;
+    height: Screen.height;
     color: "transparent"
 
     Rectangle {
@@ -37,36 +37,42 @@ Rectangle {
     signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
     signal resetModel();
 
-	Component {
-		id: windowThumbnailView;
-		Rectangle {
-			color: "red";
-			Grid {
-				Repeater {
+    Component {
+        id: windowThumbnailView;
+        Rectangle {
+            color: "red";
+            GridLayout {
+                id:windowThumbnailViewGrid
+                x: desktopThumbnailWidth/7;
+                y: desktopThumbnailHeight/10;
+                width: desktopThumbnailWidth*5/7;
+                height: desktopThumbnailHeight*8/10;
+                columns : $Model.getCalculateColumnsCount(screen,desktop);
+                Repeater {
                     id: windowThumbnailRepeater
-					model: $Model.windows(screen, desktop);
-					PlasmaCore.WindowThumbnail {
-						width: thumbnailWidth;
-						height: thumbnailHeight;
-						winId: modelData;
-                        
-                        //zhd add 
-                        id:winAvatar  
+                    model: $Model.windows(screen, desktop);
+                    PlasmaCore.WindowThumbnail {
+                        Layout.fillWidth: true;
+                        Layout.fillHeight: true;
+                        winId: modelData;
+
+                        //zhd add
+                        id:winAvatar
                         property var draggingdata: winId
                         property int dragingIndex:index
                         Drag.keys: ["DraggingWindowAvatar"];  //for holdhand
-                        Drag.active:  avatarMousearea.drag.active 
+                        Drag.active:  avatarMousearea.drag.active
                         Drag.hotSpot {
                             x: width/2
                             y: height/2
                         }
-						MouseArea{ //zhd add   for drag window
+                        MouseArea{ //zhd add   for drag window
                             id:avatarMousearea
-							anchors.fill:parent
-							drag.target:winAvatar
-							drag.smoothed :true
-                            
-							onPressed: {
+                            anchors.fill:parent
+                            drag.target:winAvatar
+                            drag.smoothed :true
+
+                            onPressed: {
                                  winAvatar.Drag.hotSpot.x = mouse.x;
                                  winAvatar.Drag.hotSpot.y = mouse.y;
                             }
@@ -86,7 +92,7 @@ Rectangle {
                                 PropertyChanges {
                                     target: winAvatar;
                                     z: 100;
-                                    
+
                                 }
                                 // AnchorChanges {
                                 //     target: winAvatar;
@@ -94,27 +100,27 @@ Rectangle {
                                 //     anchors.verticalCenter: undefined
                                 // }
                             }
-						}
-                        //zhd add end 
-					}
-				}
+                        }
+                        //zhd add end
+                    }
+                }
                 Connections {
                     target: root
                     onResetModel: {
-                        windowThumbnailRepeater.model = $Model.windows(screen, desktop)
-                        windowThumbnailRepeater.update()
-
+                        windowThumbnailViewGrid.columns = $Model.getCalculateColumnsCount(screen,desktop);
+                        windowThumbnailRepeater.model = $Model.windows(screen, desktop);
+                        windowThumbnailRepeater.update();
                         console.log(" model is changed !!!!!!!!!!")
                     }
                 }
-			}
-      	}
-	}
+            }
+        }
+    }
 
-	Component {
+    Component {
         id: desktopThumbmailView;
         Rectangle {
-            width: screenWidth; 
+            width: screenWidth;
             height: parent.height;
             color: "transparent"
             ListView {
@@ -126,7 +132,7 @@ Rectangle {
                 interactive : false;
                 clip: true;
 
-                
+
 
 
                 delegate: Rectangle {
@@ -134,15 +140,15 @@ Rectangle {
                     width: manager.thumbSize.width;
                     height: manager.thumbSize.height;
                     color: "transparent"
-                    
-					DesktopThumbnail {
-						id: desktopThumbnail;
-						desktop: index + 1; 
+
+                    DesktopThumbnail {
+                        id: desktopThumbnail;
+                        desktop: index + 1;
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
 
                         property var originParent: view
-                        
+
 
                         width: thumbDelegate.width
                         height: thumbDelegate.height
@@ -151,9 +157,9 @@ Rectangle {
                             anchors.fill: parent;
                             hoverEnabled: true;
 
-							onClicked: {
-								$Model.setCurrentIndex(index);
-							}
+                            onClicked: {
+                                $Model.setCurrentIndex(index);
+                            }
 
                             drag.target: desktopThumbnail;
                             onReleased: {
@@ -184,12 +190,12 @@ Rectangle {
                         }
                         property bool pendingDragRemove: false
                         Drag.keys: ["workspaceThumb"];
-                        Drag.active: manager.desktopCount > 1 && desktopThumbMouseArea.drag.active 
+                        Drag.active: manager.desktopCount > 1 && desktopThumbMouseArea.drag.active
                         Drag.hotSpot {
                             x: width/2
                             y: height/2
                         }
-                    
+
                         states: State {
                             when: desktopThumbnail.Drag.active;
                             ParentChange {
@@ -208,45 +214,47 @@ Rectangle {
                             }
                         }
 
-						//window thumbnail
-						Loader {
+                        //window thumbnail
+                        Loader {
                             id: winThumLoader
-							sourceComponent: windowThumbnailView	
-							property int thumbnailWidth: 50;
-							property int thumbnailHeight: 50;
-							property int screen: currentScreen; 
-							property int desktop: desktopThumbnail.desktop;
-						}
+                            sourceComponent: windowThumbnailView
+                            property int thumbnailWidth: 50;
+                            property int thumbnailHeight: 50;
+                            property int screen: currentScreen;
+                            property int desktopThumbnailWidth:desktopThumbnail.width
+                            property int desktopThumbnailHeight:desktopThumbnail.height
+                            property int desktop: desktopThumbnail.desktop;
+                        }
 
-	                    Rectangle {
-							id: closeBtn;
-							anchors.right: parent.right;
-							width: closeBtnIcon.width;
-							height: closeBtnIcon.height;
-							color: "transparent";
-							property int desktop: desktopThumbnail.desktop;
+                        Rectangle {
+                            id: closeBtn;
+                            anchors.right: parent.right;
+                            width: closeBtnIcon.width;
+                            height: closeBtnIcon.height;
+                            color: "transparent";
+                            property int desktop: desktopThumbnail.desktop;
                             visible: false;
 
-							Image {
-								id: closeBtnIcon;
-								source: "qrc:///icons/data/close_normal.svg"
-							}
+                            Image {
+                                id: closeBtnIcon;
+                                source: "qrc:///icons/data/close_normal.svg"
+                            }
 
-							MouseArea {
-								anchors.fill: closeBtn;
-								onClicked: {
-									$Model.remove(index);
-								}
-							}
+                            MouseArea {
+                                anchors.fill: closeBtn;
+                                onClicked: {
+                                    $Model.remove(index);
+                                }
+                            }
 
-							Connections {
-								target: view;
-								onCountChanged: {
-									closeBtn.visible = false;
-								}
-							}
-						}
-					}
+                            Connections {
+                                target: view;
+                                onCountChanged: {
+                                    closeBtn.visible = false;
+                                }
+                            }
+                        }
+                    }
 
                     DropArea {
                         id: workspaceThumbDrop
@@ -256,11 +264,11 @@ Rectangle {
 
                         z: 1
                         keys: ['workspaceThumb','DraggingWindowAvatar']  //  zhd change for drop a window
-                       
+
 
                         onDropped: {
                             /* NOTE:
-                            * during dropping, PropertyChanges is still in effect, which means 
+                            * during dropping, PropertyChanges is still in effect, which means
                             * drop.source.parent should not be Loader
                             * and drop.source.z == 100
                             */
@@ -283,10 +291,15 @@ Rectangle {
                                     log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
-                            if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add 
+                            if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add
 
                                 //console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
+                                grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                                grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                                grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                                grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
+                                windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
                             }
                         }
 
@@ -354,7 +367,7 @@ Rectangle {
                         }
                     }
 
-				}
+                }
 
                 //center
                 onCountChanged: {
@@ -365,21 +378,21 @@ Rectangle {
                     grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
                     grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
                     grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-					//default value 1
+                    //default value 1
                     windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
                 }
 
 
-				Connections {
-					target: $Model;
-					onCurrentIndexChanged: {
+                Connections {
+                    target: $Model;
+                    onCurrentIndexChanged: {
                         grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
                         grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
                         grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
                         grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-						windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
-					}     
-				}
+                        windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
+                    }
+                }
             }
 
             Button {
@@ -387,7 +400,7 @@ Rectangle {
                 text: "+";
                 anchors.top: parent.top;
                 anchors.right: parent.right;
-                width: manager.thumbSize.width; 
+                width: manager.thumbSize.width;
                 height: manager.thumbSize.height;
                 onClicked: {
                     $Model.append();
@@ -406,7 +419,7 @@ Rectangle {
                 }
             }
 
-			//window thumbnail
+            //window thumbnail
             GridLayout {
                 id:grid
                 x: screenWidth/7;
@@ -415,22 +428,23 @@ Rectangle {
                 height: screenHeight - view.height-15;
                 columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
-				Repeater {
-					id: windowThumbnail;
+                Repeater {
+                    id: windowThumbnail;
                     PlasmaCore.WindowThumbnail {
+                        id:windowThumbnailitem
                         Layout.fillWidth: true;
                         Layout.fillHeight: true;
                         winId: modelData;
-                        Drag.active: dragArea.drag.active
-                        Drag.hotSpot.x: 10
-                        Drag.hotSpot.y: 10
+                        Drag.keys:["DragwindowThumbnailitemdata"];
+                        Drag.active: windowThumbnailitemMousearea.drag.active
+                        Drag.hotSpot {
+                            x:width/2
+                            y:height/2
+                        }
 
                         MouseArea {
-                            id: dragArea
-                            anchors.fill: parent
-                            onReleased: parent.Drag.drop()
-                            drag.target: parent
-
+                            id:windowThumbnailitemMousearea
+                            anchors.fill: parent                        
                             acceptedButtons: Qt.LeftButton| Qt.RightButton;
                             hoverEnabled: true;
 
@@ -441,7 +455,31 @@ Rectangle {
                             onClicked: {
                                 $Model.setCurrentSelectIndex(modelData);
                             }
+                            drag.target:windowThumbnailitem
+                            drag.smoothed :true
 
+                            onPressed: {
+                                windowThumbnailitem.Drag.hotSpot.x = mouse.x;
+                                windowThumbnailitem.Drag.hotSpot.y = mouse.y;
+                            }
+
+                              drag.onActiveChanged: {
+                                  if (!windowThumbnailitemMousearea.drag.active) {
+                                      console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
+                                      windowThumbnailitem.Drag.drop();
+                                  }
+                              }
+                            states: State {
+                                when: windowThumbnailitemMousearea.drag.active;
+                                ParentChange {
+                                    target: windowThumbnailitem;
+                                    parent: root;
+                                }
+                                PropertyChanges {
+                                    target: windowThumbnailitem;
+                                    z: 100;
+                                }
+                            }
                         }
                         Rectangle {
                             id: closeClientBtn;
@@ -466,21 +504,21 @@ Rectangle {
         }
     }
 
-	Component.onCompleted: {
-		for (var i = 0; i < $Model.numScreens(); ++i) {
-			var geom = $Model.screenGeometry(i);
-			var src = 
-				'import QtQuick 2.0;' +
-				'Loader {' + 
-				'	x: ' + geom.x + ';' + 
-				'	property int screenWidth: ' + geom.width + ';' +
+    Component.onCompleted: {
+        for (var i = 0; i < $Model.numScreens(); ++i) {
+            var geom = $Model.screenGeometry(i);
+            var src =
+                'import QtQuick 2.0;' +
+                'Loader {' +
+                '	x: ' + geom.x + ';' +
+                '	property int screenWidth: ' + geom.width + ';' +
                 '   property int screenHeight: '+ geom.height + ';'+
-				'	height: 260;' +
-				'	property int currentScreen: ' + i + ';' +
-				'	sourceComponent: desktopThumbmailView;' + 
-				'}';
-			Qt.createQmlObject(src, root, "dynamicSnippet");
-		}	
-	}
+                '	height: 260;' +
+                '	property int currentScreen: ' + i + ';' +
+                '	sourceComponent: desktopThumbmailView;' +
+                '}';
+            Qt.createQmlObject(src, root, "dynamicSnippet");
+        }
+    }
 }
 
