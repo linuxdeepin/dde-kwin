@@ -600,6 +600,9 @@ void SceneOpenGL2::paintCursor()
     if (!kwinApp()->platform()->usesSoftwareCursor()) {
         return;
     }
+    // if it is blankcursor,no paint
+    if(kwinApp()->platform()->softwareCursor().isNull())
+        return;
 
     // lazy init texture cursor only in case we need software rendering
     if (!m_cursorTexture) {
