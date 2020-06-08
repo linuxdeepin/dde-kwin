@@ -522,8 +522,8 @@ QVariantList MultitaskingEffect::windowsFor(int screen, int desktop)
     QVariantList vl;
     QDesktopWidget dw;
     for (const auto& ew: effects->stackingOrder()) {
-        if (isRelevantWithPresentWindows(ew)) {
-            if (dw.screenGeometry(screen).contains(ew->pos()) && ew->desktop() == desktop) {
+        if (isRelevantWithPresentWindows(ew) && ew->desktop() == desktop) {
+            if (effects->screenNumber(ew->pos()) == screen) {
                 auto wid = findWId(ew);
                 assert (effects->findWindow(wid) == ew);
                 vl.append(wid);
@@ -1879,6 +1879,8 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), m_thumbManager, SIGNAL(requestSwitchDesktop(int, int)));
             connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
         }
+
+        m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
         m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
         m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
         m_multitaskingModel->load(desktopCount);
