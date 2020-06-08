@@ -36,7 +36,7 @@ Rectangle {
 
     signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
     signal resetModel();
-
+    signal qmlCloseMultitask();
     Component {
         id: windowThumbnailView;
         Rectangle {
@@ -465,10 +465,9 @@ Rectangle {
 
                 GridLayout {
                 id:grid
-                x: screenWidth/7;
-                y: view.y + view.height;
                 width: screenWidth*5/7;
                 height: screenHeight - view.height-15;
+                anchors.centerIn: parent;
                 columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
                 Repeater {
@@ -551,7 +550,12 @@ Rectangle {
         
         }
     }
-
+    MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                qmlCloseMultitask();
+            }
+        }
     Component.onCompleted: {
         for (var i = 0; i < $Model.numScreens(); ++i) {
             var geom = $Model.screenGeometry(i);

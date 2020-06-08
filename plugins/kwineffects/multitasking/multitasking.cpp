@@ -1890,6 +1890,7 @@ void MultitaskingEffect::setActive(bool active)
         auto root = m_multitaskingView->rootObject();
         connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)), 
                 m_thumbManager, SIGNAL(requestMove2Desktop(int, int, QVariant)));
+        connect(root, SIGNAL(qmlCloseMultitask()), this, SLOT(toggleActive()));
 //zhd add 
         connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
 //zhd add end 
