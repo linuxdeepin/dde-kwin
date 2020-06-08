@@ -496,8 +496,6 @@ void DrmBackend::updateOutputs()
     if (m_outputs.size() == 1 && m_enabledOutputs.isEmpty()) {
         auto* output = m_outputs.first();
         output->setEnabled(true);
-        m_enabledOutputs << output;
-        emit outputAdded(output);
     }
 
     readOutputsConfiguration();
@@ -524,7 +522,9 @@ void DrmBackend::readOutputsConfiguration()
         (*it)->setGlobalPos(outputConfig.readEntry<QPoint>("Position", pos));
         // TODO: add mode
         (*it)->setScale(outputConfig.readEntry("Scale", 1.0));
-        pos.setX(pos.x() + (*it)->geometry().width());
+        if ((*it)->isEnabled()) {
+            pos.setX(pos.x() + (*it)->geometry().width());
+        }
     }
 }
 
