@@ -162,7 +162,22 @@ void ScreenShotEffect::postPaintScreen()
                 img = QImage(QSize(width, height), QImage::Format_ARGB32);
                 glReadnPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, img.byteCount(), (GLvoid*)img.bits());
                 GLRenderTarget::popRenderTarget();
-                ScreenShotEffect::convertFromGLImage(img, width, height);
+                glFlush();
+                bool sizevalide = m_width > 0 && m_width < img.width() && m_height > 0 && m_height < img.height();
+                float fscale = 1.f;
+                if (sizevalide) {
+                    if (width >= height) {
+                        fscale = (float)m_width / (float)width;
+                    } else {
+                        fscale = (float)m_height / (float)height;
+                    }
+                }
+
+                int w = width * fscale;
+                int h = height * fscale;
+
+                img = img.scaled(img.width() * fscale, img.height() * fscale, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+                ScreenShotEffect::convertFromGLImage(img, w, h);
             }
 #ifdef KWIN_HAVE_XRENDER_COMPOSITING
             xcb_image_t *xImage = NULL;
@@ -253,6 +268,14 @@ void ScreenShotEffect::postPaintScreen()
     }
 }
 
+void processSaveImage(QDBusMessage *mess,const QImage &img,ScreenShotEffect *effect)
+{
+    QtConcurrent::run(
+                [](QDBusMessage *mess,const QImage &img,ScreenShotEffect *effect){
+                return QDBusConnection::sessionBus().send(mess->createReply(effect->saveTempImage(img)));
+    },mess,img,effect);
+}
+
 void ScreenShotEffect::sendReplyImage(const QImage &img)
 {
     if (m_fd != -1) {
@@ -269,7 +292,7 @@ void ScreenShotEffect::sendReplyImage(const QImage &img)
             }, m_fd, img);
         m_fd = -1;
     } else {
-        QDBusConnection::sessionBus().send(m_replyMessage.createReply(saveTempImage(img)));
+        processSaveImage(&m_replyMessage,img,this);
         qDebug() << "------ ScreenShotEffect::sendReplyImage done";
     }
     m_scheduledGeometry = QRect();
@@ -322,14 +345,17 @@ void ScreenShotEffect::screenshotWindowUnderCursor(int mask)
     }
 }
 
-QString ScreenShotEffect::screenshotForWindowExtend(qulonglong winid, int mask)
+QString ScreenShotEffect::screenshotForWindowExtend(qulonglong winid, unsigned int width,unsigned int height,int mask)
 {
     if (!calledFromDBus()) {
+        qDebug()<<"calledFromDBus failed";
         return QString();
     }
     EffectWindow* w = effects->findWindow(winid);
     if(w && !w->isDeleted()) {
         m_fd = -1;
+        m_width = width;
+        m_height = height;
         m_type = (ScreenShotType) mask;
         m_replyMessage = message();
         setDelayedReply(true);

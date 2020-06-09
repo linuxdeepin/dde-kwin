@@ -54,12 +54,13 @@ public:
 
     static bool supported();
     static void convertFromGLImage(QImage &img, int w, int h);
+    QString saveTempImage(const QImage &img);
 public Q_SLOTS:
     Q_SCRIPTABLE void screenshotForWindow(qulonglong winid, int mask = 0);
     /**
      * take screenshot and save into a file and return the path
      */
-    Q_SCRIPTABLE QString screenshotForWindowExtend(qulonglong winid, int mask = 0);
+    Q_SCRIPTABLE QString screenshotForWindowExtend(qulonglong winid, unsigned int width = 0,unsigned int height = 0,int mask = 0);
     /**
      * take screenshot
      * It is intended to be used with a pipe, so that the invoking side can just
@@ -152,7 +153,6 @@ private Q_SLOTS:
 private:
     void grabPointerImage(QImage& snapshot, int offsetx, int offsety);
     QImage blitScreenshot(const QRect &geometry);
-    QString saveTempImage(const QImage &img);
     void sendReplyImage(const QImage &img);
     enum class InfoMessageMode {
         Window,
@@ -177,6 +177,8 @@ private:
     };
     WindowMode m_windowMode = WindowMode::NoCapture;
     int m_fd = -1;
+    unsigned int m_width;
+    unsigned int m_height;
 };
 
 } // namespace
