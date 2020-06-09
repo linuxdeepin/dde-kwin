@@ -1,0 +1,6 @@
+{
+    "type": "homebrew",
+    "3rdparty": [],
+    "ignore": ["CHANGELOG.md", ".clog.toml", ".gitignore", ".gitlab-ci.yml"],
+    "license": ["GPLv3"]
+}
