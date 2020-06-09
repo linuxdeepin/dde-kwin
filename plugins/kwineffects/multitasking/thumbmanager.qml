@@ -120,9 +120,16 @@ Rectangle {
     Component {
         id: desktopThumbmailView;
         Rectangle {
+            y:20
             width: screenWidth;
             height: parent.height;
             color: "transparent"
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    qmlCloseMultitask();
+                }
+            }
             ListView {
                 id: view
                 width: 0;
@@ -496,7 +503,7 @@ Rectangle {
                 x: 0
                 y: view.y + view.height;
                 width: screenWidth  //  other area except grid  can receove
-                height: screenHeight - view.height-15;
+                height: screenHeight - view.height-35;
                 color:"transparent"
 
                 property int curdesktop:1
@@ -532,10 +539,16 @@ Rectangle {
                     }
                 }
 
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                       qmlCloseMultitask();
+                    }
+                }
                 GridLayout {
                     id:grid
                     width: screenWidth*5/7;
-                    height: screenHeight - view.height-15;
+                    height: screenHeight - view.height-35;
                     anchors.centerIn: parent;
                     columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
@@ -623,12 +636,6 @@ Rectangle {
                     }
                 }
             }
-        }
-    }
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            qmlCloseMultitask();
         }
     }
     Component.onCompleted: {
