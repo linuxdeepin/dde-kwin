@@ -330,3 +330,20 @@ bool MultitaskingModel::isAllScreensEmpty()
     }
     return isEmpty;
 }
+
+void MultitaskingModel::windowSelected( QVariant winId )
+{
+    emit windowSelectedSignal( winId );
+}
+
+QPixmap MultitaskingModel::getWindowIcon( QVariant winId )
+{
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    QPixmap pixmap;
+    if(ew)
+    {
+        pixmap = ew->icon().pixmap( QSize(Constants::ICON_SIZE, Constants::ICON_SIZE) );
+    }
+    return pixmap;
+
+}

@@ -332,6 +332,7 @@ private slots:
     void OnWindowLocateChanged(int screen, int desktop, int winId);
     //zhd add end 
 
+    void windowSelectSlot( QVariant winid );
 private:
     struct WindowData {
         bool isAbove {false};

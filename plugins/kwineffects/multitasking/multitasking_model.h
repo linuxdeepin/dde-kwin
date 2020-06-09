@@ -48,6 +48,8 @@ public:
 
     Q_PROPERTY(int currentWindowThumbnail READ currentSelectIndex WRITE setCurrentSelectIndex NOTIFY currentWindowThumbnailChanged)
 
+//    Q_PROPERTY(int currentDeskIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentDesktopChanged)
+
     // Remove data:
 	Q_INVOKABLE void load(int desktopCount);
     Q_INVOKABLE void append();
@@ -80,6 +82,8 @@ public:
     void selectPrevWindow();
     QList<int> getScreenDesktopByWinID(int winid);
     bool isAllScreensEmpty();
+    Q_INVOKABLE void windowSelected( QVariant winId );
+    Q_INVOKABLE QPixmap getWindowIcon( QVariant winId );
 
 signals:
     void countChanged(int count);
@@ -91,6 +95,7 @@ signals:
     void switchDesktop(int from, int to);
     void refreshWindows();
     void currentWindowThumbnailChanged();
+    void windowSelectedSignal( QVariant winId );
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;

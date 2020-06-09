@@ -150,7 +150,8 @@ Rectangle {
                         desktop: index + 1;
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
-
+                        //property bool isDesktopHightlighted: desktop === $Model.currentDeskIndex + 1
+//                        onIsDesktopHightlightedChanged: console.log( desktop,$Model.currentDeskIndex )
                         property var originParent: view
 
 
@@ -163,6 +164,7 @@ Rectangle {
 
                             onClicked: {
                                 $Model.setCurrentIndex(index);
+                                view.currentIndex = index
                             }
 
                             drag.target: desktopThumbnail;
@@ -200,23 +202,32 @@ Rectangle {
                             y: height/2
                         }
 
-                        states: State {
-                            when: desktopThumbnail.Drag.active;
-                            ParentChange {
-                                target: desktopThumbnail;
-                                parent: root;
-                            }
+                        states: [State {
+                                when: desktopThumbnail.Drag.active;
+                                ParentChange {
+                                    target: desktopThumbnail;
+                                    parent: root;
+                                }
 
-                            PropertyChanges {
-                                target: desktopThumbnail;
-                                z: 100;
-                            }
-                            AnchorChanges {
-                                target: desktopThumbnail;
-                                anchors.horizontalCenter: undefined
-                                anchors.verticalCenter: undefined
-                            }
-                        }
+                                PropertyChanges {
+                                    target: desktopThumbnail;
+                                    z: 100;
+                                }
+                                AnchorChanges {
+                                    target: desktopThumbnail;
+                                    anchors.horizontalCenter: undefined
+                                    anchors.verticalCenter: undefined
+                                }
+                            }/*,
+                            State {
+                                name: "isDesktopHightlighted"
+                                when: isDesktopHightlighted
+                                PropertyChanges {
+                                    target: winThumrect
+                                    border.width: 5;
+                                }
+                            }*/]
+
 
                         //window thumbnail
                         Loader {
@@ -258,6 +269,16 @@ Rectangle {
                                 }
                             }
                         }
+
+//                        Rectangle {
+//                            id:winThumrect;
+//                            width: parent.width;
+//                            height: parent.height;
+//                            border.color: "lightskyblue";
+//                            //border.width: 0;
+//                            border.width: view.currentIndex == index;
+//                            color: "transparent";
+//                        }
                     }
 
                     DropArea {
@@ -568,6 +589,15 @@ Rectangle {
                                 y:height/2
                             }
 
+                            Rectangle {
+                                id:backgroundrect;
+                                width: parent.width;
+                                height: parent.height;
+                                border.color: "lightgray";
+                                border.width: 0;
+                                color: "transparent";
+                            }
+
                             MouseArea {
                                 id:windowThumbnailitemMousearea
                                 anchors.fill: parent
@@ -580,6 +610,7 @@ Rectangle {
 
                                 onClicked: {
                                     $Model.setCurrentSelectIndex(modelData);
+                                    $Model.windowSelected( modelData );
                                 }
                                 drag.target:windowThumbnailitem
                                 drag.smoothed :true
@@ -624,12 +655,30 @@ Rectangle {
                                     }
                                 }
                             }
+
                             states: State {
                                 name: "isHightlighted"
                                 when: isHightlighted
                                 PropertyChanges {
                                     target: windowThumbnailitem
                                     scale: 1.2
+                                }
+                                PropertyChanges {
+                                    target: backgroundrect
+                                    border.width: 5;
+                                }
+                            }
+
+                            Rectangle {
+                                id: clientIcon;
+                                x:windowThumbnailitem.width/2 -  clientIconImage.width/2;
+                                y:windowThumbnailitem.height - clientIconImage.height;
+                                width: clientIconImage.width;
+                                height: clientIconImage.height;
+                                color: "transparent";
+                                Image {
+                                    id: clientIconImage;
+                                    source: "image://imageProvider/" + modelData ;
                                 }
                             }
                         }

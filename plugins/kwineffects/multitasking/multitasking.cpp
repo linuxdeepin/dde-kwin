@@ -29,6 +29,10 @@
 #include <QQuickItem>
 #include <KGlobalAccel>
 #include <KLocalizedString>
+#include <QQmlApplicationEngine>
+#include <QQmlImageProviderBase>
+#include "multitasking_model.h"
+#include "imageprovider.h"
 
 #include "multitasking_model.h"
 
@@ -305,6 +309,8 @@ MultitaskingEffect::MultitaskingEffect()
     connect(effects, &EffectsHandler::virtualScreenGeometryChanged, this, &MultitaskingEffect::onScreenSizeChanged);
     connect(effects, &EffectsHandler::propertyNotify, this, &MultitaskingEffect::onPropertyNotify);
     connect( m_multitaskingModel,SIGNAL(countChanged(int)),this,SLOT( onNumberDesktopsChanged(int) ) );
+    connect( m_multitaskingModel,SIGNAL( windowSelectedSignal(QVariant) ),this,SLOT( windowSelectSlot(QVariant) ) );
+
     BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
 
     // Load all other configuration details
@@ -344,7 +350,6 @@ void MultitaskingEffect::initWindowData(DataHash::iterator wd, EffectWindow* w)
     wd->icon = createIconFor(w);
     wd->csd = !w->hasDecoration();
     updateGtkFrameExtents(w);
-
     auto createIcon = [](const char* icon_path, int size) {
         auto icon = effects->effectFrame(EffectFrameUnstyled, false);
         icon->setAlignment(Qt::AlignCenter);
@@ -775,10 +780,8 @@ void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, 
 
             //qCDebug(BLUR_CAT) << "--------- window " << w->geometry() << geo;
             effects->paintWindow(w, mask, area, d);
-
             if (wd != m_windowDatas.constEnd()) {
                 auto ext = wd->gtkFrameExtents;
-
                 QPoint wp(geo.center().rx(), geo.bottom());
                 if (wd->csd && !ext.isNull()) {
                     wp.ry() -= ext.bottom() * d.yScale();
@@ -1772,7 +1775,7 @@ void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
 
     QRect area = effects->clientArea( ScreenArea,ew->screen(),desktop );
     effects->moveWindow(ew,QPoint(area.topLeft().x(),area.topLeft().y()));
-qDebug() << area;
+
     //zhd add 
     refreshWindows();
     emit modeChanged();
@@ -1868,6 +1871,7 @@ void MultitaskingEffect::setActive(bool active)
 
         if (!m_multitaskingView) {
             m_multitaskingView = new QQuickWidget;
+            m_multitaskingView->engine()->addImageProvider( QLatin1String("imageProvider"), new ImageProvider(QQmlImageProviderBase::Pixmap));
             m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
             m_multitaskingView->setClearColor(Qt::transparent);
             QSurfaceFormat fmt = m_multitaskingView->format();
@@ -2461,4 +2465,15 @@ void MultitaskingEffect::refreshWindows()
             m_multitaskingModel->setWindows(screen, d, windows);
         }
     }
+}
+
+void MultitaskingEffect::windowSelectSlot( QVariant winid )
+{
+    toggleActive();
+    EffectWindow *ew = effects->findWindow(winid.toULongLong());
+    if(ew)
+    {
+        effects->activateWindow( ew );
+    }
+
 }
