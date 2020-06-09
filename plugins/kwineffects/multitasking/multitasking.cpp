@@ -289,6 +289,7 @@ MultitaskingEffect::MultitaskingEffect()
     effects->registerGlobalShortcut(ks, a);
 
     m_gtkFrameExtentsAtom = effects->announceSupportProperty(s_GtkFrameAtomName, this);
+    m_targetDesktop = effects->currentDesktop();
 
     connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleActive()));
 
@@ -1367,7 +1368,8 @@ void MultitaskingEffect::selectPrevGroupWindow()
 
 void MultitaskingEffect::selectPrevWindow()
 {
-    int d = effects->currentDesktop();
+    m_multitaskingModel->selectPrevWindow();
+    /*int d = effects->currentDesktop();
     const auto& takenSlots = m_takenSlots[d];
 
     auto current = m_selectedWindow;
@@ -1413,11 +1415,13 @@ void MultitaskingEffect::selectPrevWindow()
             }
             break;
         }
-    }
+    }*/
 }
 
 void MultitaskingEffect::selectNextWindow()
 {
+    m_multitaskingModel->selectNextWindow();
+    /*
     int d = effects->currentDesktop();
     const auto& takenSlots = m_takenSlots[d];
 
@@ -1468,6 +1472,7 @@ void MultitaskingEffect::selectNextWindow()
             break;
         }
     }
+    */
 }
 
 void MultitaskingEffect::selectFirstWindow()
@@ -1589,7 +1594,6 @@ void MultitaskingEffect::selectWindow(EffectWindow* w)
     if (m_selectedWindow == w) {
         return;
     }
-
     qCDebug(BLUR_CAT) << "------ select window " << w;
 
     if (m_selectedWindow) {
@@ -1851,6 +1855,9 @@ void MultitaskingEffect::setActive(bool active)
 
     m_multitaskingViewVisible = active;
     if (m_multitaskingViewVisible) {
+        if (m_targetDesktop != effects->currentDesktop()) {
+            m_targetDesktop = effects->currentDesktop();
+        }
         const int desktopCount = m_thumbManager->desktopCount();
         for (int d = 1; d <= desktopCount; ++d) {
             for (int screen = 0; screen < effects->numScreens(); ++screen) {
@@ -1888,6 +1895,7 @@ void MultitaskingEffect::setActive(bool active)
         effects->startMouseInterception(this, Qt::PointingHandCursor);
 
         auto root = m_multitaskingView->rootObject();
+        root->setAcceptHoverEvents(true);
         connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)), 
                 m_thumbManager, SIGNAL(requestMove2Desktop(int, int, QVariant)));
         connect(root, SIGNAL(qmlCloseMultitask()), this, SLOT(toggleActive()));
@@ -1899,6 +1907,8 @@ void MultitaskingEffect::setActive(bool active)
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
     }
+    
+    
     m_multitaskingView->setVisible(m_multitaskingViewVisible);
 
     EffectWindowList windows = effects->stackingOrder();
@@ -1931,9 +1941,15 @@ void MultitaskingEffect::setActive(bool active)
         calculateWindowTransformations(wmm.managedWindows(), wmm);
         m_motionManagers.append(wmm);
 
-    //    updateDesktopWindows(i);
+        //updateDesktopWindows(i);
     }
-  
+
+    if(active_window) 
+    {
+        m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
+    }
+        
+
     /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
     return;

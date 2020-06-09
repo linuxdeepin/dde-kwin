@@ -46,6 +46,8 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    Q_PROPERTY(int currentWindowThumbnail READ currentSelectIndex WRITE setCurrentSelectIndex NOTIFY currentWindowThumbnailChanged)
+
     // Remove data:
 	Q_INVOKABLE void load(int desktopCount);
     Q_INVOKABLE void append();
@@ -74,6 +76,10 @@ public:
     Q_INVOKABLE void setCurrentSelectIndex(int index);
     Q_INVOKABLE int currentSelectIndex() const;
     Q_INVOKABLE void updateWindowDestop( int nDesktop );
+    void selectNextWindow();
+    void selectPrevWindow();
+    QList<int> getScreenDesktopByWinID(int winid);
+    bool isAllScreensEmpty();
 
 signals:
     void countChanged(int count);
@@ -84,6 +90,7 @@ signals:
     void move2Desktop(QVariant, int);
     void switchDesktop(int from, int to);
     void refreshWindows();
+    void currentWindowThumbnailChanged();
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;

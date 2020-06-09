@@ -541,8 +541,10 @@ Rectangle {
 
                     Repeater {
                         id: windowThumbnail;
+                        //model: $Model.windows(currentScreen)
                         PlasmaCore.WindowThumbnail {
                             id:windowThumbnailitem
+                            property bool isHightlighted: winId == $Model.currentWindowThumbnail
                             Layout.fillWidth: true;
                             Layout.fillHeight: true;
                             winId: modelData;
@@ -607,6 +609,14 @@ Rectangle {
                                     onClicked: {
                                         $Model.removeClient(currentScreen,$Model.currentIndex()+1,index);
                                     }
+                                }
+                            }
+                            states: State {
+                                name: "isHightlighted"
+                                when: isHightlighted
+                                PropertyChanges {
+                                    target: windowThumbnailitem
+                                    scale: 1.2
                                 }
                             }
                         }
