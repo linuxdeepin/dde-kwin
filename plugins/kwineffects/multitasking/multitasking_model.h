@@ -84,6 +84,8 @@ public:
     bool isAllScreensEmpty();
     Q_INVOKABLE void windowSelected( QVariant winId );
     Q_INVOKABLE QPixmap getWindowIcon( QVariant winId );
+    bool isCurrentScreensEmpty();
+    void selectNextWindowVert(int dir);
 
 signals:
     void countChanged(int count);
@@ -102,10 +104,10 @@ protected: // interface QAbstractListModel
 
 private:
     QList<DesktopThumbnailItem> m_desktopThumbnailItemList;
-	//QMap<screen, QMap<desktop, window>;
-	QMap<int, QMap<int, QVariantList> > m_windows;
-	int m_currentIndex;
-    int m_nCurrentSelectIndex;
+    //QMap<screen, QMap<desktop, window>;
+    QMap<int, QMap<int, QVariantList> > m_windows;
+    int m_currentIndex; // is Current Desktop Id - 1
+    int m_nCurrentSelectIndex; // is Current Window Id
 };
 
 #endif // DATAMODEL_H

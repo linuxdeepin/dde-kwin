@@ -1559,7 +1559,8 @@ void MultitaskingEffect::selectLastWindow()
 
 void MultitaskingEffect::selectNextWindowVert(int dir)
 {
-    int d = effects->currentDesktop();
+    m_multitaskingModel->selectNextWindowVert(dir);
+    /*int d = effects->currentDesktop();
     const auto& takenSlots = m_takenSlots[d];
 
     auto current = m_selectedWindow;
@@ -1589,6 +1590,7 @@ void MultitaskingEffect::selectNextWindowVert(int dir)
             break;
         }
     }
+    */
 }
 
 
