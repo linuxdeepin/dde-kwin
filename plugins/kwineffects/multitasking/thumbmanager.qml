@@ -288,7 +288,7 @@ Rectangle {
                         property var originParent: view
 
                         z: 1
-                        keys: ['workspaceThumb','DraggingWindowAvatar']  //  zhd change for drop a window
+                        keys: ['workspaceThumb','DraggingWindowAvatar','DragwindowThumbnailitemdata']  //  zhd change for drop a window
 
 
                         onDropped: {
@@ -316,9 +316,9 @@ Rectangle {
                                     log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
-                            if(drop.keys[0]==="DraggingWindowAvatar"){  //zhd add
+                            if(drop.keys[0]==="DraggingWindowAvatar" || drop.keys[0]==="DragwindowThumbnailitemdata"){  //zhd add
 
-                                //console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
+                                console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
                                 grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
                                 grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
@@ -330,9 +330,9 @@ Rectangle {
 
                         onEntered: {
                             if (drag.keys[0] === 'workspaceThumb') {
-                                log('------[workspaceThumbDrop]: Enter ' + workspaceThumbDrop.designated + ' from ' + drag.source
-                                    + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
+                             
                             }
+                            //console.log('------[workspaceThumbDrop]: Enter ' + workspaceThumbDrop.designated + ' from ' + drag.source + ', keys: ' + drag.keys + ', accept: ' + drag.accepted)
                         }
 
                         onExited: {
@@ -405,6 +405,7 @@ Rectangle {
                     grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
                     //default value 1
                     windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                    bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                 }
 
 
@@ -416,6 +417,8 @@ Rectangle {
                         grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
                         grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
                         windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
+
+                        bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                     }
                 }
             }
@@ -506,6 +509,7 @@ Rectangle {
                 DropArea {
                     anchors.fill: plus;
                     onEntered: console.log("entered")
+                    keys:['needgivemeakey']   //????
                     onDropped: {
                         var winId = drag.source.winId;
                         $Model.append();
@@ -530,7 +534,8 @@ Rectangle {
                 property int curdesktop:1
                 z:1
 
-                DropArea {  //add for receive window thrumbnail
+                //zhd add for receive window thrumbnail
+                DropArea { 
                     id: workspaceThumbnailDropArea
                     anchors.fill: parent
                     keys: ['DraggingWindowAvatar']
@@ -559,6 +564,7 @@ Rectangle {
 
                     }
                 }
+                //zhd add end
 
                 MouseArea {
                     anchors.fill: parent
@@ -573,6 +579,8 @@ Rectangle {
                     anchors.centerIn: parent;
                     columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
+
+
                     Repeater {
                         id: windowThumbnail;
                         //model: $Model.windows(currentScreen)
@@ -581,12 +589,18 @@ Rectangle {
                             property bool isHightlighted: winId == $Model.currentWindowThumbnail
                             Layout.fillWidth: true;
                             Layout.fillHeight: true;
+
+                            
                             winId: modelData;
+                            property var draggingdata: winId
+                            
+
+
                             Drag.keys:["DragwindowThumbnailitemdata"];
                             Drag.active: windowThumbnailitemMousearea.drag.active
                             Drag.hotSpot {
-                                x:width/2
-                                y:height/2
+                                x:0
+                                y:0
                             }
 
                             Rectangle {
@@ -603,27 +617,53 @@ Rectangle {
                                 anchors.fill: parent
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
+                                property variant mouseDragStart:"1,1"
+
 
                                 onEntered: {
                                     $Model.setCurrentSelectIndex(modelData);
+                                    closeClientBtn.visible = true;
                                 }
-
+                              
                                 onClicked: {
                                     $Model.setCurrentSelectIndex(modelData);
                                     $Model.windowSelected( modelData );
                                 }
+                                 onExited: {
+                                     closeClientBtn.visible = false;
+                                 }
+                                onPressed:{
+                                    mouseDragStart.x=mouse.x;
+                                    mouseDragStart.y=mouse.y;
+
+                                }
+
+                                
+
                                 drag.target:windowThumbnailitem
                                 drag.smoothed :true
-
-                                onPressed: {
-                                    windowThumbnailitem.Drag.hotSpot.x = mouse.x;
-                                    windowThumbnailitem.Drag.hotSpot.y = mouse.y;
-                                }
+                                
+                              
 
                                 drag.onActiveChanged: {
                                     if (!windowThumbnailitemMousearea.drag.active) {
                                         console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
                                         windowThumbnailitem.Drag.drop();
+                                    }else{
+                                        
+                                         //windowThumbnailitemMousearea.x=windowThumbnailitem.x
+                                         //windowThumbnailitemMousearea.y=windowThumbnailitem.y
+                                        //scale windowThumbnailitem  to mouse pos , how ??
+                                         //var positionInRoot = mapToItem(root, mouseDragStart.x, mouseDragStart.y)
+                                         //console.log("For root: " + positionInRoot )
+
+                                         windowThumbnailitem.x+=mouseDragStart.x   
+                                         windowThumbnailitem.y+=mouseDragStart.y
+
+                                       ///  
+                                        console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
+                                        
+
                                     }
                                 }
                                 states: State {
@@ -635,11 +675,21 @@ Rectangle {
                                     PropertyChanges {
                                         target: windowThumbnailitem;
                                         z: 100;
+                                        width:120
+                                        height:80
                                     }
+                                    AnchorChanges{
+                                        target: windowThumbnailitem;
+
+                                        Layout.fillWidth: false
+                                        Layout.fillHeight:false
+                                    }
+                                   
                                 }
                             }
                             Rectangle {
                                 id: closeClientBtn;
+                                visible:false;
                                 anchors.right: parent.right;
                                 width: closeClientBtnIcon.width;
                                 height: closeClientBtnIcon.height;
