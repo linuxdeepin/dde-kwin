@@ -123,7 +123,7 @@ Rectangle {
             y:20
             width: screenWidth;
             height: parent.height;
-            color: "transparent"
+            color:  "transparent"
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
@@ -317,11 +317,7 @@ Rectangle {
 
                                 console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
-                                grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                                grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                                grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                                grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                                windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                                setGridviewData();
                             }
                         }
 
@@ -395,13 +391,7 @@ Rectangle {
                 onCountChanged: {
                     view.width = manager.thumbSize.width * count;
                     view.x = (parent.width - view.width) / 2;
-                    plus.visible = count < 4;
-                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                    grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                    grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                    //default value 1
-                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                    setGridviewData();
                     bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                 }
 
@@ -409,11 +399,7 @@ Rectangle {
                 Connections {
                     target: $Model;
                     onCurrentIndexChanged: {
-                        grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                        grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                        grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                        grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                        windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
+                        setGridviewData();
                         bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                     }
                 }
@@ -523,9 +509,9 @@ Rectangle {
             Rectangle{
                 id: bigWindowThrumbContainer
                 x: 0
-                y: view.y + view.height;
-                width: screenWidth  //  other area except grid  can receove
-                height: screenHeight - view.height-35;
+                y: screenHeight/5;
+                width: screenWidth;  //  other area except grid  can receove
+                height: screenHeight*4/5-50;
                 color:"transparent"
 
                 property int curdesktop:1
@@ -547,11 +533,7 @@ Rectangle {
                             console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
 
-                            grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                            grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                            grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                            grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                            windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                            setGridviewData();
                         }
 
                     }
@@ -569,169 +551,186 @@ Rectangle {
                        qmlCloseMultitask();
                     }
                 }
-                GridLayout {
-                    id:grid
-                    width: screenWidth*5/7;
-                    height: screenHeight - view.height-35;
-                    anchors.centerIn: parent;
-                    columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                Rectangle {
+                    x: screenWidth/7
+                    y: 0;
+                    width: screenWidth*5/7;  //  other area except grid  can receove
+                    height: screenHeight*4/5-50;
+                    color:"transparent"
+                    Grid {
+                        id:grid
+                        anchors.fill: parent
+                        anchors.centerIn: parent
+                        columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
 
-
-                    Repeater {
-                        id: windowThumbnail;
-                        //model: $Model.windows(currentScreen)
-                        PlasmaCore.WindowThumbnail {
-                            id:windowThumbnailitem
-                            property bool isHightlighted: winId == $Model.currentWindowThumbnail
-                            Layout.fillWidth: true;
-                            Layout.fillHeight: true;
-
-                            
-                            winId: modelData;
-                            property var draggingdata: winId
-                            
-
-
-                            Drag.keys:["DragwindowThumbnailitemdata"];
-                            Drag.active: windowThumbnailitemMousearea.drag.active
-                            Drag.hotSpot {
-                                x:0
-                                y:0
-                            }
-
-                            Rectangle {
-                                id:backgroundrect;
-                                width: parent.width;
-                                height: parent.height;
-                                border.color: "lightgray";
-                                border.width: 0;
-                                color: "transparent";
-                            }
-
-                            MouseArea {
-                                id:windowThumbnailitemMousearea
-                                anchors.fill: parent
-                                acceptedButtons: Qt.LeftButton| Qt.RightButton;
-                                hoverEnabled: true;
-                                property variant mouseDragStart:"1,1"
-
-
-                                onEntered: {
-                                    $Model.setCurrentSelectIndex(modelData);
-                                    closeClientBtn.visible = true;
-                                }
-                              
-                                onClicked: {
-                                    $Model.setCurrentSelectIndex(modelData);
-                                    $Model.windowSelected( modelData );
-                                }
-                                 onExited: {
-                                     closeClientBtn.visible = false;
-                                 }
-                                onPressed:{
-                                    mouseDragStart.x=mouse.x;
-                                    mouseDragStart.y=mouse.y;
-
+                        Repeater {
+                            id: windowThumbnail;
+                            //model: $Model.windows(currentScreen)
+                            PlasmaCore.WindowThumbnail {
+                                id:windowThumbnailitem
+                                property bool isHightlighted: winId == $Model.currentWindowThumbnail
+                                winId: modelData;
+                                property var draggingdata: winId
+                                width: (screenWidth*5/7/grid.columns)*4/5;
+                                height:width*($Model.getWindowHeight(winId)/$Model.getWindowWidth(winId));
+                                //Layout.fillWidth: true
+                                Drag.keys:["DragwindowThumbnailitemdata"];
+                                Drag.active: windowThumbnailitemMousearea.drag.active
+                                Drag.hotSpot {
+                                    x:0
+                                    y:0
                                 }
 
-                                
+                                Rectangle {
+                                    id:backgroundrect;
+                                    width: parent.width;
+                                    height: parent.height;
+                                    border.color: "lightgray";
+                                    border.width: 0;
+                                    color: "transparent";
+                                }
 
-                                drag.target:windowThumbnailitem
-                                drag.smoothed :true
-                                
-                              
+                                MouseArea {
+                                    id:windowThumbnailitemMousearea
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton| Qt.RightButton;
+                                    hoverEnabled: true;
+                                    property variant mouseDragStart:"1,1"
 
-                                drag.onActiveChanged: {
-                                    if (!windowThumbnailitemMousearea.drag.active) {
-                                        console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
-                                        windowThumbnailitem.Drag.drop();
-                                    }else{
-                                        
-                                         //windowThumbnailitemMousearea.x=windowThumbnailitem.x
-                                         //windowThumbnailitemMousearea.y=windowThumbnailitem.y
-                                        //scale windowThumbnailitem  to mouse pos , how ??
-                                         //var positionInRoot = mapToItem(root, mouseDragStart.x, mouseDragStart.y)
-                                         //console.log("For root: " + positionInRoot )
 
-                                         windowThumbnailitem.x+=mouseDragStart.x   
-                                         windowThumbnailitem.y+=mouseDragStart.y
+                                    onEntered: {
+                                        $Model.setCurrentSelectIndex(modelData);
+                                        closeClientBtn.visible = true;
+                                    }
 
-                                       ///  
-                                        console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
-                                        
+                                    onClicked: {
+                                        $Model.setCurrentSelectIndex(modelData);
+                                        $Model.windowSelected( modelData );
+                                    }
+                                    onExited: {
+                                        closeClientBtn.visible = false;
+                                    }
+                                    onPressed:{
+                                        mouseDragStart.x=mouse.x;
+                                        mouseDragStart.y=mouse.y;
+
+                                    }
+
+
+
+                                    drag.target:windowThumbnailitem
+                                    drag.smoothed :true
+
+
+
+                                    drag.onActiveChanged: {
+                                        if (!windowThumbnailitemMousearea.drag.active) {
+                                            console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
+                                            windowThumbnailitem.Drag.drop();
+                                        }else{
+
+                                            //windowThumbnailitemMousearea.x=windowThumbnailitem.x
+                                            //windowThumbnailitemMousearea.y=windowThumbnailitem.y
+                                            //scale windowThumbnailitem  to mouse pos , how ??
+                                            //var positionInRoot = mapToItem(root, mouseDragStart.x, mouseDragStart.y)
+                                            //console.log("For root: " + positionInRoot )
+
+                                            windowThumbnailitem.x+=mouseDragStart.x
+                                            windowThumbnailitem.y+=mouseDragStart.y
+
+                                            ///
+                                            console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
+
+
+                                        }
+                                    }
+                                    states: State {
+                                        when: windowThumbnailitemMousearea.drag.active;
+                                        ParentChange {
+                                            target: windowThumbnailitem;
+                                            parent: root;
+                                        }
+                                        PropertyChanges {
+                                            target: windowThumbnailitem;
+                                            z: 100;
+                                            width:120
+                                            height:80
+                                        }
+                                        AnchorChanges{
+                                            target: windowThumbnailitem;
+
+                                            Layout.fillWidth: false
+                                            Layout.fillHeight:false
+                                        }
 
                                     }
                                 }
+                                Rectangle {
+                                    id: closeClientBtn;
+                                    visible:false;
+                                    anchors.right: parent.right;
+                                    width: closeClientBtnIcon.width;
+                                    height: closeClientBtnIcon.height;
+                                    color: "transparent";
+                                    Image {
+                                        id: closeClientBtnIcon;
+                                        source: "qrc:///icons/data/close_normal.svg"
+                                    }
+                                    MouseArea {
+                                        anchors.fill: closeClientBtn;
+                                        onClicked: {
+                                            $Model.removeClient(currentScreen,$Model.currentIndex()+1,index);
+                                        }
+                                    }
+                                }
+
                                 states: State {
-                                    when: windowThumbnailitemMousearea.drag.active;
-                                    ParentChange {
-                                        target: windowThumbnailitem;
-                                        parent: root;
+                                    name: "isHightlighted"
+                                    when: isHightlighted
+                                    PropertyChanges {
+                                        target: windowThumbnailitem
+                                        scale: 1.2
                                     }
                                     PropertyChanges {
-                                        target: windowThumbnailitem;
-                                        z: 100;
-                                        width:120
-                                        height:80
-                                    }
-                                    AnchorChanges{
-                                        target: windowThumbnailitem;
-
-                                        Layout.fillWidth: false
-                                        Layout.fillHeight:false
-                                    }
-                                   
-                                }
-                            }
-                            Rectangle {
-                                id: closeClientBtn;
-                                visible:false;
-                                anchors.right: parent.right;
-                                width: closeClientBtnIcon.width;
-                                height: closeClientBtnIcon.height;
-                                color: "transparent";
-                                Image {
-                                    id: closeClientBtnIcon;
-                                    source: "qrc:///icons/data/close_normal.svg"
-                                }
-                                MouseArea {
-                                    anchors.fill: closeClientBtn;
-                                    onClicked: {
-                                        $Model.removeClient(currentScreen,$Model.currentIndex()+1,index);
+                                        target: backgroundrect
+                                        border.width: 5;
                                     }
                                 }
-                            }
 
-                            states: State {
-                                name: "isHightlighted"
-                                when: isHightlighted
-                                PropertyChanges {
-                                    target: windowThumbnailitem
-                                    scale: 1.2
-                                }
-                                PropertyChanges {
-                                    target: backgroundrect
-                                    border.width: 5;
-                                }
-                            }
-
-                            Rectangle {
-                                id: clientIcon;
-                                x:windowThumbnailitem.width/2 -  clientIconImage.width/2;
-                                y:windowThumbnailitem.height - clientIconImage.height;
-                                width: clientIconImage.width;
-                                height: clientIconImage.height;
-                                color: "transparent";
-                                Image {
-                                    id: clientIconImage;
-                                    source: "image://imageProvider/" + modelData ;
+                                Rectangle {
+                                    id: clientIcon;
+                                    x:windowThumbnailitem.width/2 -  clientIconImage.width/2;
+                                    y:windowThumbnailitem.height - clientIconImage.height;
+                                    width: clientIconImage.width;
+                                    height: clientIconImage.height;
+                                    color: "transparent";
+                                    Image {
+                                        id: clientIconImage;
+                                        source: "image://imageProvider/" + modelData ;
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            function setGridviewData() {
+                grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                if ($Model.getDesktopClientCount(currentScreen,$Model.currentIndex()+1) === 1) {
+                   grid.rowSpacing = 100;
+                   grid.columnSpacing =100;
+                }else{
+                   grid.rowSpacing = bigWindowThrumbContainer.height/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                   grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
+                }
+                for(var i=0;i<windowThumbnail.count;i++) {
+                    windowThumbnail.itemAt(i).width = (screenWidth*5/7/grid.columns)*4/5
+                    windowThumbnail.itemAt(i).height = windowThumbnail.itemAt(i).width*($Model.getWindowHeight(windowThumbnail.itemAt(i).winId)/$Model.getWindowWidth(windowThumbnail.itemAt(i).winId));
+                }
+                windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+               }
         }
     }
 

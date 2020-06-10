@@ -61,7 +61,8 @@ public:
         return m_desktopThumbnailItemList;
     }
 	
-
+    Q_INVOKABLE int getWindowHeight(QVariant winId);
+    Q_INVOKABLE int getWindowWidth(QVariant winId);
     Q_INVOKABLE void addWindow(int screen, int desktop, const QVariant &winId);
     Q_INVOKABLE void removeWindow(int screen, int desktop, const QVariant &winId);
     Q_INVOKABLE void setWindows(int screen, int desktop, const QVariantList &windows);

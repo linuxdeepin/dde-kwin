@@ -381,3 +381,17 @@ bool MultitaskingModel::isCurrentScreensEmpty()
     }
     return isEmpty;
 }
+
+int MultitaskingModel::getWindowHeight(QVariant winId)
+{
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    //qDebug() << "----------------------height" <<ew->height() <<endl;;
+    return ew->height();
+}
+
+int MultitaskingModel::getWindowWidth(QVariant winId)
+{
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    //qDebug() << "----------------------width" <<ew->width() <<endl;
+    return ew->width();
+}
