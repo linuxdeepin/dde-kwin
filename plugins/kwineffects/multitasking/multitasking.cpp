@@ -1178,7 +1178,8 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
         if (e->isAutoRepeat()) return;
         switch (e->key()) {
             case Qt::Key_Escape:
-                if (isActive()) toggleActive();
+//                if (isActive()) toggleActive();
+                setActive(false);
                 break;
 
             case Qt::Key_Enter:
