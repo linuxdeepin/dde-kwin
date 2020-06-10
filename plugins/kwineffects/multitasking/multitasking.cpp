@@ -1163,11 +1163,10 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
         // check for global shortcuts
         // HACK: keyboard grab disables the global shortcuts so we have to check for global shortcut (bug 156155)
         if (shortcut.contains(e->key() + e->modifiers())) {
-            m_multitaskingModel->setCurrentSelectIndex( 0 );
             toggleActive();
             return;
         }
-
+//        m_multitaskingModel->setCurrentIndex(0);
         m_pEffectWindow = effects->activeWindow();
         //if (!isActive()) return;
 
@@ -1189,7 +1188,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Right:  // include super+->
                 if (e->modifiers() == Qt::MetaModifier) {
-                    if (m_multitaskingModel->currentIndex()+1 < 4) {
+                    if (m_multitaskingModel->currentIndex()+1 < m_multitaskingModel->rowCount()) {
                         m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()+1);
                     } else {
                         m_multitaskingModel->setCurrentIndex(0);

@@ -48,7 +48,7 @@ public:
 
     Q_PROPERTY(int currentWindowThumbnail READ currentSelectIndex WRITE setCurrentSelectIndex NOTIFY currentWindowThumbnailChanged)
 
-//    Q_PROPERTY(int currentDeskIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentDesktopChanged)
+    Q_PROPERTY(int currentDeskIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
 
     // Remove data:
 	Q_INVOKABLE void load(int desktopCount);
@@ -98,6 +98,7 @@ signals:
     void refreshWindows();
     void currentWindowThumbnailChanged();
     void windowSelectedSignal( QVariant winId );
+    void currentDesktopIndexChanged();
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;

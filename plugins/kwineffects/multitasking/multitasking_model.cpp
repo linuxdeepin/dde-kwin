@@ -367,6 +367,7 @@ QPixmap MultitaskingModel::getWindowIcon( QVariant winId )
     return pixmap;
 
 }
+
 bool MultitaskingModel::isCurrentScreensEmpty()
 {
     bool isEmpty = true;

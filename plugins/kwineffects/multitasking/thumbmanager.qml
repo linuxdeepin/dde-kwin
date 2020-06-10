@@ -144,14 +144,13 @@ Rectangle {
                     width: manager.thumbSize.width*9/10;
                     height: manager.thumbSize.height;
                     color: "transparent"
-
+                    property bool isDesktopHightlighted: index === $Model.currentDeskIndex
                     DesktopThumbnail {
                         id: desktopThumbnail;
                         desktop: index + 1;
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
-                        //property bool isDesktopHightlighted: desktop === $Model.currentDeskIndex + 1
-//                        onIsDesktopHightlightedChanged: console.log( desktop,$Model.currentDeskIndex )
+
                         property var originParent: view
 
 
@@ -164,7 +163,6 @@ Rectangle {
 
                             onClicked: {
                                 $Model.setCurrentIndex(index);
-                                view.currentIndex = index
                             }
 
                             drag.target: desktopThumbnail;
@@ -218,15 +216,15 @@ Rectangle {
                                     anchors.horizontalCenter: undefined
                                     anchors.verticalCenter: undefined
                                 }
-                            }/*,
+                            },
                             State {
                                 name: "isDesktopHightlighted"
                                 when: isDesktopHightlighted
                                 PropertyChanges {
                                     target: winThumrect
-                                    border.width: 5;
+                                    border.width: 3;
                                 }
-                            }*/]
+                            }]
 
 
                         //window thumbnail
@@ -270,15 +268,14 @@ Rectangle {
                             }
                         }
 
-//                        Rectangle {
-//                            id:winThumrect;
-//                            width: parent.width;
-//                            height: parent.height;
-//                            border.color: "lightskyblue";
-//                            //border.width: 0;
-//                            border.width: view.currentIndex == index;
-//                            color: "transparent";
-//                        }
+                        Rectangle {
+                            id:winThumrect;
+                            width: parent.width;
+                            height: parent.height;
+                            border.color: "lightskyblue";
+                            border.width: 0;
+                            color: "transparent";
+                        }
                     }
 
                     DropArea {
@@ -417,10 +414,10 @@ Rectangle {
                         grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
                         grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
                         windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
-
                         bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                     }
                 }
+
             }
 
             Rectangle {
@@ -737,6 +734,7 @@ Rectangle {
             }
         }
     }
+
     Component.onCompleted: {
         for (var i = 0; i < $Model.numScreens(); ++i) {
             var geom = $Model.screenGeometry(i);
