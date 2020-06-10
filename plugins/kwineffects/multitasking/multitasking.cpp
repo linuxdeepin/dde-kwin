@@ -429,32 +429,44 @@ void MultitaskingEffect::onWindowAdded(KWin::EffectWindow* w)
 
 void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
 {
-    if (!m_activated && m_toggleTimeline.currentValue() == 0)
+    if (!m_multitaskingViewVisible)
         return;
 
-    qCDebug(BLUR_CAT) << __func__;
-
-    if (w == m_movingWindow) {
-        m_movingWindow = nullptr;
-        m_isWindowMoving = false;
-        effects->defineCursor(Qt::PointingHandCursor);
+    refreshWindows();
+    m_multitaskingModel->setCurrentSelectIndex(-1);
+    if(m_multitaskingModel->isCurrentScreensEmpty()) 
+    {
+        m_multitaskingModel->setCurrentSelectIndex(-1);
     }
 
-    if (w == m_highlightWindow) {
-        updateHighlightWindow(nullptr);
-    }
+    emit modeChanged();
 
-    if (w == m_closingdWindow) {
-        m_closingdWindow = nullptr;
-    }
+    // if (!m_activated && m_toggleTimeline.currentValue() == 0)
+    //     return;
 
-    foreach (const int i, desktopList(w)) {
-        WindowMotionManager& wmm = m_motionManagers[i-1];
-        wmm.unmanage(w);
-        calculateWindowTransformations(wmm.managedWindows(), wmm);
-        updateDesktopWindows(i);
-    }
-    effects->addRepaintFull();
+    // qCDebug(BLUR_CAT) << __func__;
+
+    // if (w == m_movingWindow) {
+    //     m_movingWindow = nullptr;
+    //     m_isWindowMoving = false;
+    //     effects->defineCursor(Qt::PointingHandCursor);
+    // }
+
+    // if (w == m_highlightWindow) {
+    //     updateHighlightWindow(nullptr);
+    // }
+
+    // if (w == m_closingdWindow) {
+    //     m_closingdWindow = nullptr;
+    // }
+
+    // foreach (const int i, desktopList(w)) {
+    //     WindowMotionManager& wmm = m_motionManagers[i-1];
+    //     wmm.unmanage(w);
+    //     calculateWindowTransformations(wmm.managedWindows(), wmm);
+    //     updateDesktopWindows(i);
+    // }
+    // effects->addRepaintFull();
 }
 
 void MultitaskingEffect::onWindowDeleted(KWin::EffectWindow* w)
@@ -1900,6 +1912,7 @@ void MultitaskingEffect::setActive(bool active)
         connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
 //zhd add end 
 
+        connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, int, QVariant)));  
     } else {
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
@@ -2469,4 +2482,12 @@ void MultitaskingEffect::windowSelectSlot( QVariant winid )
         effects->activateWindow( ew );
     }
 
+}
+
+void MultitaskingEffect::removeEffectWindow(int screen, int desktop, int index, QVariant winid)
+{
+    if(!m_multitaskingModel) 
+        return;
+    auto* ew = effects->findWindow(winid.toULongLong());
+    ew->closeWindow();
 }

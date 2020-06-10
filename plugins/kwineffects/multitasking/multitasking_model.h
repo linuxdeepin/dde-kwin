@@ -70,7 +70,7 @@ public:
     Q_INVOKABLE int getCalculateRowCount(int screen, int desktop);
     Q_INVOKABLE int getCalculateColumnsCount(int screen, int desktop);
     Q_INVOKABLE int getDesktopClientCount(int screen, int desktop);
-    Q_INVOKABLE void removeClient(int screen, int desktop, int index);
+    
     Q_INVOKABLE int numScreens() const;
     Q_INVOKABLE QRect screenGeometry(int screen) const;
     Q_INVOKABLE void setCurrentIndex(int index);
@@ -87,6 +87,9 @@ public:
     Q_INVOKABLE QPixmap getWindowIcon( QVariant winId );
     bool isCurrentScreensEmpty();
     void selectNextWindowVert(int dir);
+    int getNextWindowID();
+    int getPrevWindowID();
+    
 
 signals:
     void countChanged(int count);

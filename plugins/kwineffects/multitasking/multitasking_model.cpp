@@ -113,18 +113,6 @@ int MultitaskingModel::getDesktopClientCount(int screen, int desktop)
     return m_windows[screen][desktop].size();
 }
 
-void MultitaskingModel::removeClient(int screen, int desktop, int index)
-{
-    selectNextWindow();
-    auto* ew = effects->findWindow(m_windows[screen][desktop].at(index).toULongLong());
-    ew->closeWindow();
-    m_windows[screen][desktop].removeAt(index);
-    if(isCurrentScreensEmpty()) 
-    {
-        m_nCurrentSelectIndex = -1;
-    }
-    emit currentIndexChanged(m_currentIndex);
-}
 
 int MultitaskingModel::numScreens() const
 {
@@ -219,8 +207,8 @@ void MultitaskingModel::move(int from, int to)
 
 void MultitaskingModel::setCurrentSelectIndex(int index)
 {
-   m_nCurrentSelectIndex = index;
-   emit currentWindowThumbnailChanged();
+    m_nCurrentSelectIndex = index;
+    emit currentWindowThumbnailChanged();
 }
 
 int MultitaskingModel::currentSelectIndex() const
@@ -255,62 +243,15 @@ QList<int> MultitaskingModel::getScreenDesktopByWinID(int winid)
 }
 void MultitaskingModel::selectNextWindow()
 {
-
     if(m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
-    
-    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
-    
-    int scrn = sd.at(0);
-    int desk = sd.at(1);
-
-    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
-    if(winindex == m_windows[scrn][desk].size() - 1) // at the end of current screen win list
-    {
-        if(scrn == effects->numScreens() - 1)  // at the last screen
-        {
-            if(m_windows[0][desk].size() == 0) // if first screen has no winthumb
-                m_nCurrentSelectIndex = m_windows[scrn][desk].first().toInt();
-            else
-                m_nCurrentSelectIndex = m_windows[0][desk].first().toInt();
-        }
-        else
-            if(m_windows[scrn+1][desk].size() == 0) // if next screen has no winthumb
-                m_nCurrentSelectIndex = m_windows[scrn][desk].first().toInt();
-            else
-                m_nCurrentSelectIndex = m_windows[scrn+1][desk].first().toInt();
-    }
-    else
-        m_nCurrentSelectIndex = m_windows[scrn][desk][winindex+1].toInt();
-    emit currentWindowThumbnailChanged();
+    int winid = getNextWindowID();
+    setCurrentSelectIndex(winid);
 }
 void MultitaskingModel::selectPrevWindow()
-{
+{    
     if(m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
-    
-    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
-
-    int scrn = sd.at(0);
-    int desk = sd.at(1);
-
-    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
-    
-    if(winindex == 0) // at the first of current screen win list
-    {
-        if(scrn == 0)  // at the first screen 
-        {
-            if(m_windows[numScreens()-1][desk].size() == 0) // if end screen has no winthumb
-                setCurrentSelectIndex(m_windows[scrn][desk].last().toInt());
-            else
-                setCurrentSelectIndex(m_windows[numScreens()-1][desk].last().toInt());
-        }
-        else
-            if(m_windows[scrn-1][desk].size() == 0) // if previous screen has no winthumb
-                setCurrentSelectIndex(m_windows[scrn][desk].last().toInt());
-            else
-                setCurrentSelectIndex(m_windows[scrn-1][desk].last().toInt());
-    }
-    else
-        setCurrentSelectIndex(m_windows[scrn][desk][winindex-1].toInt());
+    int winid = getPrevWindowID();
+    setCurrentSelectIndex(winid);
 }
 void MultitaskingModel::selectNextWindowVert(int dir)
 {
@@ -334,6 +275,64 @@ void MultitaskingModel::selectNextWindowVert(int dir)
     if(dir == -1 && toIndex >= 0)
         setCurrentSelectIndex(winlist[toIndex].toInt());
 }
+
+int MultitaskingModel::getNextWindowID()
+{
+
+    
+    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
+    
+    int scrn = sd.at(0);
+    int desk = sd.at(1);
+
+    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    if(winindex == m_windows[scrn][desk].size() - 1) // at the end of current screen win list
+    {
+        if(scrn == effects->numScreens() - 1)  // at the last screen
+        {
+            if(m_windows[0][desk].size() == 0) // if first screen has no winthumb
+                return m_windows[scrn][desk].first().toInt();
+            else
+                return m_windows[0][desk].first().toInt();
+        }
+        else
+            if(m_windows[scrn+1][desk].size() == 0) // if next screen has no winthumb
+                return m_windows[scrn][desk].first().toInt();
+            else
+                return m_windows[scrn+1][desk].first().toInt();
+    }
+    else
+        return m_windows[scrn][desk][winindex+1].toInt();
+}
+
+int MultitaskingModel::getPrevWindowID()
+{
+    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
+
+    int scrn = sd.at(0);
+    int desk = sd.at(1);
+
+    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    
+    if(winindex == 0) // at the first of current screen win list
+    {
+        if(scrn == 0)  // at the first screen 
+        {
+            if(m_windows[numScreens()-1][desk].size() == 0) // if end screen has no winthumb
+                return m_windows[scrn][desk].last().toInt();
+            else
+                return m_windows[numScreens()-1][desk].last().toInt();
+        }
+        else
+            if(m_windows[scrn-1][desk].size() == 0) // if previous screen has no winthumb
+                return m_windows[scrn][desk].last().toInt();
+            else
+                return m_windows[scrn-1][desk].last().toInt();
+    }
+    else
+        return m_windows[scrn][desk][winindex-1].toInt();
+}
+
 bool MultitaskingModel::isAllScreensEmpty()
 {
     bool isEmpty = true;

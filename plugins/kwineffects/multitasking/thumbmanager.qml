@@ -37,6 +37,8 @@ Rectangle {
     signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
     signal resetModel();
     signal qmlCloseMultitask();
+    signal qmlRemoveWindowThumbnail(int screen, int desktop, int index, var winId);
+
     Component {
         id: windowThumbnailView;
         Rectangle {
@@ -112,7 +114,7 @@ Rectangle {
                         windowThumbnailViewGrid.columns = $Model.getCalculateColumnsCount(screen,desktop);
                         windowThumbnailRepeater.model = $Model.windows(screen, desktop);
                         windowThumbnailRepeater.update();
-                        console.log(" model is changed !!!!!!!!!!")
+                        //console.log(" model is changed !!!!!!!!!!")
                     }
                 }
             }
@@ -147,13 +149,13 @@ Rectangle {
                     height: manager.thumbSize.height;
                     color: "transparent"
 
+                    property bool isDesktopHightlighted: index === $Model.currentDeskIndex
+
                     DesktopThumbnail {
                         id: desktopThumbnail;
                         desktop: index + 1;
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
-                        //property bool isDesktopHightlighted: desktop === $Model.currentDeskIndex + 1
-//                        onIsDesktopHightlightedChanged: console.log( desktop,$Model.currentDeskIndex )
                         property var originParent: view
 
 
@@ -166,7 +168,6 @@ Rectangle {
 
                             onClicked: {
                                 $Model.setCurrentIndex(index);
-                                view.currentIndex = index
                             }
 
                             drag.target: desktopThumbnail;
@@ -220,15 +221,15 @@ Rectangle {
                                     anchors.horizontalCenter: undefined
                                     anchors.verticalCenter: undefined
                                 }
-                            }/*,
+                            },
                             State {
                                 name: "isDesktopHightlighted"
                                 when: isDesktopHightlighted
                                 PropertyChanges {
                                     target: winThumrect
-                                    border.width: 5;
+                                    border.width: 3;
                                 }
-                            }*/]
+                            }]
 
 
                         //window thumbnail
@@ -272,15 +273,14 @@ Rectangle {
                             }
                         }
 
-//                        Rectangle {
-//                            id:winThumrect;
-//                            width: parent.width;
-//                            height: parent.height;
-//                            border.color: "lightskyblue";
-//                            //border.width: 0;
-//                            border.width: view.currentIndex == index;
-//                            color: "transparent";
-//                        }
+                        Rectangle {
+                            id:winThumrect;
+                            width: parent.width;
+                            height: parent.height;
+                            border.color: "lightskyblue";
+                            border.width: 0;
+                            color: "transparent";
+                        }
                     }
 
                     DropArea {
@@ -395,7 +395,6 @@ Rectangle {
                             }
                         }
                     }
-
                 }
 
                 //center
@@ -409,7 +408,8 @@ Rectangle {
                     grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
                     //default value 1
                     windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
-                    bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
+                    bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add
+                    plus.visible = (count < 4) 
                 }
 
 
@@ -583,8 +583,6 @@ Rectangle {
                     anchors.centerIn: parent;
                     columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
 
-
-
                     Repeater {
                         id: windowThumbnail;
                         //model: $Model.windows(currentScreen)
@@ -594,7 +592,6 @@ Rectangle {
                             Layout.fillWidth: true;
                             Layout.fillHeight: true;
 
-                            
                             winId: modelData;
                             property var draggingdata: winId
                             property bool  dropreceived:false
@@ -638,7 +635,7 @@ Rectangle {
                                 }
                                 onExited: {
                                      closeClientBtn.visible = false;
-                                     pressDelayTimer.running=false
+                                     //pressDelayTimer.running=false
                                 }
                                 // Timer {
                                 //     id: pressDelayTimer
@@ -718,7 +715,7 @@ Rectangle {
                                 MouseArea {
                                     anchors.fill: closeClientBtn;
                                     onClicked: {
-                                        $Model.removeClient(currentScreen,$Model.currentIndex()+1,index);
+                                        qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, index, windowThumbnailitem.winId)
                                     }
                                 }
                             }
@@ -746,10 +743,23 @@ Rectangle {
                                 Image {
                                     id: clientIconImage;
                                     source: "image://imageProvider/" + modelData ;
+                                    cache : false
                                 }
                             }
                         }
                     }
+                Connections {
+                    target: root
+                    onResetModel: {
+                        grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
+                        grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                        grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
+                        grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
+                        windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+
+                        bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1
+                    }
+                }
                 }
             }
         }
