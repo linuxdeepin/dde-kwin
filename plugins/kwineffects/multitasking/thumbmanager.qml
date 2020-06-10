@@ -393,6 +393,7 @@ Rectangle {
                     view.x = (parent.width - view.width) / 2;
                     setGridviewData();
                     bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
+                    plus.visible = (count < 4)
                 }
 
 
