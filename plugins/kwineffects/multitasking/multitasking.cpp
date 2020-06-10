@@ -541,17 +541,9 @@ QVariantList MultitaskingEffect::windowsFor(int screen, int desktop)
 
 void MultitaskingEffect::onScreenSizeChanged()
 {
-    qCDebug(BLUR_CAT) << "------- screen size changed" << effects->virtualScreenGeometry();
-    if (m_thumbManager) {
-        auto height = qRound(effects->virtualScreenSize().height() * Constants::FLOW_WORKSPACE_TOP_OFFSET_PERCENT);
-        m_thumbManager->setGeometry(0, 0, effects->virtualScreenSize().width(), height);
-        m_thumbManager->move(0, -height);
-        m_thumbManager->show();
-    }
-
-    if (isActive()) {
-        remanageAll();
-        effects->addRepaintFull();
+    if( m_multitaskingViewVisible )
+    {
+        toggleActive();
     }
 }
 
