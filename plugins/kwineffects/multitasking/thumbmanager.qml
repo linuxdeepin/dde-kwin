@@ -584,6 +584,7 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
                        qmlCloseMultitask();
+                      // console.log("click to close multimask ")
                     }
                 }
                 GridLayout {
@@ -629,9 +630,18 @@ Rectangle {
                                 anchors.fill: windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
-                                property variant mouseDragStart:"1,1"
+                                //property variant mouseDragStart:"1,1"
 
-                                property bool dropreceived : false
+                               // property bool dropreceived : false
+                                property var pressedTime;
+                                property bool mousePressWithoutDrag:false
+
+                                property int originWidth
+                                property int originHeight
+                                property int originX
+                                property int originY
+                                
+                            
 
 
                                 onEntered: {
@@ -639,10 +649,12 @@ Rectangle {
                                     closeClientBtn.visible = true;
                                 }
                               
-                                onClicked: {
-                                    $Model.setCurrentSelectIndex(modelData);
-                                    $Model.windowSelected( modelData );
-                                }
+                                //  excute on released
+                                // onClicked: {
+                                //     $Model.setCurrentSelectIndex(modelData);
+                                //     $Model.windowSelected( modelData );
+
+                                // }
                                 onExited: {
                                      closeClientBtn.visible = false;
                                      //pressDelayTimer.running=false
@@ -657,16 +669,42 @@ Rectangle {
                                 //     }
                                 // }
                                 onPressed:{
-                                    mouseDragStart.x+=mouse.x;
-                                    mouseDragStart.y+=mouse.y;
+                                    //mouseDragStart.x+=mouse.x;
+                                    //mouseDragStart.y+=mouse.y;
+                                    originWidth=windowThumbnailitem.width
+                                    originHeight=windowThumbnailitem.height
+                                    originX=windowThumbnailitem.x
+                                    originY=windowThumbnailitem.y
+
 
                                     windowThumbnailitem.width=120
                                     windowThumbnailitem.height=80
 
                                     windowThumbnailitem.x+=mouse.x
                                     windowThumbnailitem.y+=mouse.y
-                                //    pressDelayTimer.running=true
+                                    pressedTime=Date.now();
+
+
+                                  //  pressDelayTimer.running=true
                                 }
+                                onReleased:{
+                                    var curtime=Date.now();
+                                    if((curtime-pressedTime)<200){
+                                        $Model.setCurrentSelectIndex(modelData);
+                                        $Model.windowSelected( modelData );
+                                        //
+                                    }else{
+                                        if(!windowThumbnailitemMousearea.drag.active){
+                                            ////恢复现场
+                                            windowThumbnailitem.width=originWidth
+                                            windowThumbnailitem.height=originHeight
+                                            windowThumbnailitem.x=originX
+                                            windowThumbnailitem.y=originY
+                                        }
+                                    }
+                                    
+                                }
+                              
 
                                 drag.target:windowThumbnailitem
                                 drag.smoothed :true
@@ -677,17 +715,12 @@ Rectangle {
                                         console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
                                         windowThumbnailitem.Drag.drop();
 
-                                        if(!dropreceived){
-                                            //恢复现场
-                                            windowThumbnailitem.fillHeight=true
-                                            windowThumbnailitem.fillWidth=true
-
-                                        }
                                     }else{
                                         //console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
                                     }
                                 }
-                                states: State {
+                                states: [
+                                    State {
                                     when: windowThumbnailitemMousearea.drag.active;
                                     ParentChange {
                                         target: windowThumbnailitem;
@@ -709,7 +742,7 @@ Rectangle {
                                         Layout.fillHeight:false
                                     }
                                    
-                                }
+                                }]
                             }
                             Rectangle {
                                 id: closeClientBtn;
