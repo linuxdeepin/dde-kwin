@@ -508,7 +508,7 @@ Rectangle {
                 DropArea {
                     anchors.fill: plus;
                     onEntered: console.log("entered")
-                    keys:['needgivemeakey']   //????
+                    keys:['PlusButton']
                     onDropped: {
                         var winId = drag.source.winId;
                         $Model.append();
@@ -594,7 +594,7 @@ Rectangle {
                             
 
 
-                            Drag.keys:["DragwindowThumbnailitemdata"];
+                            Drag.keys:["DragwindowThumbnailitemdata", "PlusButton"];
                             Drag.active: windowThumbnailitemMousearea.drag.active
                             Drag.hotSpot {
                                 x:0
