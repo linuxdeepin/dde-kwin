@@ -5,13 +5,13 @@ function rectContains(rect1, rect2)
     rect2.right = rect2.x + rect2.width - 1;
     rect2.bottom = rect2.y + rect2.height - 1;
 
-    if (rect1.x > rect2.x)
+    if (rect1.x != rect2.x)
         return false;
-    if (rect1.y > rect2.y)
+    if (rect1.y != rect2.y)
         return false;
-    if (rect1.right < rect2.right)
+    if (rect1.right != rect2.right)
         return false;
-    if (rect1.bottom < rect2.bottom)
+    if (rect1.bottom != rect2.bottom)
         return false;
 
     return true;
@@ -25,6 +25,8 @@ function forceFullScreen(client) {
     if (!rectContains(screenGeometry, newGeometry)) {
         newGeometry.x = screenGeometry.x;
         newGeometry.y = screenGeometry.y;
+	newGeometry.width=screenGeometry.width;   //fix width
+	newGeometry.height=screenGeometry.height;  //fix height
         client.geometry = newGeometry;
     }
 }
