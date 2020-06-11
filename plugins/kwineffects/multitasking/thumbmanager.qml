@@ -75,10 +75,19 @@ Rectangle {
                             anchors.fill:parent
                             drag.target:winAvatar
                             drag.smoothed :true
+                            property var pressedTime;
+                            property var releaseTime;
 
                             onPressed: {
-                                 winAvatar.Drag.hotSpot.x = mouse.x;
-                                 winAvatar.Drag.hotSpot.y = mouse.y;
+                                winAvatar.Drag.hotSpot.x = mouse.x;
+                                winAvatar.Drag.hotSpot.y = mouse.y;
+                                pressedTime = Date.now(); 
+                            }
+                            onReleased: {
+                                releaseTime = Date.now();
+                                if ((releaseTime - pressedTime) < 200) {
+                                    $Model.setCurrentIndex(desktop - 1);
+                                }
                             }
                             drag.onActiveChanged: {
                                 if (!avatarMousearea.drag.active) {
