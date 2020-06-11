@@ -184,6 +184,27 @@ void MultitaskingModel::remove(int index)
     endRemoveRows();
 	emit removeDesktop(index + 1);
     emit countChanged(m_desktopThumbnailItemList.count());
+
+    if(index > m_currentIndex)
+    {
+        return;
+    }
+
+    if(index < m_currentIndex)
+    {
+        setCurrentIndex(m_currentIndex - 1);
+        return;
+    }
+
+    if(index == m_currentIndex && index == 0)
+    {
+        m_currentIndex = 1;
+        setCurrentIndex(0);
+    }else {
+        setCurrentIndex(m_currentIndex - 1);
+    }
+
+
 }
 
 void MultitaskingModel::clear()
