@@ -500,6 +500,7 @@ Rectangle {
                     //hoverEnabled: true
                     onClicked: {
                         $Model.append();
+                        $Model.setCurrentIndex($Model.rowCount() - 1);
                     }
                     onEntered: {
                         //backgroundManager.shuffleDefaultBackgroundURI()

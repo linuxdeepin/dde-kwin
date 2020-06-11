@@ -1281,12 +1281,14 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_Equal:
                 if (e->modifiers() == Qt::AltModifier) {
                     m_multitaskingModel->append();
+                    m_multitaskingModel->setCurrentIndex(m_multitaskingModel->count() - 1);
                 }
                 break;
 
             case Qt::Key_Minus:
                 if (e->modifiers() == Qt::AltModifier) {
                     m_multitaskingModel->remove(m_targetDesktop - 1);
+                    m_multitaskingModel->setCurrentIndex(m_targetDesktop - 1);
                 }
                 break;
 
