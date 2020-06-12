@@ -125,6 +125,7 @@ Workspace::Workspace(const QString &sessionKey)
     , global_shortcuts_disabled_for_client(false)
     , global_shortcuts_disabled_by_user(false)
     , hot_keys_disabled_for_client(false)
+    , gesture_disabled_for_client(false)
     , workspaceInit(true)
     , startup(0)
     , set_active_client_recursion(0)
@@ -1411,6 +1412,19 @@ void Workspace::disableHotKeysForClient(bool disable)
         return;
 
     hot_keys_disabled_for_client = disable;
+}
+
+bool Workspace::isDisableGesture()
+{
+    return gesture_disabled_for_client;
+}
+
+void Workspace::disableGestureForClient(bool disable)
+{
+    if (gesture_disabled_for_client == disable)
+        return;
+
+    gesture_disabled_for_client = disable;
 }
 
 QString Workspace::supportInformation() const

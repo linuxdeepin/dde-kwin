@@ -283,6 +283,11 @@ void DBusInterface::disableHotKeysForClient(bool disable)
     workspace()->disableHotKeysForClient(disable);
 }
 
+void DBusInterface::disableGestureForClient(bool disable)
+{
+    workspace()->disableGestureForClient(disable);
+}
+
 CompositorDBusInterface::CompositorDBusInterface(Compositor *parent)
     : QObject(parent)
     , m_compositor(parent)

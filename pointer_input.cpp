@@ -349,6 +349,13 @@ void PointerInputRedirection::processSwipeGestureBegin(int fingerCount, quint32 
         return;
     }
 
+    // During the lock screen, certain gestures will trigger some actions to unlock the screen.
+    // we added an dbus interface to disable gestures to fix this bug.
+    // During the lock screen, after the client calls the disableGestureForClient interface, kwin does not handle gesture events.
+    if (workspace()->isDisableGesture()) {
+        return;
+    }
+
     input()->processSpies(std::bind(&InputEventSpy::swipeGestureBegin, std::placeholders::_1, fingerCount, time));
     input()->processFilters(std::bind(&InputEventFilter::swipeGestureBegin, std::placeholders::_1, fingerCount, time));
 }
@@ -357,6 +364,13 @@ void PointerInputRedirection::processSwipeGestureUpdate(const QSizeF &delta, qui
 {
     Q_UNUSED(device)
     if (!inited()) {
+        return;
+    }
+
+    // During the lock screen, certain gestures will trigger some actions to unlock the screen.
+    // we added an dbus interface to disable gestures to fix this bug.
+    // During the lock screen, after the client calls the disableGestureForClient interface, kwin does not handle gesture events.
+    if (workspace()->isDisableGesture()) {
         return;
     }
     update();
@@ -371,6 +385,14 @@ void PointerInputRedirection::processSwipeGestureEnd(quint32 time, KWin::LibInpu
     if (!inited()) {
         return;
     }
+
+    // During the lock screen, certain gestures will trigger some actions to unlock the screen.
+    // we added an dbus interface to disable gestures to fix this bug.
+    // During the lock screen, after the client calls the disableGestureForClient interface, kwin does not handle gesture events.
+    if (workspace()->isDisableGesture()) {
+        return;
+    }
+
     update();
 
     input()->processSpies(std::bind(&InputEventSpy::swipeGestureEnd, std::placeholders::_1, time));
