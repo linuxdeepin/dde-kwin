@@ -415,3 +415,30 @@ int MultitaskingModel::getWindowWidth(QVariant winId)
     //qDebug() << "----------------------width" <<ew->width() <<endl;
     return ew->width();
 }
+
+bool MultitaskingModel::getWindowKeepAbove(QVariant winId)
+{
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    return ew->keepAbove();
+}
+
+void MultitaskingModel::setWindowKeepAbove(QVariant winId)
+{
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    WId keepAboveWId = 0;
+    for (auto wid: KWindowSystem::self()->windows()) {
+        if (effects->findWindow(wid) == ew) {
+            keepAboveWId = wid;
+            break;
+        }
+    }
+
+    if (keepAboveWId == 0) return;
+
+    if(ew->keepAbove())
+    {
+        KWindowSystem::self()->clearState(keepAboveWId, NET::KeepAbove);
+    } else {
+        KWindowSystem::self()->setState(keepAboveWId, NET::KeepAbove);
+    }
+}

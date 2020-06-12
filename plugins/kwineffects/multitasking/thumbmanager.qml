@@ -632,6 +632,13 @@ Rectangle {
                                 onEntered: {
                                     $Model.setCurrentSelectIndex(modelData);
                                     closeClientBtn.visible = true;
+                                    stickedBtn.visible = true;
+                                    if($Model.getWindowKeepAbove(modelData))
+                                    {
+                                        stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
+                                    }else{
+                                        stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
+                                    }
                                 }
                               
                                 //  excute on released
@@ -642,6 +649,7 @@ Rectangle {
                                 // }
                                 onExited: {
                                      closeClientBtn.visible = false;
+                                     stickedBtn.visible = false;
                                      //pressDelayTimer.running=false
                                 }
                                 // Timer {
@@ -746,6 +754,34 @@ Rectangle {
                                         qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, index, windowThumbnailitem.winId)
                                     }
                                 }
+                            }
+
+                            Rectangle {
+                                id: stickedBtn;
+                                anchors.left: parent.left;
+                                width: stickedBtnIcon.width;
+                                height: stickedBtnIcon.height;
+                                color: "transparent";
+                                visible:false;
+
+                                Image {
+                                    id: stickedBtnIcon;
+                                    source: "qrc:///icons/data/unsticked_normal.svg"
+                                }
+
+                                MouseArea {
+                                    anchors.fill: stickedBtn;
+                                    onClicked: {
+                                        if($Model.getWindowKeepAbove(modelData))
+                                        {
+                                            stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
+                                        }else{
+                                            stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
+                                        }
+                                        $Model.setWindowKeepAbove(modelData);
+                                    }
+                                }
+
                             }
 
                             states: State {

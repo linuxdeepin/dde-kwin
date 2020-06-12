@@ -23,6 +23,7 @@
 #ifndef DATAMODEL_H
 #define DATAMODEL_H
 
+#include <KF5/KWindowSystem/KWindowSystem>
 #include <QAbstractListModel>
 #include "multitasking.h"
 
@@ -89,7 +90,8 @@ public:
     void selectNextWindowVert(int dir);
     int getNextWindowID();
     int getPrevWindowID();
-    
+    Q_INVOKABLE bool getWindowKeepAbove(QVariant winId);
+    Q_INVOKABLE void setWindowKeepAbove(QVariant winId);
 
 signals:
     void countChanged(int count);
