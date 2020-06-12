@@ -1900,6 +1900,7 @@ void MultitaskingEffect::setActive(bool active)
         }
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
+        m_thumbManager->setGeometry(effects->virtualScreenGeometry());
         m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
         m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
         m_multitaskingModel->load(desktopCount);

@@ -9,26 +9,12 @@ import org.kde.kwin 2.0 as KWin
 
 Rectangle {
     id: root
-    width: Screen.width;
-    height: Screen.height;
-    color: "transparent"
-
-    Rectangle {
-        id: background
-        x: 0
-        y: 0
-        height: root.height
-        width: {
-            var allWitdh = 0;
-            for (var i = 0; i < $Model.numScreens(); ++i) {
-                var geom = $Model.screenGeometry(i);
-                allWitdh += geom.width;
-            }
-            return allWitdh;
-        }
-        color: "black"
-        opacity: 0.6
-    }
+    x: 0
+    y: 0
+    width: manager.containerSize.width;
+    height: manager.containerSize.height;
+    color: "black"
+    opacity: 0.6
 
     function log(msg) {
         manager.debugLog(msg)
@@ -133,7 +119,6 @@ Rectangle {
     Component {
         id: desktopThumbmailView;
         Rectangle {
-            y:20
             width: screenWidth;
             height: parent.height;
             color: "transparent"
@@ -813,12 +798,13 @@ Rectangle {
             var src =
                 'import QtQuick 2.0;' +
                 'Loader {' +
-                '	x: ' + geom.x + ';' +
-                '	property int screenWidth: ' + geom.width + ';' +
+                '   x: ' + geom.x + ';' +
+                '   y: ' + (geom.y + 20) + ';' +
+                '   property int screenWidth: ' + geom.width + ';' +
                 '   property int screenHeight: '+ geom.height + ';'+
-                '	height: 260;' +
-                '	property int currentScreen: ' + i + ';' +
-                '	sourceComponent: desktopThumbmailView;' +
+                '   height: 260;' +
+                '   property int currentScreen: ' + i + ';' +
+                '   sourceComponent: desktopThumbmailView;' +
                 '}';
             Qt.createQmlObject(src, root, "dynamicSnippet");
         }
