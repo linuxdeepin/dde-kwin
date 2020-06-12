@@ -13,8 +13,17 @@ Rectangle {
     y: 0
     width: manager.containerSize.width;
     height: manager.containerSize.height;
-    color: "black"
-    opacity: 0.6
+    color: "transparent"
+
+    Rectangle {
+        id: background
+        x: 0
+        y: 0
+        height: root.height
+        width: root.width
+        color: "black"
+        opacity: 0.6
+    }
 
     function log(msg) {
         manager.debugLog(msg)
