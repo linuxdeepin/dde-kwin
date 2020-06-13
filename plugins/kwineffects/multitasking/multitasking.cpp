@@ -1205,10 +1205,13 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Left:
                 if (e->modifiers() == Qt::MetaModifier) {
-                     if (m_multitaskingModel->currentIndex()-1 >= 0) {
-                         m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
+                    if (m_multitaskingModel->currentIndex()-1 >= 0) {
+                        m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
                     } else {
-                         m_multitaskingModel->setCurrentIndex(3);
+                        int count = m_multitaskingModel->rowCount();
+                        if (count > 0) {
+                            m_multitaskingModel->setCurrentIndex(count - 1);
+                        }
                     }
                 } else if (e->modifiers() == Qt::NoModifier) {
                     selectPrevWindow();
