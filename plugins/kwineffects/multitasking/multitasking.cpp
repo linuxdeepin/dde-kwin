@@ -555,7 +555,8 @@ void MultitaskingEffect::onScreenSizeChanged()
 {
     if( m_multitaskingViewVisible )
     {
-        toggleActive();
+        setActive(false);
+        setActive(true);
     }
 }
 

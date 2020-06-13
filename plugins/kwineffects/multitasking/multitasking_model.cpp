@@ -121,8 +121,7 @@ int MultitaskingModel::numScreens() const
 
 QRect MultitaskingModel::screenGeometry(int screen) const
 {
-	QDesktopWidget desktop;
-	return desktop.screenGeometry(screen);
+    return effects->clientArea(FullScreenArea,screen,effects->currentDesktop());
 }
 
 
