@@ -1688,6 +1688,9 @@ void MultitaskingEffect::removeDesktop(int d)
         effects->windowToDesktops(ew, desks);
     }
 
+    refreshWindows();
+    emit modeChanged();
+
     emit m_thumbManager->desktopRemoved(QVariant(d));
     // shift wallpapers before acutally removing it
     BackgroundManager::instance().desktopAboutToRemoved(d);
