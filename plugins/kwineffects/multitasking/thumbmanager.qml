@@ -128,6 +128,8 @@ Rectangle {
     Component {
         id: desktopThumbmailView;
         Rectangle {
+            property int desktopThumbmailItemWidth: screenWidth/8;
+            property int desktopThumbmailItemHeight: screenHeight/7;
             width: screenWidth;
             height: parent.height;
             color: "transparent"
@@ -139,17 +141,18 @@ Rectangle {
             }
             ListView {
                 id: view
+                y:desktopThumbmailItemHeight/8;
                 width: 0;
                 height: parent.height;
                 orientation: ListView.Horizontal;
                 model: $Model
                 interactive : false;
                 clip: true;
-                spacing: manager.thumbSize.width/10
+                spacing: desktopThumbmailItemWidth/10
                 delegate: Rectangle {
                     id: thumbDelegate;
-                    width: manager.thumbSize.width*9/10;
-                    height: manager.thumbSize.height;
+                    width: desktopThumbmailItemWidth;
+                    height: desktopThumbmailItemHeight;
                     color: "transparent"
 
                     property bool isDesktopHightlighted: index === $Model.currentDeskIndex
@@ -202,7 +205,7 @@ Rectangle {
                         }
                         property bool pendingDragRemove: false
                         Drag.keys: ["workspaceThumb"];
-                        Drag.active: manager.desktopCount > 1 && desktopThumbMouseArea.drag.active
+                        Drag.active: view.count > 1 && desktopThumbMouseArea.drag.active
                         Drag.hotSpot {
                             x: width/2
                             y: height/2
@@ -325,12 +328,7 @@ Rectangle {
 
                                 console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
-                                grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                                grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                                grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                                grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                                windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
-
+                                setGridviewData();
                                 drag.source.dropreceived=true
                             }
                         }
@@ -402,29 +400,18 @@ Rectangle {
 
                 //center
                 onCountChanged: {
-                    view.width = manager.thumbSize.width * count;
+                    view.width = desktopThumbmailItemWidth * count+view.spacing*(count-1);
                     view.x = (parent.width - view.width) / 2;
                     plus.visible = count < 4;
-                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                    grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                    grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                    //default value 1
-                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                    setGridviewData();
                     bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add
-                    plus.visible = (count < 4) 
                 }
 
 
                 Connections {
                     target: $Model;
                     onCurrentIndexChanged: {
-                        grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                        grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                        grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                        grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                        windowThumbnail.model = $Model.windows(currentScreen, currentIndex + 1);
-
+                        setGridviewData();
                         bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
                     }
                 }
@@ -435,21 +422,13 @@ Rectangle {
                 enabled: visible
                 color: "#33ffffff"
 
-                anchors.top: parent.top;
-                anchors.right: parent.right;
-                width: manager.thumbSize.width;
-                height: manager.thumbSize.height;
+                x:screenWidth-desktopThumbmailItemWidth;
+                y:desktopThumbmailItemHeight/8+desktopThumbmailItemHeight/2-plus.height/2;
+
+                width: desktopThumbmailItemHeight/2;
+                height: desktopThumbmailItemHeight/2;
                 radius: width > 120 ? 30: 15
 
-                Connections {
-                    target: root
-                    onWidthChanged: {
-                        var r = manager.calculateDesktopThumbRect(0)
-                        plus.x = manager.containerSize.width - 200
-                        plus.y = r.y + (r.height - plus.height)/2
-                        log(' ------------ width changed ' + root.width)
-                    }
-                }
                 Image {
                     z: 1
                     id: background
@@ -530,7 +509,33 @@ Rectangle {
 
             //window thumbnail
 
-
+            function setGridviewData() {
+                if ($Model.getDesktopClientCount(currentScreen,$Model.currentIndex()+1) !== 0) {
+                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)
+                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                    //console.log('++++++++++++++++++'+grid.rows+'------------------'+grid.columns)
+                    for(var i=0;i<windowThumbnail.count;i++) {
+                            var scale = $Model.getWindowHeight(windowThumbnail.itemAt(i).winId)/$Model.getWindowWidth(windowThumbnail.itemAt(i).winId);
+                            var calculationwidth= (screenWidth*5/7/grid.columns)*4/5;
+                            var calculationheight = calculationwidth*scale;
+                            var narrow = 0.8;
+                            //console.log('1++++++++++++++++++'+(screenHeight - view.height-35)/grid.rows+'------------------'+calculationheight+grid.rows);
+                            while (calculationheight > grid.height/grid.rows) {
+                                calculationwidth = calculationwidth * narrow;
+                                calculationheight = calculationwidth* narrow;
+                                //console.log('++++++++++++++++++'+grid.height/grid.rows+'------------------'+calculationheight);
+                            }
+                            windowThumbnail.itemAt(i).Layout.preferredWidth = calculationwidth;
+                            windowThumbnail.itemAt(i).Layout.preferredHeight = calculationheight;
+                    }
+                }else{
+                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)
+                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                }
+                grid.update();
+             }
             Rectangle{
                 id: bigWindowThrumbContainer
                 x: 0
@@ -557,12 +562,7 @@ Rectangle {
 
                             console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
-
-                            grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                            grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                            grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                            grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                            windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                            setGridviewData();
                         }
 
                     }
@@ -587,16 +587,15 @@ Rectangle {
                     height: screenHeight - view.height-35;
                     anchors.centerIn: parent;
                     columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-
                     Repeater {
                         id: windowThumbnail;
                         //model: $Model.windows(currentScreen)
                         PlasmaCore.WindowThumbnail {
                             id:windowThumbnailitem
-                            property bool isHightlighted: winId == $Model.currentWindowThumbnail
-                            Layout.fillWidth: true;
-                            Layout.fillHeight: true;
-
+                            property bool isHightlighted: winId == $Model.currentWindowThumbnail;
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.preferredWidth:-1;
+                            Layout.preferredHeight:-1;
                             winId: modelData;
                             property var draggingdata: winId
                             property bool  dropreceived:false
@@ -824,12 +823,7 @@ Rectangle {
                 Connections {
                     target: root
                     onResetModel: {
-                        grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1);
-                        grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                        grid.rowSpacing = (root.height - view.height)/$Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)/5;
-                        grid.columnSpacing = root.width*5/7/$Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1)/5;
-                        windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
-
+                        setGridviewData();
                         bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1
                     }
                 }
@@ -844,7 +838,7 @@ Rectangle {
                 'import QtQuick 2.0;' +
                 'Loader {' +
                 '   x: ' + geom.x + ';' +
-                '   y: ' + (geom.y + 20) + ';' +
+                '   y: ' + geom.y + ';' +
                 '   property int screenWidth: ' + geom.width + ';' +
                 '   property int screenHeight: '+ geom.height + ';'+
                 '   height: 260;' +
