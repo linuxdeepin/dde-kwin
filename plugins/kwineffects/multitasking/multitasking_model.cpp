@@ -441,3 +441,8 @@ void MultitaskingModel::setWindowKeepAbove(QVariant winId)
         KWindowSystem::self()->setState(keepAboveWId, NET::KeepAbove);
     }
 }
+void MultitaskingModel::forceResetModel()
+{
+    beginResetModel();
+    endResetModel();
+}

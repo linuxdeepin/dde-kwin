@@ -1741,7 +1741,8 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
     remanageAll();
 
     effects->addRepaintFull();
-
+    refreshWindows();
+    emit forceResetDesktopModel();
 }
 
 void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId) 
@@ -1902,8 +1903,8 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
             connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
             connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));
-            connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), m_thumbManager, SIGNAL(requestSwitchDesktop(int, int)));
             connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
+            connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
         }
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
@@ -1924,6 +1925,7 @@ void MultitaskingEffect::setActive(bool active)
 //zhd add end 
 
         connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, int, QVariant)));  
+        connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
     } else {
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);

@@ -272,6 +272,7 @@ public:
 // zhd add 
 Q_SIGNALS:
     void modeChanged();
+    void forceResetDesktopModel();
 //zhd add ok
 public Q_SLOTS:
     void setActive(bool active);

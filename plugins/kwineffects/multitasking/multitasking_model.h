@@ -92,6 +92,7 @@ public:
     int getPrevWindowID();
     Q_INVOKABLE bool getWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void setWindowKeepAbove(QVariant winId);
+    Q_INVOKABLE void forceResetModel();
 
 signals:
     void countChanged(int count);

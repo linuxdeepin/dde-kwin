@@ -33,11 +33,18 @@ Rectangle {
     signal resetModel();
     signal qmlCloseMultitask();
     signal qmlRemoveWindowThumbnail(int screen, int desktop, int index, var winId);
+    signal qmlForceResetDesktopModel();
 
     Component {
         id: windowThumbnailView;
         Rectangle {
             color: "red";
+            function resetWindowThumbnailModel()
+            {
+                windowThumbnailViewGrid.columns = $Model.getCalculateColumnsCount(screen,desktop);
+                windowThumbnailRepeater.model = $Model.windows(screen, desktop);
+                windowThumbnailRepeater.update();
+            } 
             GridLayout {
                 id:windowThumbnailViewGrid
                 x: desktopThumbnailWidth/7;
@@ -115,9 +122,15 @@ Rectangle {
                 Connections {
                     target: root
                     onResetModel: {
-                        windowThumbnailViewGrid.columns = $Model.getCalculateColumnsCount(screen,desktop);
-                        windowThumbnailRepeater.model = $Model.windows(screen, desktop);
-                        windowThumbnailRepeater.update();
+                        resetWindowThumbnailModel()
+                        //console.log(" model is changed !!!!!!!!!!")
+                    }
+                }
+                Connections {
+                    target: root
+                    onQmlForceResetDesktopModel: {
+                        resetWindowThumbnailModel()
+                        $Model.forceResetModel()
                         //console.log(" model is changed !!!!!!!!!!")
                     }
                 }
@@ -319,9 +332,7 @@ Rectangle {
                                     if(drop.source.originParent != originParent) return
                                     log("from:"+from + " to:"+to)
                                     $Model.move(from-1, to-1);
-                                    $Model.refreshWindows();
-                                    resetModel()
-                                    log("----------- workspaceThumbDrop: reorder desktop ")
+                                    //log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
                             if(drop.keys[0]==="DraggingWindowAvatar" || drop.keys[0]==="DragwindowThumbnailitemdata"){  //zhd add

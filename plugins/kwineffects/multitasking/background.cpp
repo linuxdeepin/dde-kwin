@@ -139,7 +139,8 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
         qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << d << newd << uris[d-1];
         QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", newd, uris[d-1]);
 
-        emit desktopWallpaperChanged(newd);
+        //Comment out to avoid Segmentation fault
+        //emit desktopWallpaperChanged(newd); 
     }
 }
 
