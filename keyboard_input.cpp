@@ -266,6 +266,17 @@ void KeyboardInputRedirection::processKey(uint32_t key, InputRedirection::Keyboa
                    device);
     event.setModifiersRelevantForGlobalShortcuts(m_xkb->modifiersRelevantForGlobalShortcuts());
 
+    // crtl+alt+f1 will switch to command-line access from GUI
+    // we want still show GUI instead of switch to command-line
+    // so we need to skip crtl+alt+f1 action
+    if (m_xkb->enableCrtlAltShortcuts()) {
+        // first we need to find crtl+alt modifiers
+        // then skip f1(59)
+        if (59 == key) {
+            return;
+        }
+    }
+
     m_input->processSpies(std::bind(&InputEventSpy::keyEvent, std::placeholders::_1, &event));
     if (!m_inited) {
         return;

@@ -483,6 +483,26 @@ Qt::KeyboardModifiers Xkb::modifiersRelevantForGlobalShortcuts() const
     return mods & ~consumedMods;
 }
 
+bool Xkb::enableCrtlAltShortcuts() const
+{
+    if (!m_state) {
+        return false;
+    }
+    Qt::KeyboardModifiers mods = Qt::NoModifier;
+    if (1 == xkb_state_mod_index_is_active(m_state, m_altModifier, XKB_STATE_MODS_EFFECTIVE)) {
+        mods |= Qt::AltModifier;
+    }
+    if (1 == xkb_state_mod_index_is_active(m_state, m_controlModifier, XKB_STATE_MODS_EFFECTIVE)) {
+        mods |= Qt::ControlModifier;
+    }
+
+    if ((mods & Qt::ControlModifier) && (mods & Qt::AltModifier)) {
+        return true;
+    }
+
+    return false;
+}
+
 xkb_keysym_t Xkb::toKeysym(uint32_t key)
 {
     if (!m_state) {
