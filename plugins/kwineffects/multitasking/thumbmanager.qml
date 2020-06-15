@@ -843,7 +843,13 @@ Rectangle {
         }
     }
     Component.onCompleted: {
-        for (var i = 0; i < $Model.numScreens(); ++i) {
+         //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
+        var numScreens = 1;
+        if ($Model.displayMode == 2) {
+           numScreens = $Model.numScreens();
+        }
+
+        for (var i = 0; i < numScreens; ++i) {
             var geom = $Model.screenGeometry(i);
             var src =
                 'import QtQuick 2.0;' +

@@ -21,6 +21,12 @@
 
 
 #include "multitasking_model.h"
+#include <QDBusInterface>
+#include <QDBusReply>
+
+#define DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE "com.deepin.daemon.Display"
+#define DBUS_DEEPIN_DAEMON_DISPLAY_OBJ "/com/deepin/daemon/Display"
+#define DBUS_DEEPIN_DAEMON_DISPLAY_INTF "com.deepin.daemon.Display"
 
 DesktopThumbnailItem::DesktopThumbnailItem()
 {
@@ -534,3 +540,11 @@ int MultitaskingModel::getPrevSametypeWindowID()
     else
         return windowsClass[scrn][desk][winClassIndex-1].toInt();
 }
+
+int MultitaskingModel::displayMode() const
+{
+    QDBusInterface wm(DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE, DBUS_DEEPIN_DAEMON_DISPLAY_OBJ, DBUS_DEEPIN_DAEMON_DISPLAY_INTF);
+    auto displayMode = wm.property("DisplayMode");
+    return displayMode.toInt();
+}
+

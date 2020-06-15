@@ -35,6 +35,7 @@ public:
 class MultitaskingModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int displayMode READ displayMode)
 public:
     enum DataRoles{
         ThumbnailRole = Qt::UserRole + 1,
@@ -97,6 +98,9 @@ public:
     Q_INVOKABLE bool getWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void setWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void forceResetModel();
+
+    //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
+    int displayMode() const;
 
 signals:
     void countChanged(int count);
