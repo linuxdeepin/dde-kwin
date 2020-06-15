@@ -32,7 +32,7 @@ Rectangle {
     signal qmlRequestMove2Desktop(int screen, int desktop, var winId);
     signal resetModel();
     signal qmlCloseMultitask();
-    signal qmlRemoveWindowThumbnail(int screen, int desktop, int index, var winId);
+    signal qmlRemoveWindowThumbnail(int screen, int desktop, var winId);
     signal qmlForceResetDesktopModel();
 
     Component {
@@ -770,7 +770,7 @@ Rectangle {
                                 MouseArea {
                                     anchors.fill: closeClientBtn;
                                     onClicked: {
-                                        qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, index, windowThumbnailitem.winId)
+                                        qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, windowThumbnailitem.winId)
                                     }
                                 }
                             }

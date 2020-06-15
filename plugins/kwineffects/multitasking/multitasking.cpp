@@ -1297,8 +1297,14 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 break;
 
             case Qt::Key_Delete:
-                if (e->modifiers() == Qt::NoModifier && m_selectedWindow) {
-                    qCDebug(BLUR_CAT) << "------------[TODO]: close highlighted window";
+                if (e->modifiers() == Qt::NoModifier) {
+                    QVariant wId = m_multitaskingModel->currentSelectIndex();
+                    EffectWindow* ew = effects->findWindow(wId.toULongLong());
+                    if (ew) {
+                        qCDebug(BLUR_CAT) << "-------- screen: " << ew->screen() << " desktop: " << ew->desktop()
+                                          << ", close selected window: " << wId.toULongLong();
+                        removeEffectWindow(ew->screen(), ew->desktop(), wId);
+                    }
                 }
                 break;
 
@@ -1924,7 +1930,7 @@ void MultitaskingEffect::setActive(bool active)
         connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
 //zhd add end 
 
-        connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, int, QVariant)));  
+        connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, QVariant)));
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
     } else {
         effects->ungrabKeyboard();
@@ -2497,7 +2503,7 @@ void MultitaskingEffect::windowSelectSlot( QVariant winid )
 
 }
 
-void MultitaskingEffect::removeEffectWindow(int screen, int desktop, int index, QVariant winid)
+void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant winid)
 {
     if(!m_multitaskingModel) 
         return;

@@ -334,7 +334,7 @@ private slots:
     //zhd add end 
 
     void windowSelectSlot( QVariant winid );
-    void removeEffectWindow(int screen, int desktop, int index, QVariant winid);
+    void removeEffectWindow(int screen, int desktop, QVariant winid);
 private:
     struct WindowData {
         bool isAbove {false};
