@@ -843,9 +843,8 @@ Rectangle {
         }
     }
     Component.onCompleted: {
-         //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
         var numScreens = 1;
-        if ($Model.displayMode == 2) {
+        if ($Model.isExtensionMode) {
            numScreens = $Model.numScreens();
         }
 

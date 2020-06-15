@@ -548,3 +548,15 @@ int MultitaskingModel::displayMode() const
     return displayMode.toInt();
 }
 
+bool MultitaskingModel::isExtensionMode() const
+{
+   QDesktopWidget desktop;
+   for (int i = 0; i < desktop.numScreens(); ++i) {
+       if (effects->virtualScreenGeometry() == desktop.screenGeometry(i)) {
+           return false;
+       }
+   }
+   return true;
+}
+
+

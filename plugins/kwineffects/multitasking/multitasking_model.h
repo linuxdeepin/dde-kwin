@@ -36,6 +36,7 @@ class MultitaskingModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int displayMode READ displayMode)
+    Q_PROPERTY(bool isExtensionMode READ isExtensionMode)
 public:
     enum DataRoles{
         ThumbnailRole = Qt::UserRole + 1,
@@ -101,6 +102,7 @@ public:
 
     //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
     int displayMode() const;
+    bool isExtensionMode() const;
 
 signals:
     void countChanged(int count);
