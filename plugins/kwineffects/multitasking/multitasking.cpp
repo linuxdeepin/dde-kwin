@@ -1185,11 +1185,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Enter:
             case Qt::Key_Return:
-                if (m_selectedWindow) {
-                    updateHighlightWindow(nullptr);
-                    effects->activateWindow(m_selectedWindow);
-                    setActive(false);
-                }
+                windowSelectSlot(m_multitaskingModel->currentSelectIndex());
                 break;
 
             case Qt::Key_Right:  // include super+->
