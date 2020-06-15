@@ -534,7 +534,7 @@ Rectangle {
                             //console.log('1++++++++++++++++++'+(screenHeight - view.height-35)/grid.rows+'------------------'+calculationheight+grid.rows);
                             while (calculationheight > grid.height/grid.rows) {
                                 calculationwidth = calculationwidth * narrow;
-                                calculationheight = calculationwidth* narrow;
+                                calculationheight = calculationheight* narrow;
                                 //console.log('++++++++++++++++++'+grid.height/grid.rows+'------------------'+calculationheight);
                             }
                             windowThumbnail.itemAt(i).Layout.preferredWidth = calculationwidth;

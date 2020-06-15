@@ -82,6 +82,8 @@ public:
     Q_INVOKABLE void updateWindowDestop( int nDesktop );
     void selectNextWindow();
     void selectPrevWindow();
+    void selectNextSametypeWindow();
+    void selectPrevSametypeWindow();
     QList<int> getScreenDesktopByWinID(int winid);
     bool isAllScreensEmpty();
     Q_INVOKABLE void windowSelected( QVariant winId );
@@ -90,6 +92,8 @@ public:
     void selectNextWindowVert(int dir);
     int getNextWindowID();
     int getPrevWindowID();
+    int getNextSametypeWindowID();
+    int getPrevSametypeWindowID();
     Q_INVOKABLE bool getWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void setWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void forceResetModel();

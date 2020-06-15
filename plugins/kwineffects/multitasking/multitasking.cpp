@@ -1316,13 +1316,13 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_QuoteLeft:
                 if (e->modifiers() == Qt::AltModifier) {
-                    selectNextGroupWindow();
+                    m_multitaskingModel->selectNextSametypeWindow();
                 }
                 break;
 
             case Qt::Key_AsciiTilde:
                 if (e->modifiers() == (Qt::AltModifier | Qt::ShiftModifier)) {
-                    selectPrevGroupWindow();
+                    m_multitaskingModel->selectPrevSametypeWindow();
                 }
                 break;
 

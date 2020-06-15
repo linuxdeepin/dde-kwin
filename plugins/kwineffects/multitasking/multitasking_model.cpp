@@ -299,7 +299,6 @@ void MultitaskingModel::selectNextWindowVert(int dir)
 int MultitaskingModel::getNextWindowID()
 {
 
-    
     QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
     
     int scrn = sd.at(0);
@@ -441,8 +440,97 @@ void MultitaskingModel::setWindowKeepAbove(QVariant winId)
         KWindowSystem::self()->setState(keepAboveWId, NET::KeepAbove);
     }
 }
+
 void MultitaskingModel::forceResetModel()
 {
     beginResetModel();
     endResetModel();
+}
+
+void MultitaskingModel::selectNextSametypeWindow()
+{
+    if(m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    int winid = getNextSametypeWindowID();
+    setCurrentSelectIndex(winid);
+}
+
+void MultitaskingModel::selectPrevSametypeWindow()
+{
+    if(m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    int winid = getPrevSametypeWindowID();
+    setCurrentSelectIndex(winid);
+}
+
+int MultitaskingModel::getNextSametypeWindowID()
+{
+    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
+    QMap<int, QMap<int, QVariantList> > windowsClass;
+    int scrn = sd.at(0);
+    int desk = sd.at(1);
+    windowsClass.clear();
+    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    EffectWindow *ew = effects->findWindow(m_windows[scrn][desk][winindex].toULongLong());
+    for(int i=0; i< effects->numScreens();i++) {
+        for (int j=0;j< m_windows[i][desk].size();j++) {
+            if(ew->windowClass() ==  effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
+            {
+                windowsClass[i][desk].push_back(m_windows[i][desk][j]);
+            }
+        }
+    }
+    int winClassIndex = windowsClass[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    if(winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
+    {
+        if(scrn == effects->numScreens() - 1)  // at the last screen
+        {
+            if(windowsClass[0][desk].size() == 0) // if first screen has no winthumb
+                return windowsClass[scrn][desk].first().toInt();
+            else
+                return windowsClass[0][desk].first().toInt();
+        }
+        else
+            if(windowsClass[scrn+1][desk].size() == 0) // if next screen has no winthumb
+                return windowsClass[scrn][desk].first().toInt();
+            else
+                return windowsClass[scrn+1][desk].first().toInt();
+    }
+    else
+        return windowsClass[scrn][desk][winClassIndex+1].toInt();
+}
+
+int MultitaskingModel::getPrevSametypeWindowID()
+{
+    QList<int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
+    QMap<int, QMap<int, QVariantList> > windowsClass;
+    int scrn = sd.at(0);
+    int desk = sd.at(1);
+
+    int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    EffectWindow *ew = effects->findWindow(m_windows[scrn][desk][winindex].toULongLong());
+    for(int i=0; i< effects->numScreens();i++) {
+        for (int j=0;j< m_windows[i][desk].size();j++) {
+            if(ew->windowClass() ==  effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
+            {
+                windowsClass[i][desk].append(m_windows[i][desk][j]);
+            }
+        }
+    }
+    int winClassIndex = windowsClass[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    if(winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
+    {
+        if(scrn == effects->numScreens() - 1)  // at the last screen
+        {
+            if(windowsClass[0][desk].size() == 0) // if first screen has no winthumb
+                return windowsClass[scrn][desk].first().toInt();
+            else
+                return windowsClass[0][desk].first().toInt();
+        }
+        else
+            if(windowsClass[scrn+1][desk].size() == 0) // if next screen has no winthumb
+                return windowsClass[scrn][desk].first().toInt();
+            else
+                return windowsClass[scrn+1][desk].first().toInt();
+    }
+    else
+        return windowsClass[scrn][desk][winClassIndex-1].toInt();
 }
