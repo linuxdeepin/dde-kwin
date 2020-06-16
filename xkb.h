@@ -49,6 +49,12 @@ namespace Server
 namespace KWin
 {
 
+enum KWIN_EXPORT ScreenStatus {
+    ScreenOff,
+    ScreenOn,
+    AlreadyScreenOn
+};
+
 class KWIN_EXPORT Xkb : public QObject
 {
     Q_OBJECT
@@ -115,6 +121,9 @@ public:
 
     void setSeat(KWayland::Server::SeatInterface *seat);
 
+    static void updateScreenOn(ScreenStatus screen_on) {
+        m_kwinScreenOn = screen_on;
+    };
 Q_SIGNALS:
     void ledsChanged(const LEDs &leds);
 
@@ -164,6 +173,7 @@ private:
     Ownership m_ownership = Ownership::Server;
 
     QPointer<KWayland::Server::SeatInterface> m_seat;
+    static ScreenStatus m_kwinScreenOn;
 };
 
 inline

@@ -233,7 +233,7 @@ void KeyboardInputRedirection::processKey(uint32_t key, InputRedirection::Keyboa
     //During the lock screen, pressing hot keys will start the corresponding function such as show ControlCenter when we press f10, we think this is a bug
     //Fixed: add a qdbus interface, the lock screen program calls this interface to notify kwin to shield the hotkey
     //just return directly without handling hotkey events if found program has called qdbus interface to request kwin to shield the hotkey
-    if (workspace()->isDisableHotKeys()) {
+    if (workspace() && workspace()->isDisableHotKeys()) {
         Qt::Key key = m_xkb->toQtKey(keySym);
         switch(key) {
         case Qt::Key_MonBrightnessDown: //f1

@@ -36,6 +36,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <bitset>
 
+#define KEY_Num_Lock 69
+#define KEY_Caps_Lock 58
+#define KEY_Scroll_Lock 70
+
 Q_LOGGING_CATEGORY(KWIN_XKB, "kwin_xkbcommon", QtCriticalMsg)
 
 namespace KWin
@@ -325,8 +329,41 @@ void Xkb::updateModifiers(uint32_t modsDepressed, uint32_t modsLatched, uint32_t
     forwardModifiers();
 }
 
+ScreenStatus KWin::Xkb::m_kwinScreenOn = ScreenStatus::ScreenOff;
+static int last_num_lock = 0, last_caps_lock = 0, last_scroll_lock = 0;
 void Xkb::updateKey(uint32_t key, InputRedirection::KeyboardKeyState state)
 {
+    if (ScreenStatus::ScreenOff == m_kwinScreenOn) {
+        LEDs led;
+        if (1 == state) {
+            //when press down
+            if (KEY_Num_Lock == key) {
+                //num_lock
+                last_num_lock=!last_num_lock;
+            } else if (KEY_Caps_Lock == key) {
+                //caps_lock
+                last_caps_lock=!last_caps_lock;
+            } else if (KEY_Scroll_Lock == key) {
+                //scroll_lock
+                last_scroll_lock=!last_scroll_lock;
+            }
+        }
+        if (KEY_Num_Lock == key || KEY_Caps_Lock == key || KEY_Scroll_Lock == key) {
+            if (1 == last_num_lock) {
+                led = led | LED::NumLock;
+            }
+            if (1 == last_caps_lock) {
+                led = led | LED::CapsLock;
+            }
+            if (1 == last_scroll_lock) {
+                led = led | LED::ScrollLock;
+            }
+            emit ledsChanged(led);
+        }
+    } else if (m_kwinScreenOn == ScreenStatus::ScreenOn) {
+        m_kwinScreenOn = ScreenStatus::AlreadyScreenOn;
+        emit ledsChanged(0);
+    }
     if (!m_keymap || !m_state) {
         return;
     }

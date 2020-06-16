@@ -75,6 +75,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <iomanip>
+#include <xkb.h>
 
 namespace KWin
 {
@@ -236,6 +237,7 @@ void ApplicationWayland::continueStartupWithX()
         }
         xcb_flush(c);
     };
+    KWin::Xkb::updateScreenOn(ScreenStatus::ScreenOn);
     connect(notifier, &QSocketNotifier::activated, this, processXcbEvents);
     connect(QThread::currentThread()->eventDispatcher(), &QAbstractEventDispatcher::aboutToBlock, this, processXcbEvents);
     connect(QThread::currentThread()->eventDispatcher(), &QAbstractEventDispatcher::awake, this, processXcbEvents);
