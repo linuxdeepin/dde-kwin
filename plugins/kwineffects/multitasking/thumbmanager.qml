@@ -575,12 +575,10 @@ Rectangle {
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
                             setGridviewData();
                         }
-
                     }
                     onEntered: {
                         drag.accepted=true;
                         console.log("bigWindowThrumbContainer enter");
-
                     }
                 }
                 //zhd add end
@@ -634,9 +632,6 @@ Rectangle {
                                 anchors.fill: windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
-                                //property variant mouseDragStart:"1,1"
-
-                               // property bool dropreceived : false
                                 property var pressedTime;
                                 property bool mousePressWithoutDrag:false
 
@@ -644,9 +639,6 @@ Rectangle {
                                 property int originHeight
                                 property int originX
                                 property int originY
-                                
-                            
-
 
                                 onEntered: {
                                     $Model.setCurrentSelectIndex(modelData);
@@ -669,49 +661,66 @@ Rectangle {
                                 onExited: {
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
-                                     //pressDelayTimer.running=false
                                 }
-                                // Timer {
-                                //     id: pressDelayTimer
-
-                                //     interval: 500; running: false; repeat: false
-                                //     onTriggered: {
-                                        
-                                        
-                                //     }
-                                // }
+                           
                                 onPressed:{
-                                    //mouseDragStart.x+=mouse.x;
-                                    //mouseDragStart.y+=mouse.y;
-                                    originWidth=windowThumbnailitem.width
-                                    originHeight=windowThumbnailitem.height
-                                    originX=windowThumbnailitem.x
-                                    originY=windowThumbnailitem.y
+                                    //console.log("onPressed x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +" width:"+windowThumbnailitem.width+" height:"+windowThumbnailitem.height+ " mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
+                                    originWidth = windowThumbnailitem.width
+                                    originHeight = windowThumbnailitem.height
+                                    originX = windowThumbnailitem.x
+                                    originY = windowThumbnailitem.y
+
+                                    var centerX = (mouse.x + windowThumbnailitem.x) 
+                                    var centerY = (mouse.y + windowThumbnailitem.y)
 
 
-                                    windowThumbnailitem.width=120
-                                    windowThumbnailitem.height=80
+                                    var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
+                                    var imgwidth  =   $Model.getWindowWidth(windowThumbnailitem.winId);
 
-                                    windowThumbnailitem.x+=mouse.x
-                                    windowThumbnailitem.y+=mouse.y
-                                    pressedTime=Date.now();
+                                   
+                                    var scale=1;
+                                    if(imgwidth > 0 && imgheight > 0)
+                                        scale = imgwidth/imgheight;
+                                    else
+                                        scale = 0.75
 
+                                  //  console.log("imgheight" + imgheight + " imgwidth:"+imgwidth+ " scale: "+ scale)
+                                    var dragingImgWidth
+                                    var dragingImgHeight
 
-                                  //  pressDelayTimer.running=true
+                                    if(scale>1){
+                                        dragingImgWidth = 120
+                                        dragingImgHeight = dragingImgWidth /scale;
+                                    }else{
+                                        dragingImgHeight = 120
+                                        dragingImgWidth = dragingImgHeight * scale;
+                                    }
+
+                                    windowThumbnailitem.x = centerX - dragingImgWidth/2
+                                    windowThumbnailitem.y = centerY - dragingImgHeight/2
+                                    windowThumbnailitem.width = dragingImgWidth
+                                    windowThumbnailitem.height = dragingImgHeight
+
+                                    pressedTime = Date.now();
+
+                                    closeClientBtn.visible = false;
+                                    stickedBtn.visible = false;
                                 }
                                 onReleased:{
-                                    var curtime=Date.now();
-                                    if((curtime-pressedTime)<200){
+                                    var curtime = Date.now();
+                                    if((curtime - pressedTime) < 200){
                                         $Model.setCurrentSelectIndex(modelData);
                                         $Model.windowSelected( modelData );
                                         //
                                     }else{
                                         if(!windowThumbnailitemMousearea.drag.active){
                                             ////恢复现场
-                                            windowThumbnailitem.width=originWidth
-                                            windowThumbnailitem.height=originHeight
-                                            windowThumbnailitem.x=originX
-                                            windowThumbnailitem.y=originY
+                                            windowThumbnailitem.width = originWidth
+                                            windowThumbnailitem.height = originHeight
+                                            windowThumbnailitem.x = originX
+                                            windowThumbnailitem.y = originY
+                                            closeClientBtn.visible = true;
+                                            stickedBtn.visible = true;
                                         }
                                     }
                                     
@@ -724,7 +733,7 @@ Rectangle {
 
                                 drag.onActiveChanged: {
                                     if (!windowThumbnailitemMousearea.drag.active) {
-                                        console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
+                                      //  console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
                                         windowThumbnailitem.Drag.drop();
 
                                     }else{
@@ -805,10 +814,11 @@ Rectangle {
 
                             states: State {
                                 name: "isHightlighted"
-                                when: isHightlighted
+                                when: isHightlighted 
                                 PropertyChanges {
                                     target: windowThumbnailitem
-                                    scale: 1.2
+                                    scale: 1.02
+                                    
                                 }
                                 PropertyChanges {
                                     target: backgroundrect
