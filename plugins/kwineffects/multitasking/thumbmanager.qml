@@ -867,7 +867,7 @@ Rectangle {
                 '   y: ' + geom.y + ';' +
                 '   property int screenWidth: ' + geom.width + ';' +
                 '   property int screenHeight: '+ geom.height + ';'+
-                '   height: 260;' +
+                '   height: '+ geom.height/5+';'+
                 '   property int currentScreen: ' + i + ';' +
                 '   sourceComponent: desktopThumbmailView;' +
                 '}';

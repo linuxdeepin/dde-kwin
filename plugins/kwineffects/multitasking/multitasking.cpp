@@ -958,23 +958,24 @@ void MultitaskingEffect::updateWindowStates(QMouseEvent* me)
 
    if (me->button() == Qt::ForwardButton || me->button() == Qt::BackButton) {
         if (me->type() != QEvent::MouseButtonPress || is_smooth_scrolling) return;
-
         if (me->buttons() == Qt::ForwardButton) {
             is_smooth_scrolling = true;
-            if (m_multitaskingModel->currentIndex()+1 < 4) {
+            if (m_multitaskingModel->currentIndex()+1 < m_multitaskingModel->rowCount()) {
                 m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()+1);
             } else {
                 m_multitaskingModel->setCurrentIndex(0);
             }
         } else if (me->buttons() == Qt::BackButton) {
             is_smooth_scrolling = true;
-             if (m_multitaskingModel->currentIndex()-1 >= 0) {
-                 m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
-             } else {
-                 m_multitaskingModel->setCurrentIndex(3);
+            if (m_multitaskingModel->currentIndex()-1 >= 0) {
+                m_multitaskingModel->setCurrentIndex(m_multitaskingModel->currentIndex()-1);
+            } else {
+                int count = m_multitaskingModel->rowCount();
+                if (count > 0) {
+                    m_multitaskingModel->setCurrentIndex(count - 1);
+                }
             }
         }
-
         QTimer::singleShot(400, [&]() { is_smooth_scrolling = false; });
         return;
     }
