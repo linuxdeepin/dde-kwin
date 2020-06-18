@@ -143,6 +143,7 @@ Rectangle {
         Rectangle {
             property int desktopThumbmailItemWidth: screenWidth/8;
             property int desktopThumbmailItemHeight: screenHeight/7;
+            id:wholeDesktopThumbmailView
             width: screenWidth;
             height: parent.height;
             color: "transparent"
@@ -504,20 +505,21 @@ Rectangle {
                         background.opacity = 0.0
                     }
                 }
-                DropArea {
-                    anchors.fill: plus;
-                    onEntered: console.log("entered")
-                    keys:['PlusButton']
-                    onDropped: {
-                        var winId = drag.source.winId;
-                        $Model.append();
-                        var currentDesktop = $Model.rowCount();
-                        qmlRequestMove2Desktop(currentScreen, currentDesktop, winId);
-                        $Model.setCurrentIndex(currentDesktop - 1);
-                    }
-                }
             } //~ plus button
-
+            DropArea {
+                anchors.right:wholeDesktopThumbmailView.right;
+                width: screenWidth-view.x-view.width;
+                height: view.height;
+                onEntered: console.log("entered")
+                keys:['PlusButton']
+                onDropped: {
+                    var winId = drag.source.winId;
+                    $Model.append();
+                    var currentDesktop = $Model.rowCount();
+                    qmlRequestMove2Desktop(currentScreen, currentDesktop, winId);
+                    $Model.setCurrentIndex(currentDesktop - 1);
+                }
+            }
             //window thumbnail
 
             function setGridviewData() {
