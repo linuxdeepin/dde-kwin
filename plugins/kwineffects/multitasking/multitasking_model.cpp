@@ -87,6 +87,25 @@ QVariantList MultitaskingModel::windows(int screen, int desktop) const
     return m_windows[screen][desktop];
 }
 
+bool MultitaskingModel::isCurrentScreenWindows(int screen, int desktop, QVariant wid)
+{
+    int flag =m_windows[screen][desktop].indexOf(wid);
+    if (flag == -1) {
+        return false;
+    }
+    return true;
+}
+
+void MultitaskingModel::moveToScreen(int screen, int desktop, QVariant wid)
+{
+    QList<int> sd = getScreenDesktopByWinID(wid.toInt());
+    int scrn = sd.at(0);
+    int desk = sd.at(1);
+    m_windows[scrn][desk].removeOne(wid);
+    m_windows[screen][desktop].push_back(wid);
+    emit currentIndexChanged(m_currentIndex);
+}
+
 int MultitaskingModel::getCalculateRowCount(int screen, int desktop)
 {
     int ClientCount = getDesktopClientCount(screen,desktop);

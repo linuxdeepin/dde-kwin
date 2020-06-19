@@ -564,7 +564,7 @@ Rectangle {
                 DropArea { 
                     id: workspaceThumbnailDropArea
                     anchors.fill: parent
-                    keys: ['DraggingWindowAvatar']
+                    keys: ['DragwindowThumbnailitemdata','DraggingWindowAvatar']
 
                     onDropped: {
                         //console.log("bigWindowThrumbContainer droped");
@@ -576,6 +576,14 @@ Rectangle {
                             console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
                             setGridviewData();
+                        }
+                        if(drop.keys[0] === "DragwindowThumbnailitemdata") {
+                            //console.log(currentScreen+"---------"+$Model.currentIndex()+"---------"+drag.source.draggingdata);
+                            if (!$Model.isCurrentScreenWindows(currentScreen,$Model.currentIndex()+1, drag.source.draggingdata)) {
+                                $Model.moveToScreen(currentScreen,$Model.currentIndex()+1, drag.source.draggingdata);
+                                qmlRequestMove2Desktop(currentScreen,$Model.currentIndex()+1,drag.source.draggingdata);
+                                setGridviewData();
+                            }
                         }
                     }
                     onEntered: {
