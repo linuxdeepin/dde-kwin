@@ -134,7 +134,7 @@ void Scene::paintScreen(int* mask, const QRegion &damage, const QRegion &repaint
         //fix(workaround): disable partial update
         //partial update has reported rendering issues both on arm64 and x86, 
         //this should be disabled before we figure out why it won't work. this is a temporary fix. 
-        region = displayRegion;
+        region &= displayRegion;
     } else {
         // whole screen, not transformed, force region to be full
         region = displayRegion;
@@ -271,7 +271,9 @@ void Scene::paintSimpleScreen(int orig_mask, QRegion region)
         // Reset the repaint_region.
         // This has to be done here because many effects schedule a repaint for
         // the next frame within Effects::prePaintWindow.
-        topw->resetRepaints();
+        if (screens()->count() - 1 == screens()->renderingIndex()) {
+            topw->resetRepaints();
+        }
 
         // Clip out the decoration for opaque windows; the decoration is drawn in the second pass
         opaqueFullscreen = false; // TODO: do we care about unmanged windows here (maybe input windows?)
@@ -351,35 +353,45 @@ void Scene::paintSimpleScreen(int orig_mask, QRegion region)
             // clip away the opaque regions for all windows below this one
             allclips |= data->clip;
             // extend the translucent damage for windows below this by remaining (translucent) regions
-            if (!fullRepaint)
-                upperTranslucentDamage |= data->region - data->clip;
+            if (!fullRepaint) {
+                upperTranslucentDamage |= data->region;
+                upperTranslucentDamage -= data->clip;
+            }
         } else if (!fullRepaint) {
             upperTranslucentDamage |= data->region;
         }
     }
 
     QRegion paintedArea;
+    QRegion backgroundArea;
     // Fill any areas of the root window not covered by opaque windows
     if (!(orig_mask & PAINT_SCREEN_BACKGROUND_FIRST)) {
-        paintedArea = dirtyArea - allclips;
-        paintBackground(paintedArea);
+        backgroundArea = dirtyArea - allclips;
     }
 
-    // Now walk the list bottom to top and draw the windows.
+    paintedArea |= backgroundArea;
     for (int i = 0; i < phase2data.count(); ++i) {
         Phase2Data *data = &phase2data[i];
 
         // add all regions which have been drawn so far
         paintedArea |= data->region;
         data->region = paintedArea;
+    }
 
+    // mark: 0 is right?
+    if (screens()->renderingIndex() == 0) {
+        setDamageRegion(paintedArea);
+    }
+
+    paintBackground(backgroundArea);
+    // Now walk the list bottom to top and draw the windows.
+    for (int i = 0; i < phase2data.count(); ++i) {
+        Phase2Data *data = &phase2data[i];
         paintWindow(data->window, data->mask, data->region, data->quads);
     }
 
-    if (fullRepaint) {
-        painted_region = displayRegion;
-        damaged_region = displayRegion;
-    } else {
+    // mark: may has bug here
+    {
         painted_region |= paintedArea;
 
         // Clip the repainted region from the damaged region.
@@ -680,6 +692,11 @@ QImage *Scene::qpainterRenderBuffer() const
 QVector<QByteArray> Scene::openGLPlatformInterfaceExtensions() const
 {
     return QVector<QByteArray>{};
+}
+
+void Scene::setDamageRegion(QRegion region)
+{
+    Q_UNUSED(region);
 }
 
 //****************************************

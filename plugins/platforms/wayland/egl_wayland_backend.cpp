@@ -98,13 +98,13 @@ void EglWaylandBackend::init()
         setFailed("Could not initialize egl");
         return;
     }
+    initBufferAge();
     if (!initRenderingContext()) {
         setFailed("Could not initialize rendering context");
         return;
     }
 
     initKWinGL();
-    initBufferAge();
     initWayland();
 }
 
@@ -139,6 +139,9 @@ bool EglWaylandBackend::initRenderingContext()
         qCCritical(KWIN_WAYLAND_BACKEND) << "Create Window Surface failed";
         return false;
     }
+    if (!supportsBufferAge()) {
+        eglSurfaceAttrib(eglDisplay(), surface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
+    }
     setSurface(surface);
 
     return makeContextCurrent();
@@ -162,7 +165,7 @@ bool EglWaylandBackend::makeContextCurrent()
 bool EglWaylandBackend::initBufferConfigs()
 {
     const EGLint config_attribs[] = {
-        EGL_SURFACE_TYPE,         EGL_WINDOW_BIT,
+        EGL_SURFACE_TYPE,         EGL_WINDOW_BIT | (supportsBufferAge() ? 0 : EGL_SWAP_BEHAVIOR_PRESERVED_BIT),
         EGL_RED_SIZE,             1,
         EGL_GREEN_SIZE,           1,
         EGL_BLUE_SIZE,            1,

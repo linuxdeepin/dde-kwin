@@ -98,6 +98,10 @@ void OpenGLBackend::endRenderingFrameForScreen(int screenId, const QRegion &dama
     Q_UNUSED(damagedRegion)
 }
 
+void OpenGLBackend::setDamageRegion(const QRegion region) {
+    Q_UNUSED(region);
+}
+
 bool OpenGLBackend::perScreenRendering() const
 {
     return false;

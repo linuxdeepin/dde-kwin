@@ -660,6 +660,7 @@ qint64 SceneOpenGL::paint(QRegion damage, ToplevelList toplevels)
         // trigger start render timer
         m_backend->prepareRenderingFrame();
         for (int i = 0; i < screens()->count(); ++i) {
+            screens()->setRenderingIndex(i);
             const QRect &geo = screens()->geometry(i);
             if (geo.isNull() || !geo.isValid()) {
                 qDebug() << "------- paint: invalid geometry";
@@ -899,6 +900,11 @@ QVector<QByteArray> SceneOpenGL::openGLPlatformInterfaceExtensions() const
     return m_backend->extensions().toVector();
 }
 
+void SceneOpenGL::setDamageRegion(QRegion region)
+{
+    m_backend->setDamageRegion(region);
+}
+
 //****************************************
 // SceneOpenGL2
 //****************************************
@@ -1125,6 +1131,33 @@ QMatrix4x4 SceneOpenGL::Window::transformation(int mask, const WindowPaintData &
     return matrix;
 }
 
+void SceneOpenGL::Window::intersectQuads(const QRegion &region, WindowQuadList &quads)
+{
+    WindowQuadList quadsTmp;
+    quadsTmp.reserve(quads.count());
+
+    const QRegion filterRegion = region.translated(-x(), -y());
+    // split all quads in bounding rect with the actual rects in the region
+    foreach (const WindowQuad &quad, quads) {
+        for (const QRect &r : filterRegion) {
+            const QRectF rf(r);
+            const QRectF quadRect(QPointF(quad.left(), quad.top()), QPointF(quad.right(), quad.bottom()));
+            const QRectF &intersected = rf.intersected(quadRect);
+            if (intersected.isValid()) {
+                if (quadRect == intersected) {
+                    // case 1: completely contains, include and do not check other rects
+                    quadsTmp << quad;
+                    break;
+                }
+                // case 2: intersection
+                quadsTmp << quad.makeSubQuad(intersected.left(), intersected.top(), intersected.right(), intersected.bottom());
+            }
+        }
+    }
+
+    quads = quadsTmp;
+}
+
 bool SceneOpenGL::Window::beginRenderWindow(int mask, const QRegion &region, WindowPaintData &data)
 {
     if (region.isEmpty())
@@ -1132,28 +1165,7 @@ bool SceneOpenGL::Window::beginRenderWindow(int mask, const QRegion &region, Win
 
     m_hardwareClipping = region != infiniteRegion() && (mask & PAINT_WINDOW_TRANSFORMED) && !(mask & PAINT_SCREEN_TRANSFORMED);
     if (region != infiniteRegion() && !m_hardwareClipping) {
-        WindowQuadList quads;
-        quads.reserve(data.quads.count());
-
-        const QRegion filterRegion = region.translated(-x(), -y());
-        // split all quads in bounding rect with the actual rects in the region
-        foreach (const WindowQuad &quad, data.quads) {
-            for (const QRect &r : filterRegion) {
-                const QRectF rf(r);
-                const QRectF quadRect(QPointF(quad.left(), quad.top()), QPointF(quad.right(), quad.bottom()));
-                const QRectF &intersected = rf.intersected(quadRect);
-                if (intersected.isValid()) {
-                    if (quadRect == intersected) {
-                        // case 1: completely contains, include and do not check other rects
-                        quads << quad;
-                        break;
-                    }
-                    // case 2: intersection
-                    quads << quad.makeSubQuad(intersected.left(), intersected.top(), intersected.right(), intersected.bottom());
-                }
-            }
-        }
-        data.quads = quads;
+        intersectQuads(region, data.quads);
     }
 
     if (data.quads.isEmpty())
@@ -1328,14 +1340,32 @@ void SceneOpenGL2Window::renderSubSurface(GLShader *shader, const QMatrix4x4 &mv
         scale = pixmap->surface()->scale();
     }
 
+    const QRegion translatedRegion = region.translated(-pixmap->subSurface()->position().x(), -pixmap->subSurface()->position().y());
     if (!pixmap->texture()->isNull()) {
         setBlendEnabled(pixmap->buffer() && pixmap->buffer()->hasAlphaChannel());
         // render this texture
         shader->setUniform(GLShader::ModelViewProjectionMatrix, mvp * newWindowMatrix);
+
         auto texture = pixmap->texture();
+        const bool indexedQuads = GLVertexBuffer::supportsIndexedQuads();
+        const GLenum primitiveType = indexedQuads ? GL_QUADS : GL_TRIANGLES;
+        const int verticesPerQuad = indexedQuads ? 4 : 6;
+        WindowQuadList quads = makeQuads(WindowQuadContents,  QRegion(0, 0, texture->width(), texture->height()), QPoint(0,0), scale);
+        intersectQuads(translatedRegion,  quads);
+        int size = quads.count() * verticesPerQuad * sizeof(GLVertex2D);
+        size = size;
+
+        GLVertexBuffer *vbo = GLVertexBuffer::streamingBuffer();
+        GLVertex2D *map = (GLVertex2D *) vbo->map(size);
+        const QMatrix4x4 matrix = texture->matrix(UnnormalizedCoordinates);
+        quads.makeInterleavedArrays(primitiveType, map, matrix);
+        vbo->unmap();
+        vbo->bindArrays();
+
         texture->bind();
-        texture->render(region, QRect(0, 0, texture->width() / scale, texture->height() / scale), hardwareClipping);
+        vbo->draw(primitiveType, 0, quads.count() * verticesPerQuad);
         texture->unbind();
+        vbo->unbindArrays();
     }
 
     const auto &children = pixmap->children();
@@ -1343,7 +1373,7 @@ void SceneOpenGL2Window::renderSubSurface(GLShader *shader, const QMatrix4x4 &mv
         if (pixmap->subSurface().isNull() || pixmap->subSurface()->surface().isNull() || !pixmap->subSurface()->surface()->isMapped()) {
             continue;
         }
-        renderSubSurface(shader, mvp, newWindowMatrix, static_cast<OpenGLWindowPixmap*>(pixmap), region, hardwareClipping);
+        renderSubSurface(shader, mvp, newWindowMatrix, static_cast<OpenGLWindowPixmap*>(pixmap), translatedRegion, hardwareClipping);
     }
 }
 

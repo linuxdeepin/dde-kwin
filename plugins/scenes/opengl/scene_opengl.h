@@ -82,6 +82,8 @@ public:
 
     QVector<QByteArray> openGLPlatformInterfaceExtensions() const override;
 
+    void setDamageRegion(QRegion region) override;
+
     static SceneOpenGL *createScene(QObject *parent);
 
 protected:
@@ -148,6 +150,7 @@ class SceneOpenGL::Window
 {
 public:
     virtual ~Window();
+    void intersectQuads(const QRegion &region, WindowQuadList &quads);
     bool beginRenderWindow(int mask, const QRegion &region, WindowPaintData &data);
     virtual void performPaint(int mask, QRegion region, WindowPaintData data) = 0;
     void endRenderWindow();

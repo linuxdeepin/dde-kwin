@@ -52,6 +52,7 @@ Screens *Screens::create(QObject *parent)
 Screens::Screens(QObject *parent)
     : QObject(parent)
     , m_count(0)
+    , m_rendering_index(0)
     , m_current(0)
     , m_currentFollowsMouse(false)
     , m_changedTimer(new QTimer(this))
@@ -162,6 +163,13 @@ void Screens::setCurrent(int current)
     }
     m_current = current;
     emit currentChanged();
+}
+
+void Screens::setRenderingIndex(int index)
+{
+    if (index < count()) {
+        m_rendering_index = index;
+    }
 }
 
 void Screens::setCurrent(const QPoint &pos)

@@ -48,6 +48,7 @@ public:
     QRegion prepareRenderingFrame() override;
     void endRenderingFrame(const QRegion &renderedRegion, const QRegion &damagedRegion) override;
     void endRenderingFrameForScreen(int screenId, const QRegion &damage, const QRegion &damagedRegion) override;
+    void setDamageRegion(const QRegion region) override;
     bool usesOverlayWindow() const override;
     bool perScreenRendering() const override;
     QRegion prepareRenderingForScreen(int screenId) override;
@@ -111,6 +112,8 @@ private:
     QHash<uint32_t, QVector<uint64_t>> m_eglFormatsWithModifiers;
     void initEglFormatsWithModifiers();
     void dumpFormatsWithModifiers();
+
+    void initEglPartialUpateExt();
 };
 
 /**

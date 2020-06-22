@@ -51,6 +51,8 @@ public:
      **/
     void setConfig(KSharedConfig::Ptr config);
     int count() const;
+    int renderingIndex() const;
+    void setRenderingIndex(int index);
     int current() const;
     void setCurrent(int current);
     /**
@@ -203,6 +205,7 @@ private Q_SLOTS:
 
 private:
     int m_count;
+    int m_rendering_index;
     int m_current;
     bool m_currentFollowsMouse;
     QTimer *m_changedTimer;
@@ -241,6 +244,12 @@ inline
 int Screens::count() const
 {
     return m_count;
+}
+
+inline
+int Screens::renderingIndex() const
+{
+    return m_rendering_index;
 }
 
 inline
