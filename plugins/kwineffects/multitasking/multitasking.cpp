@@ -1761,11 +1761,11 @@ void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant wi
 
 void MultitaskingEffect::moveEffectWindow2Desktop(EffectWindow* ew, int desktop)
 {
-    auto prev_desktop = ew->desktops().first();
-    if (prev_desktop == desktop) {
-        qCDebug(BLUR_CAT) << "------------ the same desktop";
-        return;
-    }
+//    auto prev_desktop = ew->desktops().first();
+//    if (prev_desktop == desktop) {
+//        qCDebug(BLUR_CAT) << "------------ the same desktop";
+//        return;
+//    }
 
     if( m_motionManagers.count() < desktop )
     {
