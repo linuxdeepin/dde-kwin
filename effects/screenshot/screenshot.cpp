@@ -698,7 +698,7 @@ bool ScreenShotEffect::isActive() const
 
 void ScreenShotEffect::windowClosed( EffectWindow* w )
 {
-    if (w == m_scheduledScreenshot) {
+    if (w == m_scheduledScreenshot && !w->isDeleted()) {
         m_scheduledScreenshot = NULL;
         screenshotWindowUnderCursor(m_type);
     }
