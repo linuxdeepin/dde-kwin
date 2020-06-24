@@ -147,6 +147,7 @@ Rectangle {
             width: screenWidth;
             height: parent.height;
             color: "transparent"
+
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
@@ -168,7 +169,6 @@ Rectangle {
                     width: desktopThumbmailItemWidth;
                     height: desktopThumbmailItemHeight;
                     color: "transparent"
-
                     property bool isDesktopHightlighted: index === $Model.currentDeskIndex
 
                     DesktopThumbnail {
@@ -178,7 +178,7 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         property var originParent: view
 
-
+                        radius: 10
                         width: thumbDelegate.width
                         height: thumbDelegate.height
                         MouseArea {
@@ -300,6 +300,7 @@ Rectangle {
                             border.color: "lightskyblue";
                             border.width: 0;
                             color: "transparent";
+                            radius: 10;
                         }
                     }
 
