@@ -141,8 +141,8 @@ Rectangle {
     Component {
         id: desktopThumbmailView;
         Rectangle {
-            property int desktopThumbmailItemWidth: screenWidth/8;
-            property int desktopThumbmailItemHeight: screenHeight/7;
+            property int desktopThumbmailItemWidth: screenWidth/7;
+            property int desktopThumbmailItemHeight: screenHeight/6;
             id:wholeDesktopThumbmailView
             width: screenWidth;
             height: parent.height;
@@ -163,13 +163,69 @@ Rectangle {
                 model: $Model
                 interactive : false;
                 clip: true;
-                spacing: desktopThumbmailItemWidth/10
+//                spacing: desktopThumbmailItemWidth/10
+
                 delegate: Rectangle {
-                    id: thumbDelegate;
+
+                    id: thumbBackRect;
+                    color: "transparent";
                     width: desktopThumbmailItemWidth;
                     height: desktopThumbmailItemHeight;
-                    color: "transparent"
+
+                    MouseArea {
+                        id: thumbBackRectMouseArea
+                        anchors.fill: parent;
+                        hoverEnabled: true;
+                        onEntered: {
+                            if ($Model.rowCount() != 1) {
+                                closeBtn.visible = true;
+                            }
+                        }
+
+                        onExited: {
+                            closeBtn.visible = false;
+                        }
+                    }
+
+                    Rectangle {
+                        id: closeBtn;
+                        anchors.right: parent.right;
+                        width: closeBtnIcon.width;
+                        height: closeBtnIcon.height;
+                        color: "transparent";
+                        property int desktop: desktopThumbnail.desktop;
+                        visible: false;
+                        z:100
+
+                        Image {
+                            id: closeBtnIcon;
+                            source: "qrc:///icons/data/close_normal.svg"
+                        }
+
+                        MouseArea {
+                            anchors.fill: closeBtn;
+                            onClicked: {
+                                $Model.remove(index);
+                            }
+                        }
+
+                        Connections {
+                            target: view;
+                            onCountChanged: {
+                                closeBtn.visible = false;
+                            }
+                        }
+                    }
+
+
                     property bool isDesktopHightlighted: index === $Model.currentDeskIndex
+
+                    Rectangle {
+                    id: thumbDelegate
+                    width: desktopThumbmailItemWidth - closeBtnIcon.width/4*3
+                    height: desktopThumbmailItemHeight - closeBtnIcon.height/4*3
+                    color: "transparent"
+                    anchors.centerIn: parent
 
                     DesktopThumbnail {
                         id: desktopThumbnail;
@@ -262,35 +318,6 @@ Rectangle {
                             property int desktopThumbnailWidth:desktopThumbnail.width
                             property int desktopThumbnailHeight:desktopThumbnail.height
                             property int desktop: desktopThumbnail.desktop;
-                        }
-
-                        Rectangle {
-                            id: closeBtn;
-                            anchors.right: parent.right;
-                            width: closeBtnIcon.width;
-                            height: closeBtnIcon.height;
-                            color: "transparent";
-                            property int desktop: desktopThumbnail.desktop;
-                            visible: false;
-
-                            Image {
-                                id: closeBtnIcon;
-                                source: "qrc:///icons/data/close_normal.svg"
-                            }
-
-                            MouseArea {
-                                anchors.fill: closeBtn;
-                                onClicked: {
-                                    $Model.remove(index);
-                                }
-                            }
-
-                            Connections {
-                                target: view;
-                                onCountChanged: {
-                                    closeBtn.visible = false;
-                                }
-                            }
                         }
 
                         Rectangle {
@@ -410,7 +437,7 @@ Rectangle {
                         }
                     }
                 }
-
+                }
                 //center
                 onCountChanged: {
                     view.width = desktopThumbmailItemWidth * count+view.spacing*(count-1);
