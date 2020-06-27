@@ -82,6 +82,7 @@ public:
     virtual ~Platform();
 
     virtual void init() = 0;
+    virtual void installDefaultDisplay();
     virtual Screens *createScreens(QObject *parent = nullptr);
     virtual OpenGLBackend *createOpenGLBackend();
     virtual QPainterBackend *createQPainterBackend();
@@ -464,6 +465,8 @@ Q_SIGNALS:
      * Emitted by backends using a one screen (nested window) approach and when the size of that changes.
      **/
     void screenSizeChanged();
+
+    void startWithoutScreen();
 
 protected:
     explicit Platform(QObject *parent = nullptr);

@@ -194,13 +194,37 @@ void ApplicationWayland::createBackend()
             QCoreApplication::exit(1);
         }
     );
+    connect(platform(), &Platform::startWithoutScreen, this, &ApplicationWayland::continueStartupWithoutScreens);
     platform()->init();
 }
 
 void ApplicationWayland::continueStartupWithScreens()
 {
     disconnect(kwinApp()->platform(), &Platform::screensQueried, this, &ApplicationWayland::continueStartupWithScreens);
+    disconnect(kwinApp()->platform(), &Platform::startWithoutScreen, this, &ApplicationWayland::continueStartupWithoutScreens);
     createScreens();
+
+    if (operationMode() == OperationModeWaylandOnly) {
+        createCompositor();
+        connect(Compositor::self(), &Compositor::sceneCreated, this, &ApplicationWayland::continueStartupWithSceen);
+        return;
+    }
+    createCompositor();
+    connect(Compositor::self(), &Compositor::sceneCreated, this, &ApplicationWayland::startXwaylandServer);
+}
+
+void ApplicationWayland::continueStartupWithoutScreens()
+{
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
+            << " ut-gfx-start: operationMode " << operationMode() << " withoutScreen " << m_runWithoutScreen;
+
+    disconnect(kwinApp()->platform(), &Platform::startWithoutScreen, this, &ApplicationWayland::continueStartupWithoutScreens);
+    if (!m_runWithoutScreen) {
+        return;
+    }
+    disconnect(kwinApp()->platform(), &Platform::screensQueried, this, &ApplicationWayland::continueStartupWithScreens);
+
+    platform()->installDefaultDisplay();
 
     if (operationMode() == OperationModeWaylandOnly) {
         createCompositor();
@@ -213,6 +237,7 @@ void ApplicationWayland::continueStartupWithScreens()
 
 void ApplicationWayland::continueStartupWithSceen()
 {
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO << " ut-gfx-start";
     disconnect(Compositor::self(), &Compositor::sceneCreated, this, &ApplicationWayland::continueStartupWithSceen);
     startSession();
     createWorkspace();
@@ -349,6 +374,7 @@ void ApplicationWayland::createX11Connection()
 
 void ApplicationWayland::startXwaylandServer()
 {
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO << " ut-gfx-start";
     disconnect(Compositor::self(), &Compositor::sceneCreated, this, &ApplicationWayland::startXwaylandServer);
     int pipeFds[2];
     if (pipe(pipeFds) != 0) {
@@ -629,9 +655,13 @@ int main(int argc, char * argv[])
                                     QStringLiteral("height"));
     outputCountOption.setDefaultValue(QString::number(1));
 
+    QCommandLineOption withoutscreenOption(QStringLiteral("withoutscreen"),
+                                      i18n("Start kwin without screen."));
+
     QCommandLineParser parser;
     a.setupCommandLine(&parser);
     parser.addOption(xwaylandOption);
+    parser.addOption(withoutscreenOption);
     parser.addOption(waylandSocketOption);
     if (hasX11Option) {
         parser.addOption(x11DisplayOption);
@@ -833,6 +863,7 @@ int main(int argc, char * argv[])
     environment.insert(QStringLiteral("WAYLAND_DISPLAY"), server->display()->socketName());
     a.setProcessStartupEnvironment(environment);
     a.setStartXwayland(parser.isSet(xwaylandOption));
+    a.setWithoutScreen(parser.isSet(withoutscreenOption));
     a.setApplicationsToStart(parser.positionalArguments());
     a.setInputMethodServerToStart(parser.value(inputMethodOption));
     a.start();

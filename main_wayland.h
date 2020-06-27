@@ -50,6 +50,10 @@ public:
         m_sessionArgument = session;
     }
 
+    void setWithoutScreen(bool withoutScreen) {
+        m_runWithoutScreen = withoutScreen;
+    }
+
     QProcessEnvironment processStartupEnvironment() const override {
         return m_environment;
     }
@@ -61,6 +65,7 @@ private:
     void createBackend();
     void createX11Connection();
     void continueStartupWithScreens();
+    void continueStartupWithoutScreens();
     void continueStartupWithSceen();
     void continueStartupWithX();
     void startXwaylandServer();
@@ -74,6 +79,7 @@ private:
     QMetaObject::Connection m_xwaylandFailConnection;
     QProcessEnvironment m_environment;
     QString m_sessionArgument;
+    bool m_runWithoutScreen = false;
 };
 
 }

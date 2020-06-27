@@ -90,6 +90,10 @@ void Platform::doShowCursor()
 {
 }
 
+void Platform::installDefaultDisplay()
+{
+}
+
 Screens *Platform::createScreens(QObject *parent)
 {
     Q_UNUSED(parent)

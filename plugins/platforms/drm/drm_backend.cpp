@@ -502,7 +502,82 @@ void DrmBackend::updateOutputs()
     outputDpmsChanged();
     if (!m_outputs.isEmpty()) {
         emit screensQueried();
+    } else {
+        qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
+                << " ut-gfx-start: m_outputs isEmpty start without screen";
+        emit startWithoutScreen();
     }
+}
+
+void DrmBackend::installDefaultDisplay()
+{
+    DrmOutput *output = new DrmOutput(this);
+
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
+            << " ut-gfx-start:";
+
+    drmModeModeInfo mode;
+    strcpy(mode.name, "1920x1080");
+    mode.clock = 148500;
+    mode.hdisplay = 1920;
+    mode.hsync_start = 2008;
+    mode.hsync_end = 2052;
+    mode.htotal = 2200;
+    mode.hskew = 0;
+
+    mode.vdisplay = 1080;
+    mode.vsync_start = 1084;
+    mode.vsync_end = 1089;
+    mode.vtotal = 1125,
+    mode.vscan = 0;
+
+    mode.vrefresh = 60;
+
+    mode.flags = 5;
+    mode.type = 72;
+
+    //connector_id  48   47   1   1   530   300   15   5
+
+    //1.Add mode info
+    output->m_mode = mode;
+
+    output->setRawPhysicalSize(QSize(mode.hdisplay, mode.vdisplay));
+
+    //2.init wayland output device
+    QString model = "VGA-1-unknown";
+    QString manufacturer = "UOS";
+    QByteArray uuid = "q42e92efb7";
+    QVector<KWayland::Server::OutputDeviceInterface::Mode> modes;
+    KWayland::Server::OutputDeviceInterface::Mode dmode;
+    dmode.id = 0;
+    dmode.size = QSize(mode.hdisplay, mode.vdisplay);
+    dmode.flags = KWayland::Server::OutputDeviceInterface::ModeFlag::Current;
+    dmode.refreshRate = mode.vrefresh * 1000LL;
+    modes << dmode;
+    output->initWaylandOutputDevice(model, manufacturer, uuid, modes);
+
+    //3.set enable
+    output->setEnabled(true);
+
+    //4.set position and scale
+    QPoint pos(0, 0);
+    output->setGlobalPos(pos);
+    output->setScale(1.0);
+
+    //5.set wayland mode
+    output->setWaylandMode();
+
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
+            << " ut-gfx-start-display:Add default output name " << output->m_mode.name
+            << " clock " << output->m_mode.clock << " hdisplay " << output->m_mode.hdisplay
+            << " hsync_start " << output->m_mode.hsync_start << " hsync_end " << output->m_mode.hsync_end
+            << " htotal " << output->m_mode.htotal << " hskew " << output->m_mode.hskew
+            << " vdisplay " << output->m_mode.vdisplay << " vsync_start " << output->m_mode.vsync_start
+            << " vsync_end " << output->m_mode.vsync_end << " vtotal " << output->m_mode.vtotal
+            << " vscan " << output->m_mode.vscan <<  " vrefresh " << output->m_mode.vrefresh
+            << " flags " << output->m_mode.flags << " type " << output->m_mode.type;
+
+    //Do not add the default output in m_outputs. So the compositor not work, and this is what we want.
 }
 
 void DrmBackend::readOutputsConfiguration()

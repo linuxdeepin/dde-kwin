@@ -133,6 +133,8 @@ public:
 
     void enableOutput(DrmOutput *output, bool enable);
 
+    void installDefaultDisplay() override;
+
 public Q_SLOTS:
     void turnOutputsOn();
 
