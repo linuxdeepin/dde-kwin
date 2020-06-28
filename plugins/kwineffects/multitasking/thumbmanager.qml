@@ -671,7 +671,7 @@ Rectangle {
                                 id:windowThumbnailitemMousearea
                                 anchors.fill: parent //windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
-                                //hoverEnabled: true;
+                                hoverEnabled: true;
                                 property var pressedTime;
                                 
 
@@ -680,9 +680,13 @@ Rectangle {
                                 property int originX
                                 property int originY
 
+                               // property var lastPos:0;
+
+
                                 //drag.target:windowThumbnailitem
-                                drag.smoothed :true
+                                drag.smoothed :false
                                 drag.threshold:0
+                                preventStealing:true
 
 
                                 onEntered: {
@@ -695,6 +699,7 @@ Rectangle {
                                     }else{
                                         stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
                                     }
+                                    
                                 }
                               
                                 //  excute on released
@@ -748,16 +753,35 @@ Rectangle {
                                     closeClientBtn.visible = false;
                                     stickedBtn.visible = false;
 
-
                                     windowThumbnailitem.Drag.active=true
                                 }
+
+                                
                                
                                 //onpress 后，会马上执行　onMouseXChanged，然后再执行　onPositionChanged
+                                //此时要先用pressed 做条件，不能使用windowThumbnailitem.Drag.active
                                 onMouseXChanged: {
-                                    windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
+                                    if(pressed){
+
+                                        //绝对坐标方法
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        windowThumbnailitem.x = (positionInRoot.x - windowThumbnailitem.width / 2);
+
+                                        //console.log("onMouseXChanged x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +"  lastPos.x:"+ lastPos + " posInRoot x:"+positionInRoot.x+" posInRoot y:"+positionInRoot.y+" mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
+
+                                        //相对坐标方法
+                                        //windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
+
+                                    }
+                                        
                                 }
                                 onMouseYChanged: {
-                                    windowThumbnailitem.y += (mouse.y - windowThumbnailitem.height / 2);
+                                    if(pressed){
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        windowThumbnailitem.y = (positionInRoot.y - windowThumbnailitem.height / 2);
+
+                                    }
+                                        
                                 }
                                 onReleased:{
                                     var curtime = Date.now();
