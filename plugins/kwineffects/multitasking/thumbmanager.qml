@@ -15,6 +15,8 @@ Rectangle {
     height: manager.containerSize.height;
     color: "transparent"
 
+    objectName: "root"
+
     Rectangle {
         id: background
         x: 0
@@ -381,7 +383,7 @@ Rectangle {
                         }
 
                         onExited: {
-                            console.log("----------- workspaceThumb onExited")
+                            //console.log("----------- workspaceThumb onExited")
                             if (drag.source.pendingDragRemove) {
                                 hint.visible = false
                                 drag.source.pendingDragRemove = hint.visible
@@ -616,7 +618,7 @@ Rectangle {
                     }
                     onEntered: {
                         drag.accepted=true;
-                        console.log("bigWindowThrumbContainer enter");
+                        //console.log("bigWindowThrumbContainer enter");
                     }
                 }
                 //zhd add end
@@ -650,7 +652,7 @@ Rectangle {
 
 
                             Drag.keys:["DragwindowThumbnailitemdata", "PlusButton"];
-                            Drag.active: windowThumbnailitemMousearea.drag.active
+                            Drag.active: false// windowThumbnailitemMousearea.drag.active
                             Drag.hotSpot {
                                 x:0
                                 y:0
@@ -667,16 +669,21 @@ Rectangle {
                           
                             MouseArea {
                                 id:windowThumbnailitemMousearea
-                                anchors.fill: windowThumbnailitem
+                                anchors.fill: parent //windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
-                                hoverEnabled: true;
+                                //hoverEnabled: true;
                                 property var pressedTime;
-                                property bool mousePressWithoutDrag:false
+                                
 
                                 property int originWidth
                                 property int originHeight
                                 property int originX
                                 property int originY
+
+                                //drag.target:windowThumbnailitem
+                                drag.smoothed :true
+                                drag.threshold:0
+
 
                                 onEntered: {
                                     $Model.setCurrentSelectIndex(modelData);
@@ -708,8 +715,6 @@ Rectangle {
                                     originX = windowThumbnailitem.x
                                     originY = windowThumbnailitem.y
 
-                                    var centerX = (mouse.x + windowThumbnailitem.x) 
-                                    var centerY = (mouse.y + windowThumbnailitem.y)
 
 
                                     var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
@@ -722,7 +727,6 @@ Rectangle {
                                     else
                                         scale = 0.75
 
-                                  //  console.log("imgheight" + imgheight + " imgwidth:"+imgwidth+ " scale: "+ scale)
                                     var dragingImgWidth
                                     var dragingImgHeight
 
@@ -734,8 +738,8 @@ Rectangle {
                                         dragingImgWidth = dragingImgHeight * scale;
                                     }
 
-                                    windowThumbnailitem.x = centerX - dragingImgWidth/2
-                                    windowThumbnailitem.y = centerY - dragingImgHeight/2
+
+                                    //只缩小，不设置位置，因为大小变了。这个ｍｏｕｓｅ　已经不是正确的位置了。只能下次再取（就是到　ｐｏｓｉｔｉｏｎ　中取得）
                                     windowThumbnailitem.width = dragingImgWidth
                                     windowThumbnailitem.height = dragingImgHeight
 
@@ -743,6 +747,17 @@ Rectangle {
 
                                     closeClientBtn.visible = false;
                                     stickedBtn.visible = false;
+
+
+                                    windowThumbnailitem.Drag.active=true
+                                }
+                               
+                                //onpress 后，会马上执行　onMouseXChanged，然后再执行　onPositionChanged
+                                onMouseXChanged: {
+                                    windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
+                                }
+                                onMouseYChanged: {
+                                    windowThumbnailitem.y += (mouse.y - windowThumbnailitem.height / 2);
                                 }
                                 onReleased:{
                                     var curtime = Date.now();
@@ -751,7 +766,7 @@ Rectangle {
                                         $Model.windowSelected( modelData );
                                         //
                                     }else{
-                                        if(!windowThumbnailitemMousearea.drag.active){
+                                        if(!windowThumbnailitem.Drag.active){
                                             ////恢复现场
                                             windowThumbnailitem.width = originWidth
                                             windowThumbnailitem.height = originHeight
@@ -761,15 +776,11 @@ Rectangle {
                                             stickedBtn.visible = true;
                                         }
                                     }
+                                    windowThumbnailitem.Drag.drop()
+                                    windowThumbnailitem.Drag.active=false
                                     
                                 }
-                              
-
-                                drag.target:windowThumbnailitem
-                                drag.smoothed :true
-
-
-                                drag.onActiveChanged: {
+                                /*drag.onActiveChanged: {
                                     if (!windowThumbnailitemMousearea.drag.active) {
                                       //  console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
                                         windowThumbnailitem.Drag.drop();
@@ -777,10 +788,10 @@ Rectangle {
                                     }else{
                                         //console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
                                     }
-                                }
+                                }*/
                                 states: [
                                     State {
-                                    when: windowThumbnailitemMousearea.drag.active;
+                                    when: windowThumbnailitem.Drag.active;
                                     ParentChange {
                                         target: windowThumbnailitem;
                                         parent: root;
@@ -789,17 +800,17 @@ Rectangle {
                                         target: windowThumbnailitem;
                                         z: 100;
                                     }
-                                    PropertyChanges{
-                                        target:windowThumbnailitemMousearea
-                                        width:120
-                                        height:80
-                                    }
-                                    AnchorChanges{
-                                        target: windowThumbnailitem;
+                                    // PropertyChanges{
+                                    //     target:windowThumbnailitemMousearea
+                                    //     width:120
+                                    //     height:80
+                                    // }
+                                    // AnchorChanges{
+                                    //     target: windowThumbnailitem;
 
-                                        Layout.fillWidth: false
-                                        Layout.fillHeight:false
-                                    }
+                                    //     Layout.fillWidth: false
+                                    //     Layout.fillHeight:false
+                                    // }
                                    
                                 }]
                             }
