@@ -435,7 +435,7 @@ private:
 
     QMargins desktopMargins();
 
-    QQuickWidget *m_multitaskingView { nullptr };
+    QQuickView *m_multitaskingView { nullptr };
     bool          m_multitaskingViewVisible { false };
 	MultitaskingModel *m_multitaskingModel { nullptr };
 
