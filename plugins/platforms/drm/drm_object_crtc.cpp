@@ -90,6 +90,9 @@ bool DrmCrtc::blank()
     if (!m_output) {
         return false;
     }
+    if (m_backend->atomicModeSetting()) {
+        return false;
+    }
     if (!m_blackBuffer) {
         DrmDumbBuffer *blackBuffer = m_backend->createBuffer(m_output->pixelSize());
         if (!blackBuffer->map()) {
