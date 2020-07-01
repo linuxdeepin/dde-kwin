@@ -1887,28 +1887,27 @@ void MultitaskingEffect::setActive(bool active)
             }
         }
 
-        if (m_multitaskingView) {
-            delete m_multitaskingView;
+        if (!m_multitaskingView) {
+            m_multitaskingView = new QQuickWidget;
+            m_multitaskingView->engine()->addImageProvider( QLatin1String("imageProvider"), new ImageProvider(QQmlImageProviderBase::Pixmap));
+            m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
+            m_multitaskingView->setClearColor(Qt::transparent);
+            QSurfaceFormat fmt = m_multitaskingView->format();
+            fmt.setAlphaBufferSize(8);
+            m_multitaskingView->setFormat(fmt);
+            qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
+            m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
+            m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
+            m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
+            m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
+            m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
+            auto root = m_multitaskingView->rootObject();
+            connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
+            connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
+            connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));
+            connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
+            connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
         }
-        m_multitaskingView = new QQuickView;
-        m_multitaskingView->engine()->addImageProvider( QLatin1String("imageProvider"), new ImageProvider(QQmlImageProviderBase::Pixmap));
-        //m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
-        m_multitaskingView->setColor(Qt::transparent);
-        QSurfaceFormat fmt = m_multitaskingView->format();
-        fmt.setAlphaBufferSize(8);
-        m_multitaskingView->setFormat(fmt);
-        qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
-        m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
-        m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
-        m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
-        m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
-        m_multitaskingView->setFlags(Qt::BypassWindowManagerHint);
-
-        connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
-        connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
-        connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));
-        connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
-        connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
         m_thumbManager->setGeometry(effects->virtualScreenGeometry());
