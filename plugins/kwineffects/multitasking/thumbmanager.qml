@@ -591,7 +591,7 @@ Rectangle {
                 z:1
 
                 //zhd add for receive window thrumbnail
-                DropArea { 
+                DropArea {
                     id: workspaceThumbnailDropArea
                     anchors.fill: parent
                     keys: ['DragwindowThumbnailitemdata','DraggingWindowAvatar']
@@ -639,17 +639,17 @@ Rectangle {
                     Repeater {
                         id: windowThumbnail;
                         //model: $Model.windows(currentScreen)
-                        PlasmaCore.WindowThumbnail {
+
+                        Rectangle {
                             id:windowThumbnailitem
+                            color: "transparent"
                             property bool isHightlighted: winId == $Model.currentWindowThumbnail;
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth:-1;
                             Layout.preferredHeight:-1;
-                            winId: modelData;
+                            property var winId: plasmaCoreWindowThumbnail.winId;
                             property var draggingdata: winId
                             property bool  dropreceived:false
-                            
-
 
                             Drag.keys:["DragwindowThumbnailitemdata", "PlusButton"];
                             Drag.active: false// windowThumbnailitemMousearea.drag.active
@@ -658,22 +658,40 @@ Rectangle {
                                 y:0
                             }
 
-                            Rectangle {
-                                id:backgroundrect;
-                                width: parent.width;
-                                height: parent.height;
-                                border.color: "lightgray";
-                                border.width: 0;
-                                color: "transparent";
+                            PlasmaCore.WindowThumbnail {
+                                id : plasmaCoreWindowThumbnail
+                                winId: modelData
+                                width: parent.width * 0.85
+                                height: parent.height * 0.85
+                                anchors.centerIn: parent
+
+                                Rectangle {
+                                    id:backgroundrect;
+                                    width: parent.width;
+                                    height: parent.height;
+                                    border.color: "lightgray";
+                                    border.width: 0;
+                                    color: "transparent";
+                                }
+
                             }
-                          
+
+//                            Rectangle {
+//                                id:backgroundrect;
+//                                width: parent.width;
+//                                height: parent.height;
+//                                border.color: "lightgray";
+//                                border.width: 0;
+//                                color: "transparent";
+//                            }
+
                             MouseArea {
                                 id:windowThumbnailitemMousearea
                                 anchors.fill: parent //windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
                                 property var pressedTime;
-                                
+
 
                                 property int originWidth
                                 property int originHeight
@@ -699,9 +717,9 @@ Rectangle {
                                     }else{
                                         stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
                                     }
-                                    
+
                                 }
-                              
+
                                 //  excute on released
                                 // onClicked: {
                                 //     $Model.setCurrentSelectIndex(modelData);
@@ -712,7 +730,7 @@ Rectangle {
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
                                 }
-                           
+
                                 onPressed:{
                                     //console.log("onPressed x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +" width:"+windowThumbnailitem.width+" height:"+windowThumbnailitem.height+ " mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
                                     originWidth = windowThumbnailitem.width
@@ -725,7 +743,7 @@ Rectangle {
                                     var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
                                     var imgwidth  =   $Model.getWindowWidth(windowThumbnailitem.winId);
 
-                                   
+
                                     var scale=1;
                                     if(imgwidth > 0 && imgheight > 0)
                                         scale = imgwidth/imgheight;
@@ -756,15 +774,16 @@ Rectangle {
                                     windowThumbnailitem.Drag.active=true
                                 }
 
-                                
-                               
+
+
                                 //onpress 后，会马上执行　onMouseXChanged，然后再执行　onPositionChanged
                                 //此时要先用pressed 做条件，不能使用windowThumbnailitem.Drag.active
                                 onMouseXChanged: {
+
                                     if(pressed){
 
                                         //绝对坐标方法
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y)
                                         windowThumbnailitem.x = (positionInRoot.x - windowThumbnailitem.width / 2);
 
                                         //console.log("onMouseXChanged x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +"  lastPos.x:"+ lastPos + " posInRoot x:"+positionInRoot.x+" posInRoot y:"+positionInRoot.y+" mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
@@ -773,15 +792,14 @@ Rectangle {
                                         //windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
 
                                     }
-                                        
+
                                 }
                                 onMouseYChanged: {
                                     if(pressed){
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y)
                                         windowThumbnailitem.y = (positionInRoot.y - windowThumbnailitem.height / 2);
 
                                     }
-                                        
                                 }
                                 onReleased:{
                                     var curtime = Date.now();
@@ -802,7 +820,7 @@ Rectangle {
                                     }
                                     windowThumbnailitem.Drag.drop()
                                     windowThumbnailitem.Drag.active=false
-                                    
+
                                 }
                                 /*drag.onActiveChanged: {
                                     if (!windowThumbnailitemMousearea.drag.active) {
@@ -835,13 +853,15 @@ Rectangle {
                                     //     Layout.fillWidth: false
                                     //     Layout.fillHeight:false
                                     // }
-                                   
+
                                 }]
                             }
                             Rectangle {
                                 id: closeClientBtn;
                                 visible:false;
-                                anchors.right: parent.right;
+                                x: parent.width - (parent.width - parent.width*0.85)/2 - closeClientBtnIcon.width/2
+                                y: (parent.height - parent.height*0.85)/2 - closeClientBtnIcon.height/2
+//                                anchors.right: parent.right;
                                 width: closeClientBtnIcon.width;
                                 height: closeClientBtnIcon.height;
                                 color: "transparent";
@@ -859,7 +879,9 @@ Rectangle {
 
                             Rectangle {
                                 id: stickedBtn;
-                                anchors.left: parent.left;
+                                x: (parent.width - parent.width*0.85)/2 - stickedBtn.width/2
+                                y: (parent.height - parent.height*0.85)/2 - stickedBtn.height/2
+//                                anchors.left: parent.left;
                                 width: stickedBtnIcon.width;
                                 height: stickedBtnIcon.height;
                                 color: "transparent";
@@ -887,11 +909,11 @@ Rectangle {
 
                             states: State {
                                 name: "isHightlighted"
-                                when: isHightlighted 
+                                when: isHightlighted
                                 PropertyChanges {
                                     target: windowThumbnailitem
                                     scale: 1.02
-                                    
+
                                 }
                                 PropertyChanges {
                                     target: backgroundrect
@@ -901,8 +923,9 @@ Rectangle {
 
                             Rectangle {
                                 id: clientIcon;
-                                x:windowThumbnailitem.width/2 -  clientIconImage.width/2;
-                                y:windowThumbnailitem.height - clientIconImage.height;
+//                                color: "red"
+                                x:(plasmaCoreWindowThumbnail.width/2 -  clientIconImage.width/2)/0.85;
+                                y: (parent.height - clientIconImage.height/2) - ( parent.height - plasmaCoreWindowThumbnail.height )/2
                                 width: clientIconImage.width;
                                 height: clientIconImage.height;
                                 color: "transparent";
@@ -912,7 +935,7 @@ Rectangle {
                                     cache : false
                                 }
                             }
-                        }
+                        } //this
                     }
                 Connections {
                     target: root
