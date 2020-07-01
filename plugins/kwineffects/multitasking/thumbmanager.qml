@@ -49,10 +49,11 @@ Rectangle {
             } 
             GridLayout {
                 id:windowThumbnailViewGrid
-                x: desktopThumbnailWidth/7;
-                y: desktopThumbnailHeight/10;
-                width: desktopThumbnailWidth*5/7;
-                height: desktopThumbnailHeight*8/10;
+                x: desktopThumbnailWidth/7 + closeBtnWidth/8 + 7;
+                y: desktopThumbnailHeight/10 + closeBtnHeight/8 + 7;
+                width: desktopThumbnailWidth*5/7 - closeBtnWidth/4 - 14;
+                height: desktopThumbnailHeight*8/10 - closeBtnHeight/4 - 14;
+
                 columns : $Model.getCalculateColumnsCount(screen,desktop);
                 Repeater {
                     id: windowThumbnailRepeater
@@ -169,76 +170,82 @@ Rectangle {
 
                 delegate: Rectangle {
 
-                    id: thumbBackRect;
-                    color: "transparent";
+                    id: thumbDelegate;
                     width: desktopThumbmailItemWidth;
                     height: desktopThumbmailItemHeight;
-
-                    MouseArea {
-                        id: thumbBackRectMouseArea
-                        anchors.fill: parent;
-                        hoverEnabled: true;
-                        onEntered: {
-                            if ($Model.rowCount() != 1) {
-                                closeBtn.visible = true;
-                            }
-                        }
-
-                        onExited: {
-                            closeBtn.visible = false;
-                        }
-                    }
-
-                    Rectangle {
-                        id: closeBtn;
-                        anchors.right: parent.right;
-                        width: closeBtnIcon.width;
-                        height: closeBtnIcon.height;
-                        color: "transparent";
-                        property int desktop: desktopThumbnail.desktop;
-                        visible: false;
-                        z:100
-
-                        Image {
-                            id: closeBtnIcon;
-                            source: "qrc:///icons/data/close_normal.svg"
-                        }
-
-                        MouseArea {
-                            anchors.fill: closeBtn;
-                            onClicked: {
-                                $Model.remove(index);
-                            }
-                        }
-
-                        Connections {
-                            target: view;
-                            onCountChanged: {
-                                closeBtn.visible = false;
-                            }
-                        }
-                    }
-
+                    color: "transparent"
 
                     property bool isDesktopHightlighted: index === $Model.currentDeskIndex
 
                     Rectangle {
-                    id: thumbDelegate
-                    width: desktopThumbmailItemWidth - closeBtnIcon.width/4*3
-                    height: desktopThumbmailItemHeight - closeBtnIcon.height/4*3
-                    color: "transparent"
-                    anchors.centerIn: parent
-
-                    DesktopThumbnail {
                         id: desktopThumbnail;
-                        desktop: index + 1;
+                        property int desktop: smalldesktopThumbnail.desktop;
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         property var originParent: view
+                        color: "transparent"
 
                         radius: 10
                         width: thumbDelegate.width
                         height: thumbDelegate.height
+
+                        DesktopThumbnail {
+                            id : smalldesktopThumbnail
+                            desktop: index + 1;
+                            width: parent.width - closeBtn.width*(3/4)
+                            height: parent.height - closeBtn.height*(3/4)
+                            anchors.centerIn: parent
+                            radius: 10
+
+                            Rectangle {
+                                id:winThumrect;
+                                width: parent.width;
+                                height: parent.height;
+                                border.color: "lightskyblue";
+                                border.width: 0;
+                                color: "transparent";
+                                radius: 10;
+                            }
+                        }
+
+
+                        Rectangle {
+                            id: closeBtn;
+//                            x: parent.width - (parent.width - parent.width*0.85)/2 - closeBtnIcon.width/2
+//                            y: (parent.height - parent.height*0.85)/2 - closeBtnIcon.height/2
+                            x: thumbDelegate.width - closeBtn.width
+                            y: 0
+                            z: 100
+                            width: closeBtnIcon.width
+                            height: closeBtnIcon.height
+                            color: "transparent";
+
+                            property int desktop: desktopThumbnail.desktop;
+                            visible: false;
+
+                            Image {
+                                id: closeBtnIcon;
+                                source: "qrc:///icons/data/close_normal.svg"
+//                                anchors.centerIn: parent
+                            }
+
+
+                            Connections {
+                                target: view;
+                                onCountChanged: {
+                                    closeBtn.visible = false;
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent;
+                                onClicked: {
+                                    $Model.remove(index);
+                                }
+                            }
+                        }
+
+
+
                         MouseArea {
                             id: desktopThumbMouseArea
                             anchors.fill: parent;
@@ -310,6 +317,7 @@ Rectangle {
                             }]
 
 
+
                         //window thumbnail
                         Loader {
                             id: winThumLoader
@@ -320,17 +328,49 @@ Rectangle {
                             property int desktopThumbnailWidth:desktopThumbnail.width
                             property int desktopThumbnailHeight:desktopThumbnail.height
                             property int desktop: desktopThumbnail.desktop;
+
+                            property int closeBtnWidth:closeBtn.width
+                            property int closeBtnHeight:closeBtn.height
                         }
 
-                        Rectangle {
-                            id:winThumrect;
-                            width: parent.width;
-                            height: parent.height;
-                            border.color: "lightskyblue";
-                            border.width: 0;
-                            color: "transparent";
-                            radius: 10;
-                        }
+//                        Rectangle {
+//                            id: closeBtn;
+////                            anchors.right: parent.right;
+//                            x: parent.width - (parent.width - parent.width*0.85)/2 - closeBtnIcon.width/2
+//                            y: (parent.height - parent.height*0.85)/2 - closeBtnIcon.height/2
+//                            color: "transparent";
+//                            property int desktop: desktopThumbnail.desktop;
+//                            visible: false;
+
+//                            Image {
+//                                id: closeBtnIcon;
+//                                source: "qrc:///icons/data/close_normal.svg"
+//                            }
+
+//                            MouseArea {
+//                                anchors.fill: closeBtn;
+//                                onClicked: {
+//                                    $Model.remove(index);
+//                                }
+//                            }
+
+//                            Connections {
+//                                target: view;
+//                                onCountChanged: {
+//                                    closeBtn.visible = false;
+//                                }
+//                            }
+//                        }
+
+//                        Rectangle {
+//                            id:winThumrect;
+//                            width: parent.width;
+//                            height: parent.height;
+//                            border.color: "lightskyblue";
+//                            border.width: 0;
+//                            color: "transparent";
+//                            radius: 10;
+//                        }
                     }
 
                     DropArea {
@@ -438,7 +478,7 @@ Rectangle {
                             }
                         }
                     }
-                }
+//                }
                 }
                 //center
                 onCountChanged: {
@@ -591,7 +631,7 @@ Rectangle {
                 z:1
 
                 //zhd add for receive window thrumbnail
-                DropArea {
+                DropArea { 
                     id: workspaceThumbnailDropArea
                     anchors.fill: parent
                     keys: ['DragwindowThumbnailitemdata','DraggingWindowAvatar']
@@ -684,14 +724,14 @@ Rectangle {
 //                                border.width: 0;
 //                                color: "transparent";
 //                            }
-
+                          
                             MouseArea {
                                 id:windowThumbnailitemMousearea
                                 anchors.fill: parent //windowThumbnailitem
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
                                 property var pressedTime;
-
+                                
 
                                 property int originWidth
                                 property int originHeight
@@ -717,9 +757,9 @@ Rectangle {
                                     }else{
                                         stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
                                     }
-
+                                    
                                 }
-
+                              
                                 //  excute on released
                                 // onClicked: {
                                 //     $Model.setCurrentSelectIndex(modelData);
@@ -730,7 +770,7 @@ Rectangle {
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
                                 }
-
+                           
                                 onPressed:{
                                     //console.log("onPressed x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +" width:"+windowThumbnailitem.width+" height:"+windowThumbnailitem.height+ " mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
                                     originWidth = windowThumbnailitem.width
@@ -743,7 +783,7 @@ Rectangle {
                                     var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
                                     var imgwidth  =   $Model.getWindowWidth(windowThumbnailitem.winId);
 
-
+                                   
                                     var scale=1;
                                     if(imgwidth > 0 && imgheight > 0)
                                         scale = imgwidth/imgheight;
@@ -774,8 +814,8 @@ Rectangle {
                                     windowThumbnailitem.Drag.active=true
                                 }
 
-
-
+                                
+                               
                                 //onpress 后，会马上执行　onMouseXChanged，然后再执行　onPositionChanged
                                 //此时要先用pressed 做条件，不能使用windowThumbnailitem.Drag.active
                                 onMouseXChanged: {
@@ -783,7 +823,7 @@ Rectangle {
                                     if(pressed){
 
                                         //绝对坐标方法
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y)
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
                                         windowThumbnailitem.x = (positionInRoot.x - windowThumbnailitem.width / 2);
 
                                         //console.log("onMouseXChanged x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +"  lastPos.x:"+ lastPos + " posInRoot x:"+positionInRoot.x+" posInRoot y:"+positionInRoot.y+" mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
@@ -792,11 +832,11 @@ Rectangle {
                                         //windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
 
                                     }
-
+                                        
                                 }
                                 onMouseYChanged: {
                                     if(pressed){
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y)
+                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
                                         windowThumbnailitem.y = (positionInRoot.y - windowThumbnailitem.height / 2);
 
                                     }
@@ -820,7 +860,7 @@ Rectangle {
                                     }
                                     windowThumbnailitem.Drag.drop()
                                     windowThumbnailitem.Drag.active=false
-
+                                    
                                 }
                                 /*drag.onActiveChanged: {
                                     if (!windowThumbnailitemMousearea.drag.active) {
@@ -853,7 +893,7 @@ Rectangle {
                                     //     Layout.fillWidth: false
                                     //     Layout.fillHeight:false
                                     // }
-
+                                   
                                 }]
                             }
                             Rectangle {
@@ -909,11 +949,11 @@ Rectangle {
 
                             states: State {
                                 name: "isHightlighted"
-                                when: isHightlighted
+                                when: isHightlighted 
                                 PropertyChanges {
                                     target: windowThumbnailitem
                                     scale: 1.02
-
+                                    
                                 }
                                 PropertyChanges {
                                     target: backgroundrect
