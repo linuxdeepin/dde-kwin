@@ -269,23 +269,13 @@ void MultitaskingModel::updateWindowDestop( int nDesktop )
 QList<int> MultitaskingModel::getScreenDesktopByWinID(int winid)
 {
     QList<int> scrnDesk;
-
-    for(int scrn = 0; scrn < effects->numScreens(); ++scrn)
-    {
-        for(int desk = 1; desk <= m_desktopThumbnailItemList.size(); ++desk)
-        {
-            for (int i = 0; i < m_windows[scrn][desk].size(); ++i)
-            {
-                if(m_windows[scrn][desk][i].toInt() == winid)
-                {
-                    scrnDesk.append(scrn);
-                    scrnDesk.append(desk);
-                }
-            }
-        }
-    }
+    EffectWindow *ew = effects->findWindow(winid);
+    int scrn = effects->screenNumber(ew->pos());
+    scrnDesk.append(scrn);
+    scrnDesk.append(m_currentIndex+1);
     return scrnDesk;
 }
+
 void MultitaskingModel::selectNextWindow()
 {
     if(m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;

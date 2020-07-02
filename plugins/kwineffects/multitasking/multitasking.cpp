@@ -540,6 +540,11 @@ QVariantList MultitaskingEffect::windowsFor(int screen, int desktop)
     QVariantList vl;
     QDesktopWidget dw;
     for (const auto& ew: effects->stackingOrder()) {
+        if (isRelevantWithPresentWindows(ew) && ew->isOnAllDesktops() && effects->screenNumber(ew->pos()) == screen) {
+            auto wid = findWId(ew);
+            assert (effects->findWindow(wid) == ew);
+            vl.append(wid);
+        }
         if (isRelevantWithPresentWindows(ew) && ew->desktop() == desktop) {
             if (effects->screenNumber(ew->pos()) == screen) {
                 auto wid = findWId(ew);
