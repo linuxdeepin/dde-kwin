@@ -75,13 +75,18 @@ Rectangle {
                             x: width/2
                             y: height/2
                         }
-                        MouseArea{ //zhd add   for drag window
+                        MouseArea { //zhd add   for drag window
                             id:avatarMousearea
                             anchors.fill:parent
                             drag.target:winAvatar
                             drag.smoothed :true
                             property var pressedTime;
                             property var releaseTime;
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: "Ma_winThumb_small_" +desktop+"_"+screen+"_"+ winId 
+                            Accessible.description: "small windowthumbnail_desktop_screen_winId"
+                            Accessible.onPressAction:pressed()
 
                             onPressed: {
                                 winAvatar.Drag.hotSpot.x = mouse.x;
@@ -156,6 +161,10 @@ Rectangle {
                 onClicked: {
                     qmlCloseMultitask();
                 }
+                Accessible.role: Accessible.Button
+                Accessible.name: "Ma_background_1" 
+                Accessible.description: "background of whole desktopThumbnail area"
+                Accessible.onPressAction: pressed()
             }
             ListView {
                 id: view
@@ -241,6 +250,10 @@ Rectangle {
                                 onClicked: {
                                     $Model.remove(index);
                                 }
+                                Accessible.role: Accessible.Button
+                                Accessible.name: "Ma_deskThumb_closeBtn_"+(index+1)+"_"+currentScreen
+                                Accessible.description: "desktopThumbnail_closeButton_desktop_screen"
+                                Accessible.onPressAction: pressed()
                             }
                         }
 
@@ -250,6 +263,11 @@ Rectangle {
                             id: desktopThumbMouseArea
                             anchors.fill: parent;
                             hoverEnabled: true;
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: "Ma_deskThumb_"+(index+1)+"_"+currentScreen
+                            Accessible.description: "desktopThumbnail_desktop_screen"
+                            Accessible.onPressAction: pressed()
 
                             onClicked: {
                                 $Model.setCurrentIndex(index);
@@ -562,6 +580,12 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     //hoverEnabled: true
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "Ma_plusBtn"
+                    Accessible.description: "plus Button"
+                    Accessible.onPressAction: pressed()
+
                     onClicked: {
                         $Model.append();
                         $Model.setCurrentIndex($Model.rowCount() - 1);
@@ -665,6 +689,12 @@ Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "Ma_background_2"
+                    Accessible.description: "background of windows thumbnail area"
+                    Accessible.onPressAction: pressed()
+
                     onClicked: {
                        qmlCloseMultitask();
                       // console.log("click to close multimask ")
@@ -731,7 +761,11 @@ Rectangle {
                                 acceptedButtons: Qt.LeftButton| Qt.RightButton;
                                 hoverEnabled: true;
                                 property var pressedTime;
-                                
+
+                                Accessible.role: Accessible.Button
+                                Accessible.name: "Ma_winThumb_"+($Model.currentIndex()+1) + "_" + currentScreen + "_" + winId
+                                Accessible.description: "windowThumbnail_desktop_screen_winId"
+                                Accessible.onPressAction: pressed()
 
                                 property int originWidth
                                 property int originHeight
@@ -911,6 +945,11 @@ Rectangle {
                                 }
                                 MouseArea {
                                     anchors.fill: closeClientBtn;
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: "Ma_winThumb_closeBtn_"+($Model.currentIndex()+1)+"_"+currentScreen+"_"+ windowThumbnailitem.winId 
+                                    Accessible.description: "windowThumbnail_closeButton_desktop_screen_winId"
+                                    Accessible.onPressAction: pressed()
+                                    anchors.fill: closeClientBtn;
                                     onClicked: {
                                         qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, windowThumbnailitem.winId)
                                     }
@@ -934,6 +973,12 @@ Rectangle {
 
                                 MouseArea {
                                     anchors.fill: stickedBtn;
+
+                                    Accessible.role: Accessible.Button
+                                    Accessible.name: "Ma_winThumb_stickedBtn_"+($Model.currentIndex()+1)+"_"+currentScreen+"_" + windowThumbnailitem.winId 
+                                    Accessible.description: "windowThumbnai_stickedButton_desktop_screen_winId"
+                                    Accessible.onPressAction: pressed()
+
                                     onClicked: {
                                         if($Model.getWindowKeepAbove(modelData))
                                         {
