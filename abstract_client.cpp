@@ -46,6 +46,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMouseEvent>
 #include <QStyleHints>
 
+#include <pointer_input.h>
+#include <math.h>
+//resize limit
+#define RESIZE_LIMIT 10
+
 namespace KWin
 {
 
@@ -1411,6 +1416,34 @@ void AbstractClient::updateInitialMoveResizeGeometry()
     m_moveResize.initialGeometry = geometry();
     m_moveResize.geometry = m_moveResize.initialGeometry;
     m_moveResize.startScreen = screen();
+}
+
+void AbstractClient::setMoveResizePointerMode(Position mode) {
+    if (waylandServer() && isDecorated()) {
+        //if pointer is not near corner,it should not be resize mode.
+        if (PositionCenter != mode) {
+            int left = pos().x(),
+                right = pos().x() + size().width(),
+                top = pos().y(),
+                bottom = pos().y() + size().height();
+            int cursor_x = input()->pointer()->pos().x(),
+                cursor_y = input()->pointer()->pos().y();
+            if (PositionTop != mode && PositionBottom != mode && abs(left - cursor_x) > RESIZE_LIMIT && abs(right - cursor_x) > RESIZE_LIMIT) {
+                return;
+            }
+            if (PositionLeft != mode && PositionRight != mode && abs(top - cursor_y) > RESIZE_LIMIT && abs(bottom - cursor_y) > RESIZE_LIMIT) {
+                return;
+            }
+        }
+        //if pointer is pressed,then it can't be Resize Mode,this is wrong.
+        //First it should be resize mode,then the pointer press,the client resize.
+        if (input()->pointer()->areButtonsPressed()) {
+            if (PositionCenter != mode) {
+                return;
+            }
+        }
+    }
+    m_moveResize.pointer = mode;
 }
 
 void AbstractClient::updateCursor()

@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QElapsedTimer>
 #include <QPointer>
 
+
 namespace KWayland
 {
 namespace Server
@@ -1025,9 +1026,7 @@ protected:
     Position moveResizePointerMode() const {
         return m_moveResize.pointer;
     }
-    void setMoveResizePointerMode(Position mode) {
-        m_moveResize.pointer = mode;
-    }
+    void setMoveResizePointerMode(Position mode);
     bool isMoveResizePointerButtonDown() const {
         return m_moveResize.buttonDown;
     }
