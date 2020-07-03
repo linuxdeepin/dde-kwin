@@ -1935,52 +1935,62 @@ void MultitaskingEffect::setActive(bool active)
 
         connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, QVariant)));
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
+
+        EffectWindowList windows = effects->stackingOrder();
+        EffectWindow* active_window = nullptr;
+        for (const auto& w: windows) {
+            if (!isRelevantWithPresentWindows(w)) {
+                continue;
+            }
+            auto wd = m_windowDatas.find(w);
+            if (wd != m_windowDatas.end()) {
+                qCDebug(BLUR_CAT) << "------- [init] wd exists " << w << w->windowClass();
+                continue;
+            }
+            wd = m_windowDatas.insert(w, WindowData());
+            initWindowData(wd, w);
+        }
+
+        for (int i = 1; i <= effects->numberOfDesktops(); i++) {
+            WindowMotionManager wmm;
+            for (const auto& w: windows) {
+                if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
+                    // the last window is on top of the stack
+                    if (i == m_targetDesktop) {
+                        active_window = w;
+                    }
+                    wmm.manage(w);
+                }
+                w->setMinimized(true);
+            }
+
+            calculateWindowTransformations(wmm.managedWindows(), wmm);
+            m_motionManagers.append(wmm);
+
+            //updateDesktopWindows(i);
+        }
+
+        if(active_window)
+        {
+            m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
+        }
+
     } else {
+        auto p = m_motionManagers.begin();
+        while (p != m_motionManagers.end()) {
+            foreach (EffectWindow* w, p->managedWindows()) {
+                w->setMinimized(false);
+                p->moveWindow(w, w->geometry());
+            }
+            ++p;
+        }
+
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
     }
     
     
     m_multitaskingView->setVisible(m_multitaskingViewVisible);
-
-    EffectWindowList windows = effects->stackingOrder();
-    EffectWindow* active_window = nullptr;
-    for (const auto& w: windows) {
-        if (!isRelevantWithPresentWindows(w)) {
-            continue;
-        }
-        auto wd = m_windowDatas.find(w);
-        if (wd != m_windowDatas.end()) {
-            qCDebug(BLUR_CAT) << "------- [init] wd exists " << w << w->windowClass();
-            continue;
-        }
-        wd = m_windowDatas.insert(w, WindowData());
-        initWindowData(wd, w);
-    }
-
-    for (int i = 1; i <= effects->numberOfDesktops(); i++) {
-        WindowMotionManager wmm;
-        for (const auto& w: windows) {
-            if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
-                // the last window is on top of the stack
-                if (i == m_targetDesktop) {
-                    active_window = w;
-                }
-                wmm.manage(w);
-            }
-        }
-
-        calculateWindowTransformations(wmm.managedWindows(), wmm);
-        m_motionManagers.append(wmm);
-
-        //updateDesktopWindows(i);
-    }
-
-    if(active_window) 
-    {
-        m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
-    }
-        
 
     /*
     if (effects->activeFullScreenEffect() && effects->activeFullScreenEffect() != this)
