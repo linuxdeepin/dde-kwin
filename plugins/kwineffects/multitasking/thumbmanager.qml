@@ -949,7 +949,6 @@ Rectangle {
                                     Accessible.name: "Ma_winThumb_closeBtn_"+($Model.currentIndex()+1)+"_"+currentScreen+"_"+ windowThumbnailitem.winId 
                                     Accessible.description: "windowThumbnail_closeButton_desktop_screen_winId"
                                     Accessible.onPressAction: pressed()
-                                    anchors.fill: closeClientBtn;
                                     onClicked: {
                                         qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, windowThumbnailitem.winId)
                                     }
