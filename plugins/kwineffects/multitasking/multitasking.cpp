@@ -1246,7 +1246,9 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_2:
             case Qt::Key_3:
             case Qt::Key_4:
-                if (e->modifiers() == Qt::NoModifier || e->modifiers() == Qt::MetaModifier) {
+                if (e->modifiers() == Qt::NoModifier || 
+                        e->modifiers() == Qt::MetaModifier || 
+                        e->modifiers() == (Qt::MetaModifier|Qt::KeypadModifier)) {
                     int index = e->key() - Qt::Key_1;
                     if (m_multitaskingModel->rowCount() > index) {
                        m_multitaskingModel->setCurrentIndex(index);
