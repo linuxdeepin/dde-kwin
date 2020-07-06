@@ -33,6 +33,7 @@
 #include <QQmlImageProviderBase>
 #include "multitasking_model.h"
 #include "imageprovider.h"
+#include "windowthumbnail.h"
 
 #include "multitasking_model.h"
 
@@ -1906,6 +1907,7 @@ void MultitaskingEffect::setActive(bool active)
             fmt.setAlphaBufferSize(8);
             m_multitaskingView->setFormat(fmt);
             qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
+            qmlRegisterType<Plasma::WindowThumbnail>("org.kde.plasma", 2, 0, "WindowThumbnail");
             m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
             m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
             m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
