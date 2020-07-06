@@ -1,5 +1,6 @@
 #include "background.h"
 #include "constants.h"
+#include "kwineffects.h"
 
 #include <QtDBus>
 #include <QGSettings>
@@ -57,6 +58,7 @@ static QString toRealPath(const QString& path)
 QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize& size)
 {
     QString uri = QLatin1String(fallback_background_name);
+    QString strBackgroundPath = QString("%1%2").arg(workspace).arg(monitor);
 
     if (workspace <= 0) {
         //fallback to first workspace
@@ -75,8 +77,8 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
 
     uri = toRealPath(uri);
 
-    if (m_cachedPixmaps.contains(uri)) {
-        auto& p = m_cachedPixmaps[uri];
+    if (m_cachedPixmaps.contains(uri  + strBackgroundPath)) {
+        auto& p = m_cachedPixmaps[uri + strBackgroundPath];
         if (p.first != size) {
             p.first = size;
             p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
@@ -91,8 +93,7 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
     }
 
     pm = pm.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-    m_cachedPixmaps[uri] = qMakePair(size, pm);
-    //qCDebug(BLUR_CAT) << "--------- " << __func__ << workspace << uri << pm.isNull();
+    m_cachedPixmaps[uri + strBackgroundPath] = qMakePair(size, pm);
     return pm;
 }
 

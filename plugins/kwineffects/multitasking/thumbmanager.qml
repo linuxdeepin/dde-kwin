@@ -36,6 +36,7 @@ Rectangle {
     signal qmlCloseMultitask();
     signal qmlRemoveWindowThumbnail(int screen, int desktop, var winId);
     signal qmlForceResetDesktopModel();
+    signal qmlRequestGetBackground(int desktop, int monitor,int width,int height);
 
     Component {
         id: windowThumbnailView;
@@ -205,6 +206,7 @@ Rectangle {
                             height: parent.height - closeBtn.height*(3/4)
                             anchors.centerIn: parent
                             radius: 10
+                            monitor: currentScreen
 
                             Rectangle {
                                 id:winThumrect;
@@ -214,6 +216,9 @@ Rectangle {
                                 border.width: 0;
                                 color: "transparent";
                                 radius: 10;
+                            }
+                            Component.onCompleted: {
+                                smalldesktopThumbnail.getDesktopThumbnailBackground(desktop,monitor,width,height);
                             }
                         }
 

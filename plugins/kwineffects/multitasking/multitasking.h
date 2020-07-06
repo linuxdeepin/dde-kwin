@@ -48,6 +48,7 @@ class DesktopThumbnail: public QQuickPaintedItem
     Q_PROPERTY(int desktop READ desktop WRITE setDesktop NOTIFY desktopChanged)
     Q_PROPERTY(float radius READ radius WRITE setRadius NOTIFY radiusChanged)
     Q_PROPERTY(QVariant windows READ windows NOTIFY windowsChanged)
+    Q_PROPERTY(int monitor READ monitor WRITE setMonitor NOTIFY monitorChanged)
 public:
     DesktopThumbnail(QQuickItem* parent = 0): QQuickPaintedItem(parent) {
         setRenderTarget(QQuickPaintedItem::FramebufferObject);
@@ -55,7 +56,7 @@ public:
         connect(&BackgroundManager::instance(), &BackgroundManager::desktopWallpaperChanged,
             [=](int d) {
                 if (d == m_desktop) {
-                    m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
+                    m_bg = BackgroundManager::instance().getBackground(m_desktop, m_nMonitor, size().toSize());
                     update();
                 }
             });
@@ -68,7 +69,7 @@ public:
             m_desktop = d;
 
             if (!size().isEmpty()) {
-                m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
+                m_bg = BackgroundManager::instance().getBackground(m_desktop, m_nMonitor, size().toSize());
             }
 
             emit desktopChanged();
@@ -82,6 +83,14 @@ public:
         if (m_radius != d) {
             m_radius = d;
             emit radiusChanged();
+        }
+    }
+
+    float monitor() const { return m_nMonitor; }
+    void setMonitor(float d) {
+        if (m_nMonitor != d) {
+            m_nMonitor = d;
+            emit monitorChanged();
         }
     }
 
@@ -135,26 +144,32 @@ public:
         p->drawPixmap(0, 0, m_bg);
     }
 
-protected:
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override {
-        if (!size().isEmpty()) {
-            m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
-            update();
-        }
-
-        QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
+    Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, int nMonitor, int nWidth, int nHeight) {
+        m_bg = BackgroundManager::instance().getBackground(nDesktop, nMonitor, QSize(nWidth,nHeight));
+        update();
     }
+
+protected:
+//    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override {
+//        if (!size().isEmpty()) {
+//            m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
+//            update();
+//        }
+
+//        QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
+//    }
 
 signals:
     void desktopChanged();
     void radiusChanged();
     void windowsChanged();
     void windowsLayoutChanged();
-
+    void monitorChanged();
 
 private:
     int m_desktop {0};
     float m_radius {0};
+    int m_nMonitor {0};
     QVariantList m_windows;
     QPixmap m_bg;
 };

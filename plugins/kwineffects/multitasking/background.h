@@ -60,6 +60,7 @@ private:
     QString m_defaultNewDesktopURI;
     int m_desktopCount {0};
     QStringList m_cachedUris;
+    int m_nMonitorIndex {0};
 
     QHash<QString, QPair<QSize, QPixmap>> m_cachedPixmaps;
 
