@@ -502,6 +502,7 @@ Q_SIGNALS:
      * or lowered
      */
     void stackingOrderChanged();
+    void outputModeChanged();
 
 private:
     void init();

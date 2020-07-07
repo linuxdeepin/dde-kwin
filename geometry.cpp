@@ -86,6 +86,10 @@ void Workspace::desktopResized()
     if (effects) {
         static_cast<EffectsHandlerImpl*>(effects)->desktopResized(geom.size());
     }
+
+    if (waylandServer()) {
+        emit outputModeChanged();
+    }
 }
 
 void Workspace::saveOldScreenSizes()

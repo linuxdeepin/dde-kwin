@@ -1943,6 +1943,7 @@ void InputRedirection::setupWorkspace()
             }
         );
         connect(workspace(), &Workspace::configChanged, this, &InputRedirection::reconfigure);
+        connect(workspace(), &Workspace::outputModeChanged, m_pointer, &PointerInputRedirection::enableToggleMotion);
 
         m_keyboard->init();
         m_pointer->init();
