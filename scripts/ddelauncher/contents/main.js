@@ -33,7 +33,7 @@ function forceFullScreen(client) {
 
 function setupConnection(client) {
     if (client.resourceClass != "dde-launcher"
-            || client.resourceName != "dde-launcher") {
+            || client.resourceName != "dde-launcher" || client.dialog) {
         return;
     }
 
