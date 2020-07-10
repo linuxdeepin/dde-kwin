@@ -371,6 +371,10 @@ public:
     virtual bool wantsShadowToBeRendered() const;
 
     /**
+     * This method set the wayland opaque region to the Toplevel window.
+     **/
+    void setWaylandOpaqueRegion(const QRegion &opaqueRegion);
+    /**
      * This method returns the area that the Toplevel window reports to be opaque.
      * It is supposed to only provide valuable information if hasAlpha is @c true .
      * @see hasAlpha
