@@ -1676,6 +1676,7 @@ void MultitaskingEffect::cleanup()
 
 void MultitaskingEffect::appendDesktop()
 {
+    BackgroundManager::instance().changeWorkSpaceBackground(effects->numberOfDesktops() + 1);
     effects->setNumberOfDesktops(effects->numberOfDesktops() + 1);
     QTimer::singleShot(400, [=]() {
         changeCurrentDesktop(effects->numberOfDesktops());
@@ -1920,6 +1921,17 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(refreshWindows()), this, SLOT(refreshWindows()));
             connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
         }
+
+        QList<QString> monitorNameLst;
+        QList<QScreen *> pScreenLst = QGuiApplication::screens();
+
+        for(int i = 0; i < pScreenLst.count(); i++) {
+            QScreen *pScreen = pScreenLst.at(i);
+            QString monitorName = pScreen->name();
+            monitorNameLst << monitorName;
+        }
+        monitorNameLst = monitorNameLst.toSet().toList();
+        BackgroundManager::instance().setMonitorName(monitorNameLst);
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
         m_thumbManager->setGeometry(effects->virtualScreenGeometry());

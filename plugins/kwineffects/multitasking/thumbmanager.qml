@@ -218,7 +218,6 @@ Rectangle {
                                 radius: 10;
                             }
                             Component.onCompleted: {
-                                $Model.setMonitorName();
                                 smalldesktopThumbnail.getDesktopThumbnailBackground(desktop,monitor,width,height);
                             }
                         }
@@ -426,7 +425,6 @@ Rectangle {
                                     if (from == to) return
                                     if(drop.source.originParent != originParent) return
                                     log("from:"+from + " to:"+to)
-                                    $Model.setMonitorName(smalldesktopThumbnail.monitor);
                                     $Model.move(from-1, to-1);
 //                                    console.log("===============",smalldesktopThumbnail.monitor)
                                     //log("----------- workspaceThumbDrop: reorder desktop ")

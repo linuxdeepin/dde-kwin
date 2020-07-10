@@ -23,7 +23,6 @@
 #include "multitasking_model.h"
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <QList>
 #include <QScreen>
 
 #define DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE "com.deepin.daemon.Display"
@@ -190,7 +189,7 @@ void MultitaskingModel::append()
     emit beginInsertRows(QModelIndex(), index, index);
     m_desktopThumbnailItemList.append(data);
     emit endInsertRows();
-	emit appendDesktop();
+    emit appendDesktop();
     emit countChanged(m_desktopThumbnailItemList.count());
 }
 
@@ -574,18 +573,4 @@ QString MultitaskingModel::screenName(int x,int y)
 {
     QScreen *pScreen = QGuiApplication::screenAt(QPoint(x,y));
     return pScreen->name();
-}
-
-void MultitaskingModel::setMonitorName()
-{
-    QList<QString> monitorNameLst;
-    QList<QScreen *> pScreenLst = QGuiApplication::screens();
-
-    for(int i = 0; i < pScreenLst.count(); i++) {
-        QScreen *pScreen = pScreenLst.at(i);
-        QString monitorName = pScreen->name();
-        monitorNameLst << monitorName;
-    }
-    monitorNameLst = monitorNameLst.toSet().toList();
-    BackgroundManager::instance().setMonitorName(monitorNameLst);
 }
