@@ -206,7 +206,7 @@ Rectangle {
                             height: parent.height - closeBtn.height*(3/4)
                             anchors.centerIn: parent
                             radius: 10
-                            monitor: currentScreen
+                            monitor: screenname
 
                             Rectangle {
                                 id:winThumrect;
@@ -425,7 +425,9 @@ Rectangle {
                                     if (from == to) return
                                     if(drop.source.originParent != originParent) return
                                     log("from:"+from + " to:"+to)
+                                    $Model.setMonitorName(smalldesktopThumbnail.monitor);
                                     $Model.move(from-1, to-1);
+//                                    console.log("===============",smalldesktopThumbnail.monitor)
                                     //log("----------- workspaceThumbDrop: reorder desktop ")
                                 }
                             }
@@ -1055,6 +1057,7 @@ Rectangle {
                 '   height: '+ geom.height/5+';'+
                 '   property int currentScreen: ' + i + ';' +
                 '   sourceComponent: desktopThumbmailView;' +
+                '   property var screenname: $Model.screenName(x,y);' +
                 '}';
             Qt.createQmlObject(src, root, "dynamicSnippet");
         }

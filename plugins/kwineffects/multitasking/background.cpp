@@ -55,10 +55,10 @@ static QString toRealPath(const QString& path)
     return res;
 }
 
-QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize& size)
+QPixmap BackgroundManager::getBackground(int workspace, QString screenName, const QSize& size)
 {
     QString uri = QLatin1String(fallback_background_name);
-    QString strBackgroundPath = QString("%1%2").arg(workspace).arg(monitor);
+    QString strBackgroundPath = QString("%1%2").arg(workspace).arg(screenName);
 
     if (workspace <= 0) {
         //fallback to first workspace
@@ -66,7 +66,7 @@ QPixmap BackgroundManager::getBackground(int workspace, int monitor, const QSize
     }
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-    QDBusReply<QString> reply = wm.call( "GetWorkspaceBackground", workspace);
+    QDBusReply<QString> reply = wm.call( "GetWorkspaceBackgroundForMonitor", workspace, screenName);
     if (!reply.value().isEmpty()) {
         uri = reply.value();
     }
@@ -117,7 +117,7 @@ void BackgroundManager::desktopAboutToRemoved(int d)
     auto n = qMin(uris.size(), m_desktopCount);
     for (int i = d; i < n; i++) {
         qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << i << uris[i];
-        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", i, uris[i]);
+        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackgroundForMonitor", i, m_monitorName, uris[i]);
     }
 }
 
@@ -138,7 +138,7 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
 
         int newd = d == from ? to: d-dir;
         qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << d << newd << uris[d-1];
-        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackground", newd, uris[d-1]);
+        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackgroundForMonitor", newd, m_monitorName, uris[d-1]);
 
         //Comment out to avoid Segmentation fault
         //emit desktopWallpaperChanged(newd); 
@@ -177,3 +177,7 @@ void BackgroundManager::shuffleDefaultBackgroundURI()
     }
 }
 
+void BackgroundManager::setMonitorName(QString strMonitorName)
+{
+    m_monitorName = strMonitorName;
+}

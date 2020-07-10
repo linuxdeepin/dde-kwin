@@ -48,7 +48,7 @@ class DesktopThumbnail: public QQuickPaintedItem
     Q_PROPERTY(int desktop READ desktop WRITE setDesktop NOTIFY desktopChanged)
     Q_PROPERTY(float radius READ radius WRITE setRadius NOTIFY radiusChanged)
     Q_PROPERTY(QVariant windows READ windows NOTIFY windowsChanged)
-    Q_PROPERTY(int monitor READ monitor WRITE setMonitor NOTIFY monitorChanged)
+    Q_PROPERTY(QString monitor READ monitor WRITE setMonitor NOTIFY monitorChanged)
 public:
     DesktopThumbnail(QQuickItem* parent = 0): QQuickPaintedItem(parent) {
         setRenderTarget(QQuickPaintedItem::FramebufferObject);
@@ -56,7 +56,7 @@ public:
         connect(&BackgroundManager::instance(), &BackgroundManager::desktopWallpaperChanged,
             [=](int d) {
                 if (d == m_desktop) {
-                    m_bg = BackgroundManager::instance().getBackground(m_desktop, m_nMonitor, size().toSize());
+                    m_bg = BackgroundManager::instance().getBackground(m_desktop, m_monitor, size().toSize());
                     update();
                 }
             });
@@ -69,7 +69,7 @@ public:
             m_desktop = d;
 
             if (!size().isEmpty()) {
-                m_bg = BackgroundManager::instance().getBackground(m_desktop, m_nMonitor, size().toSize());
+                m_bg = BackgroundManager::instance().getBackground(m_desktop, m_monitor, size().toSize());
             }
 
             emit desktopChanged();
@@ -86,10 +86,10 @@ public:
         }
     }
 
-    float monitor() const { return m_nMonitor; }
-    void setMonitor(float d) {
-        if (m_nMonitor != d) {
-            m_nMonitor = d;
+    QString monitor() const { return m_monitor; }
+    void setMonitor(QString d) {
+        if (m_monitor != d) {
+            m_monitor = d;
             emit monitorChanged();
         }
     }
@@ -144,8 +144,12 @@ public:
         p->drawPixmap(0, 0, m_bg);
     }
 
-    Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, int nMonitor, int nWidth, int nHeight) {
-        m_bg = BackgroundManager::instance().getBackground(nDesktop, nMonitor, QSize(nWidth,nHeight));
+//    Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, int nMonitor, int nWidth, int nHeight) {
+//        m_bg = BackgroundManager::instance().getBackground(nDesktop, nMonitor, QSize(nWidth,nHeight));
+//        update();
+//    }
+    Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, QString screenName, int nWidth, int nHeight) {
+        m_bg = BackgroundManager::instance().getBackground(nDesktop, screenName, QSize(nWidth,nHeight));
         update();
     }
 
@@ -169,7 +173,7 @@ signals:
 private:
     int m_desktop {0};
     float m_radius {0};
-    int m_nMonitor {0};
+    QString m_monitor;
     QVariantList m_windows;
     QPixmap m_bg;
 };

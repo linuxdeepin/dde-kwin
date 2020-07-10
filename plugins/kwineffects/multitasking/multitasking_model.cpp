@@ -23,6 +23,8 @@
 #include "multitasking_model.h"
 #include <QDBusInterface>
 #include <QDBusReply>
+#include <QList>
+#include <QScreen>
 
 #define DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE "com.deepin.daemon.Display"
 #define DBUS_DEEPIN_DAEMON_DISPLAY_OBJ "/com/deepin/daemon/Display"
@@ -568,4 +570,13 @@ bool MultitaskingModel::isExtensionMode() const
    return true;
 }
 
+QString MultitaskingModel::screenName(int x,int y)
+{
+    QScreen *pScreen = QGuiApplication::screenAt(QPoint(x,y));
+    return pScreen->name();
+}
 
+int MultitaskingModel::setMonitorName(QString monitorName)
+{
+    BackgroundManager::instance().setMonitorName(monitorName);
+}

@@ -40,10 +40,12 @@ public:
     }
 
     // workspace id start from 1
-    QPixmap getBackground(int workspace, int monitor = 0, const QSize& size = QSize());
+    QPixmap getBackground(int workspace, QString screenName, const QSize& size = QSize());
 
     Q_INVOKABLE void shuffleDefaultBackgroundURI();
     Q_INVOKABLE QString getDefaultBackgroundURI();
+
+    void setMonitorName(QString strMonitorName);
 
 public slots:
     // respond to desktop removal, and shift wallpapers accordingly
@@ -61,6 +63,7 @@ private:
     int m_desktopCount {0};
     QStringList m_cachedUris;
     int m_nMonitorIndex {0};
+    QString m_monitorName;
 
     QHash<QString, QPair<QSize, QPixmap>> m_cachedPixmaps;
 

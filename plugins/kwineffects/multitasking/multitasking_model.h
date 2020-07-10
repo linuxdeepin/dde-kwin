@@ -101,6 +101,8 @@ public:
     Q_INVOKABLE bool getWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void setWindowKeepAbove(QVariant winId);
     Q_INVOKABLE void forceResetModel();
+    Q_INVOKABLE QString screenName(int x,int y);
+    Q_INVOKABLE int setMonitorName(QString monitorName);
 
     //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
     int displayMode() const;
