@@ -218,6 +218,7 @@ Rectangle {
                                 radius: 10;
                             }
                             Component.onCompleted: {
+                                $Model.setMonitorName();
                                 smalldesktopThumbnail.getDesktopThumbnailBackground(desktop,monitor,width,height);
                             }
                         }

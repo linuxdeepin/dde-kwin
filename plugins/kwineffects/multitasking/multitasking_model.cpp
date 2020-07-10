@@ -576,7 +576,16 @@ QString MultitaskingModel::screenName(int x,int y)
     return pScreen->name();
 }
 
-int MultitaskingModel::setMonitorName(QString monitorName)
+void MultitaskingModel::setMonitorName()
 {
-    BackgroundManager::instance().setMonitorName(monitorName);
+    QList<QString> monitorNameLst;
+    QList<QScreen *> pScreenLst = QGuiApplication::screens();
+
+    for(int i = 0; i < pScreenLst.count(); i++) {
+        QScreen *pScreen = pScreenLst.at(i);
+        QString monitorName = pScreen->name();
+        monitorNameLst << monitorName;
+    }
+    monitorNameLst = monitorNameLst.toSet().toList();
+    BackgroundManager::instance().setMonitorName(monitorNameLst);
 }

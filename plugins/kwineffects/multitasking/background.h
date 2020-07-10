@@ -45,7 +45,7 @@ public:
     Q_INVOKABLE void shuffleDefaultBackgroundURI();
     Q_INVOKABLE QString getDefaultBackgroundURI();
 
-    void setMonitorName(QString strMonitorName);
+    void setMonitorName(QList<QString> monitorNamelst);
 
 public slots:
     // respond to desktop removal, and shift wallpapers accordingly
@@ -64,6 +64,7 @@ private:
     QStringList m_cachedUris;
     int m_nMonitorIndex {0};
     QString m_monitorName;
+    QList<QString> m_screenNamelst;
 
     QHash<QString, QPair<QSize, QPixmap>> m_cachedPixmaps;
 

@@ -123,25 +123,34 @@ void BackgroundManager::desktopAboutToRemoved(int d)
 
 void BackgroundManager::desktopSwitchedPosition(int to, int from)
 {
-    m_cachedUris = _gs_dde_appearance->get(GsettingsBackgroundUri).toStringList();
-    auto uris = m_cachedUris;
-
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
 
-    int dir = from < to ? 1 : -1;
-    auto n = qMin(uris.size(), m_desktopCount);
-    for (int i = 0; i < n; i++) {
-        int d = i+1; // desktop id
-        if ((dir > 0 && (d > to || d < from)) ||
-                (dir < 0 && (d < to || d > from)))
-            continue;
+    for(int i = 0; i < m_screenNamelst.count(); i++) {
+        QString monitorName = m_screenNamelst.at(i);
 
-        int newd = d == from ? to: d-dir;
-        qCDebug(BLUR_CAT) << "-------- dbus SetWorkspaceBackground" << d << newd << uris[d-1];
-        QDBusReply<QString> reply = wm.call( "SetWorkspaceBackgroundForMonitor", newd, m_monitorName, uris[d-1]);
+        QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", from, monitorName);
+        QString strFromUri = getReply.value();
 
-        //Comment out to avoid Segmentation fault
-        //emit desktopWallpaperChanged(newd); 
+        if(from < to) {
+            for(int j = from - 1; j < to; j++) {
+                int desktopIndex = j + 1; //desktop index
+                if( desktopIndex == to) {
+                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
+                }else {
+                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex + 1, monitorName);
+                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, getReply.value());
+                }
+            }
+        }else {
+            for(int j = from; j > to - 1; j--) {
+                if(j == to) {
+                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
+                }else {
+                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", j - 1, monitorName);
+                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, getReply.value());
+                }
+            }
+        }
     }
 }
 
@@ -177,7 +186,8 @@ void BackgroundManager::shuffleDefaultBackgroundURI()
     }
 }
 
-void BackgroundManager::setMonitorName(QString strMonitorName)
+void BackgroundManager::setMonitorName(QList<QString> monitorNamelst)
 {
-    m_monitorName = strMonitorName;
+    m_screenNamelst = monitorNamelst;
 }
+
