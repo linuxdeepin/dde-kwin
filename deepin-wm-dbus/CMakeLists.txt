@@ -41,7 +41,7 @@ qt5_add_dbus_adaptor(
 )
 qt5_add_dbus_interface(
     wm_SRCS
-    ../plugins/kwin-xcb/plugin/org.kde.kwin.KWinUtils.xml
+    ../plugins/platforms/plugin/org.kde.kwin.KWinUtils.xml
     kwinutils_interface
 )
 
