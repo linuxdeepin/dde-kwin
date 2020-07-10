@@ -9,7 +9,7 @@ add_library(
     main.cpp
 )
 
-include_directories(../../kwin-xcb/lib)
+include_directories(../../platforms/lib)
 
 target_link_libraries(
     ${TARGET_NAME}

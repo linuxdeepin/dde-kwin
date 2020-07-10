@@ -42,7 +42,7 @@ target_link_libraries(
 if (DISABLE_LIB_KWIN_XCB)
     add_definitions(-DDISBLE_DDE_KWIN_XCB)
 else()
-    include_directories(../kwin-xcb/lib)
+    include_directories(../platforms/lib)
     target_link_libraries(${TARGET_NAME} kwin-xcb)
 endif()
 
