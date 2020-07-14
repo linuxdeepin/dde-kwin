@@ -37,6 +37,7 @@ Rectangle {
     signal qmlRemoveWindowThumbnail(int screen, int desktop, var winId);
     signal qmlForceResetDesktopModel();
     signal qmlRequestGetBackground(int desktop, int monitor,int width,int height);
+    signal qmlUpdateDesktopThumBackground();
 
     Component {
         id: windowThumbnailView;
@@ -219,6 +220,12 @@ Rectangle {
                             }
                             Component.onCompleted: {
                                 smalldesktopThumbnail.getDesktopThumbnailBackground(desktop,monitor,width,height);
+                            }
+                            Connections {
+                                target: root
+                                onQmlUpdateDesktopThumBackground: {
+                                    smalldesktopThumbnail.getDesktopThumbnailBackground(smalldesktopThumbnail.desktop,smalldesktopThumbnail.monitor,smalldesktopThumbnail.width,smalldesktopThumbnail.height);
+                                }
                             }
                         }
 
