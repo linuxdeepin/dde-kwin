@@ -1572,7 +1572,7 @@ void MultitaskingEffect::setActive(bool active)
 
         EffectWindow* active_window = effects->activeWindow();
         if (active_window && !active_window->isSpecialWindow()) {
-            m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
+           m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
         } else {
             m_multitaskingModel->setCurrentSelectIndex(-1);
         }

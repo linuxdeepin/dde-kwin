@@ -27,6 +27,7 @@ Rectangle {
     signal qmlForceResetDesktopModel();
     signal qmlUpdateDesktopThumBackground();
     signal qmlUpdateBackground();
+    signal qmlRequestGetBackground(int desktop, int monitor,int width,int height);
 
     Component {
         id: windowThumbnailView;

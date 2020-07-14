@@ -275,11 +275,9 @@ public:
     void updateHighlightWindow(EffectWindow* w);
     QVector<int> desktopList(const EffectWindow *w) const;
 
-// zhd add 
 Q_SIGNALS:
     void modeChanged();
     void forceResetDesktopModel();
-//zhd add ok
     void updateDesktopThumBackground();
 
 public Q_SLOTS:
