@@ -293,6 +293,7 @@ Q_SIGNALS:
     void modeChanged();
     void forceResetDesktopModel();
 //zhd add ok
+    void updateDesktopThumBackground();
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {

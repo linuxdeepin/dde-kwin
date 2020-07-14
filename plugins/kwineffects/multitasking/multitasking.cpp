@@ -1711,6 +1711,8 @@ void MultitaskingEffect::removeDesktop(int d)
     // shift wallpapers before acutally removing it
     BackgroundManager::instance().desktopAboutToRemoved(d);
     effects->setNumberOfDesktops(effects->numberOfDesktops()-1);
+
+    emit updateDesktopThumBackground();
     //effects->addRepaintFull();
     // elay this process, make sure layoutChanged has been handled
     //QTimer::singleShot(10, [=]() { desktopRemoved(d); });
@@ -1952,7 +1954,7 @@ void MultitaskingEffect::setActive(bool active)
 
         connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, QVariant)));
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
-
+        connect(this, SIGNAL(updateDesktopThumBackground()), root, SIGNAL(qmlUpdateDesktopThumBackground()));
         EffectWindowList windows = effects->stackingOrder();
         EffectWindow* active_window = nullptr;
         for (const auto& w: windows) {
