@@ -296,6 +296,7 @@ MultitaskingEffect::~MultitaskingEffect()
     m_multitaskingView->deleteLater();
     m_multitaskingModel->deleteLater();
     m_thumbManager->deleteLater();
+    m_multitaskingModel->deleteLater();
 }
 
 QVector<int> MultitaskingEffect::desktopList(const EffectWindow *w) const
