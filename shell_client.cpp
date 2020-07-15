@@ -1185,6 +1185,16 @@ bool ShellClient::isInternal() const
     return m_internal;
 }
 
+// if we want to do some special action only for Role::StandAlone surface
+// we first call isStandAlone
+bool ShellClient::isStandAlone() const
+{
+    if (m_plasmaShellSurface) {
+        return m_plasmaShellSurface->role() == PlasmaShellSurfaceInterface::Role::StandAlone;
+    }
+    return false;
+}
+
 bool ShellClient::isLockScreen() const
 {
     if (m_internalWindow) {
@@ -1331,6 +1341,7 @@ void ShellClient::installPlasmaShellSurface(PlasmaShellSurfaceInterface *surface
             type = NET::Tooltip;
             break;
         case PlasmaShellSurfaceInterface::Role::Normal:
+        case PlasmaShellSurfaceInterface::Role::StandAlone:
         default:
             type = NET::Normal;
             break;
