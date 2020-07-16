@@ -144,24 +144,10 @@ public:
         p->drawPixmap(0, 0, m_bg);
     }
 
-//    Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, int nMonitor, int nWidth, int nHeight) {
-//        m_bg = BackgroundManager::instance().getBackground(nDesktop, nMonitor, QSize(nWidth,nHeight));
-//        update();
-//    }
     Q_INVOKABLE void getDesktopThumbnailBackground(int nDesktop, QString screenName, int nWidth, int nHeight) {
         m_bg = BackgroundManager::instance().getBackground(nDesktop, screenName, QSize(nWidth,nHeight));
         update();
     }
-
-protected:
-//    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override {
-//        if (!size().isEmpty()) {
-//            m_bg = BackgroundManager::instance().getBackground(m_desktop, 0, size().toSize());
-//            update();
-//        }
-
-//        QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
-//    }
 
 signals:
     void desktopChanged();
