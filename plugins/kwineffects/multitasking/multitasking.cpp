@@ -33,6 +33,7 @@
 #include <QQmlImageProviderBase>
 #include "multitasking_model.h"
 #include "imageprovider.h"
+#include "backgroundimageprovider.h"
 #include "windowthumbnail.h"
 
 #include "multitasking_model.h"
@@ -1504,6 +1505,7 @@ void MultitaskingEffect::setActive(bool active)
         if (!m_multitaskingView) {
             m_multitaskingView = new QQuickWidget;
             m_multitaskingView->engine()->addImageProvider( QLatin1String("imageProvider"), new ImageProvider(QQmlImageProviderBase::Pixmap));
+            m_multitaskingView->engine()->addImageProvider( QLatin1String("BackgroundImageProvider"), new BackgroundImageProvider(QQmlImageProviderBase::Pixmap));
             m_multitaskingView->setAttribute(Qt::WA_TranslucentBackground, true);
             m_multitaskingView->setClearColor(Qt::transparent);
             QSurfaceFormat fmt = m_multitaskingView->format();
@@ -1524,16 +1526,16 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
         }
 
-        QList<QString> monitorNameLst;
         QList<QScreen *> pScreenLst = QGuiApplication::screens();
-
+        QList<QMap<QString,QVariant>> screenInfoLst;
         for(int i = 0; i < pScreenLst.count(); i++) {
+            QMap<QString,QVariant> screeninfo;
             QScreen *pScreen = pScreenLst.at(i);
             QString monitorName = pScreen->name();
-            monitorNameLst << monitorName;
+            screeninfo[monitorName] = pScreen->size();
+            screenInfoLst << screeninfo;
         }
-        monitorNameLst = monitorNameLst.toSet().toList();
-        BackgroundManager::instance().setMonitorName(monitorNameLst);
+        BackgroundManager::instance().setMonitorInfo(screenInfoLst);
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
         m_thumbManager->setGeometry(effects->virtualScreenGeometry());
@@ -1552,53 +1554,14 @@ void MultitaskingEffect::setActive(bool active)
         connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, QVariant)));
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
         connect(this, SIGNAL(updateDesktopThumBackground()), root, SIGNAL(qmlUpdateDesktopThumBackground()));
-        EffectWindowList windows = effects->stackingOrder();
-        EffectWindow* active_window = nullptr;
-        for (const auto& w: windows) {
-            if (!isRelevantWithPresentWindows(w)) {
-                continue;
-            }
-            auto wd = m_windowDatas.find(w);
-            if (wd != m_windowDatas.end()) {
-                qCDebug(BLUR_CAT) << "------- [init] wd exists " << w << w->windowClass();
-                continue;
-            }
-            wd = m_windowDatas.insert(w, WindowData());
-            initWindowData(wd, w);
-        }
+        connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), root, SIGNAL(qmlUpdateBackground()));
+        connect(m_multitaskingModel, SIGNAL(updateQmlBackground()), root, SIGNAL(qmlUpdateBackground()));
 
-        for (int i = 1; i <= effects->numberOfDesktops(); i++) {
-            WindowMotionManager wmm;
-            for (const auto& w: windows) {
-                if (w->isOnDesktop(i) && isRelevantWithPresentWindows(w)) {
-                    // the last window is on top of the stack
-                    if (i == m_targetDesktop) {
-                        active_window = w;
-                    }
-                    wmm.manage(w);
-                }
-                w->setMinimized(true);
-            }
-
-            calculateWindowTransformations(wmm.managedWindows(), wmm);
-            m_motionManagers.append(wmm);
-        }
-
-        if(active_window)
-        {
+        EffectWindow* active_window = effects->activeWindow();
+        if (active_window) {
             m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
         }
-
     } else {
-        auto p = m_motionManagers.begin();
-        while (p != m_motionManagers.end()) {
-            foreach (EffectWindow* w, p->managedWindows()) {
-                w->setMinimized(false);
-                p->moveWindow(w, w->geometry());
-            }
-            ++p;
-        }
-
         effects->ungrabKeyboard();
         effects->stopMouseInterception(this);
     }

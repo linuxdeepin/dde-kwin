@@ -17,16 +17,6 @@ Rectangle {
 
     objectName: "root"
 
-    Rectangle {
-        id: background
-        x: 0
-        y: 0
-        height: root.height
-        width: root.width
-        color: "black"
-        opacity: 0.6
-    }
-
     function log(msg) {
         manager.debugLog(msg)
     }
@@ -36,8 +26,8 @@ Rectangle {
     signal qmlCloseMultitask();
     signal qmlRemoveWindowThumbnail(int screen, int desktop, var winId);
     signal qmlForceResetDesktopModel();
-    signal qmlRequestGetBackground(int desktop, int monitor,int width,int height);
     signal qmlUpdateDesktopThumBackground();
+    signal qmlUpdateBackground();
 
     Component {
         id: windowThumbnailView;
@@ -151,6 +141,29 @@ Rectangle {
     Component {
         id: desktopThumbmailView;
         Rectangle {
+            Rectangle {
+                id: mostBigbackgroundRect
+                width: screenWidth;
+                height: screenHeight;
+                Image {
+                    id: backgroundImage;
+                    source: "image://BackgroundImageProvider/" + (currentIndex+1 + "/" + screenname);
+                    cache : false
+                }
+                FastBlur {
+                    anchors.fill: backgroundImage
+                    source: backgroundImage
+                    radius: 50
+                }
+                Connections {
+                    target: root
+                    onQmlUpdateBackground: {
+                        backgroundImage.source = "";
+                        backgroundImage.source = "image://BackgroundImageProvider/" + ($Model.currentIndex()+1 + "/" + screenname);
+                    }
+                }
+            }
+
             property int desktopThumbmailItemWidth: screenWidth/7;
             property int desktopThumbmailItemHeight: screenHeight/6;
             id:wholeDesktopThumbmailView
@@ -665,7 +678,6 @@ Rectangle {
                 color:"transparent"
 
                 property int curdesktop:1
-                z:1
 
                 //zhd add for receive window thrumbnail
                 DropArea { 
@@ -1064,6 +1076,7 @@ Rectangle {
                 '   property int currentScreen: ' + i + ';' +
                 '   sourceComponent: desktopThumbmailView;' +
                 '   property var screenname: $Model.screenName(x,y);' +
+                '   property int currentIndex: $Model.currentIndex();' +
                 '}';
             Qt.createQmlObject(src, root, "dynamicSnippet");
         }

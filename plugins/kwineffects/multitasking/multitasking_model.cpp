@@ -249,6 +249,7 @@ void MultitaskingModel::move(int from, int to)
 {
     m_desktopThumbnailItemList.move(from, to);
     emit switchDesktop(to+1, from+1);
+    emit updateQmlBackground();
 }
 
 void MultitaskingModel::setCurrentSelectIndex(int index)

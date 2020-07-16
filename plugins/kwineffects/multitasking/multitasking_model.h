@@ -119,6 +119,7 @@ signals:
     void currentWindowThumbnailChanged();
     void windowSelectedSignal( QVariant winId );
     void currentDesktopIndexChanged();
+    void updateQmlBackground();
 
 protected: // interface QAbstractListModel
     virtual QHash<int, QByteArray> roleNames() const;

@@ -133,21 +133,21 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
         QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", from, monitorName);
         QString strFromUri = getReply.value();
 
-        if(from < to) {
+        if (from < to) {
             for(int j = from - 1; j < to; j++) {
                 int desktopIndex = j + 1; //desktop index
-                if( desktopIndex == to) {
+                if ( desktopIndex == to) {
                     QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
-                }else {
+                } else {
                     QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex + 1, monitorName);
                     QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, getReply.value());
                 }
             }
-        }else {
-            for(int j = from; j > to - 1; j--) {
-                if(j == to) {
+        } else {
+            for (int j = from; j > to - 1; j--) {
+                if (j == to) {
                     QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
-                }else {
+                } else {
                     QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", j - 1, monitorName);
                     QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, getReply.value());
                 }
@@ -188,11 +188,6 @@ void BackgroundManager::shuffleDefaultBackgroundURI()
     }
 }
 
-void BackgroundManager::setMonitorName(QList<QString> monitorNamelst)
-{
-    m_screenNamelst = monitorNamelst;
-}
-
 void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
 {
     QDBusInterface remoteApp(DBUS_APPEARANCE_SERVICE, DBUS_APPEARANCE_OBJ, DBUS_APPEARANCE_INTF);
@@ -216,12 +211,12 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
 
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
 
-    for(int i = 0; i < m_screenNamelst.count(); i++) {
+    for (int i = 0; i < m_screenNamelst.count(); i++) {
 
         QString monitorName = m_screenNamelst.at(i);
         QList<QString> backgroundUri;
 
-        for(int i = 0; i < m_desktopCount; i++) {
+        for (int i = 0; i < m_desktopCount; i++) {
             int desktopIndex = i + 1;
             QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex, monitorName);
             backgroundUri.append(getReply.value());
@@ -229,22 +224,75 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
         }
         backgroundUri = backgroundUri.toSet().toList();
 
-        for(int i = 0; i < backgroundUri.count(); i++) {
+        for (int i = 0; i < backgroundUri.count(); i++) {
             QString background = backgroundUri.at(i);
             backgroundAllLst.removeOne(background);
         }
 
-        if(backgroundAllLst.count() <= 0) {
+        if (backgroundAllLst.count() <= 0) {
             backgroundAllLst.append(lastBackgroundUri);
         }
 
         int backgroundIndex = backgroundAllLst.count();
 
-        if(backgroundIndex - 1 != 0){
+        if (backgroundIndex - 1 != 0){
             backgroundIndex = qrand()%(backgroundAllLst.count() - 1);
-        }else {
+        } else {
             backgroundIndex -= 1;
         }
         QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
     }
+}
+
+QPixmap BackgroundManager::getBackgroundPixmap(int workSpace, QString screenName)
+{
+    QString strBackgroundPath = QString("%1%2").arg(workSpace).arg(screenName);
+
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", workSpace, screenName);
+
+    QString backgroundUri = getReply.value();
+    if (backgroundUri.startsWith("file:///")) {
+        backgroundUri.remove("file://");
+    }
+
+    backgroundUri = toRealPath(backgroundUri);
+
+    QSize size;
+    for (int i = 0; i < m_monitorInfoLst.count(); i++)
+    {
+        QMap<QString,QVariant> monitorInfo = m_monitorInfoLst.at(i);
+        if (monitorInfo.contains(screenName)) {
+            size = monitorInfo[screenName].toSize();
+            break;
+        }
+    }
+
+    if (m_bigCachedPixmaps.contains(backgroundUri  + strBackgroundPath)) {
+        auto& p = m_bigCachedPixmaps[backgroundUri + strBackgroundPath];
+        if (p.first != size) {
+            p.first = size;
+            p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        }
+        return p.second;
+    }
+
+    QPixmap pixmap;
+    pixmap.load(backgroundUri);
+
+    pixmap = pixmap.scaled(size/*, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation*/);
+    m_bigCachedPixmaps[backgroundUri + strBackgroundPath] = qMakePair(size, pixmap);
+    return pixmap;
+}
+
+void BackgroundManager::setMonitorInfo(QList<QMap<QString,QVariant>> monitorInfoLst)
+{
+    m_monitorInfoLst = monitorInfoLst;
+
+    QList<QString> monitorNameLst;
+    for (int i = 0; i < m_monitorInfoLst.count(); i++) {
+        QMap<QString,QVariant> monitorInfo = m_monitorInfoLst.at(i);
+        monitorNameLst.append(monitorInfo.keys());
+    }
+    m_screenNamelst = monitorNameLst.toSet().toList();
 }
