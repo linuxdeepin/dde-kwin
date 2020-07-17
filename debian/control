@@ -28,7 +28,11 @@ Build-Depends: debhelper (>=9),
  libkf5wayland-dev,
  libkf5i18n-dev,
  qtdeclarative5-dev,
- libdtkgui-dev
+ libdtkgui-dev,
+ libxcb-composite0-dev,
+ libxcb-damage0-dev,
+ libdde-waylandserver-dev
+
 Standards-Version: 3.9.8
 Homepage: https://github.com/linuxdeepin/dde-kwin
 
