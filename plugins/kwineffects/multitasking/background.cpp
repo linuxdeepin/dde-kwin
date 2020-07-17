@@ -280,7 +280,10 @@ QPixmap BackgroundManager::getBackgroundPixmap(int workSpace, QString screenName
     QPixmap pixmap;
     pixmap.load(backgroundUri);
 
-    pixmap = pixmap.scaled(size/*, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation*/);
+    pixmap = pixmap.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    if(pixmap.width() > size.width() || pixmap.height() > size.height()) {
+        pixmap = pixmap.copy(QRect(static_cast<int>((pixmap.width() - size.width()) / 2.0), static_cast<int>((pixmap.height() - size.height()) / 2.0), size.width(), size.height()));
+    }
     m_bigCachedPixmaps[backgroundUri + strBackgroundPath] = qMakePair(size, pixmap);
     return pixmap;
 }

@@ -153,7 +153,7 @@ Rectangle {
                 FastBlur {
                     anchors.fill: backgroundImage
                     source: backgroundImage
-                    radius: 50
+                    radius: 0
                 }
                 Connections {
                     target: root
