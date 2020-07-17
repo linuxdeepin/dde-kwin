@@ -35,6 +35,7 @@ typedef int TimeArgType;
 typedef std::chrono::milliseconds TimeArgType;
 #endif
 
+struct wl_resource;
 class KWinUtilsPrivate;
 class Q_DECL_EXPORT KWinUtils : public QObject
 {
@@ -73,10 +74,13 @@ public:
     static QObject *tabBox();
     static QObject *cursor();
     static QObject *virtualDesktop();
+    static QObject *waylandServer();
+    static QObject *waylandDisplay();
 
     static QObjectList clientList();
     static QObjectList unmanagedList();
     static QObject *findClient(Predicate predicate, quint32 window);
+    QObject *findShellClient(struct ::wl_resource *resource) const;
     static void clientUpdateCursor(QObject *client);
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
@@ -153,6 +157,8 @@ public:
     Q_INVOKABLE bool buildNativeSettings(QObject *baseObject, quint32 windowID);
 
     bool isInitialized() const;
+    bool initForWayland() const;
+
 public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();
@@ -173,6 +179,10 @@ Q_SIGNALS:
     void windowShapeChanged(quint32 windowId);
     void pingEvent(quint32 windowId, quint32 timestamp);
 
+    // for wayland
+    void shellClientAdded(QObject *client);
+    void shellClientRemoved(QObject *client);
+
 protected:
     explicit KWinUtils(QObject *parent = nullptr);
 
@@ -183,6 +193,8 @@ private:
 
     friend class Mischievous;
     Q_PRIVATE_SLOT(d, void _d_onPropertyChanged(long))
+    Q_PRIVATE_SLOT(d, void _d_onShellClientAdded(KWin::ShellClient*))
+    Q_PRIVATE_SLOT(d, void _d_onShellClientRemoved(KWin::ShellClient*))
 };
 
 #endif // KWINUTILS_H
