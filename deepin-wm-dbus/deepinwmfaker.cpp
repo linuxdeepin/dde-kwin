@@ -103,6 +103,54 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "expose-all-windows", "ExposeAll" },
     { "expose-windows", "Expose" },
     { "preview-workspace", "ShowMultitasking" },
+    { "launcher" , "Launcher"},
+    { "terminal" , "Terminal"},
+    { "deepin-screen-recorder", "Screen Recorder"},
+    { "lock-screen",            "Lock screen"},
+    { "show-dock",              "Show/Hide the dock"},
+    { "logout",                 "Shutdown interface"},
+    { "terminal-quake",         "Terminal Quake Window"},
+    { "screenshot",             "Screenshot"},
+    { "screenshot-fullscreen",  "Full screenshot"},
+    { "screenshot-window",      "Window screenshot"},
+    { "screenshot-delayed",     "Delay screenshot"},
+    { "file-manager",           "File manager"},
+    { "disable-touchpad",       "Disable Touchpad"},
+    { "wm-switcher",            "Switch window effects"},
+    { "turn-off-screen",        "Fast Screen Off"},
+    { "system-monitor",         "System Monitor"},
+    { "color-picker",          "Deepin Picker"},
+    { "ai-assistant",           "Desktop AI Assistant"},
+    { "text-to-speech",        "Text to Speech"},
+    { "speech-to-text",         "Speech to Text"},
+    { "clipboard",              "Clipboard"},
+    { "translation",            "Translation"},
+};
+
+
+static const QStringList NotConfigurationAction = {
+    "Launcher",
+    "Terminal",
+    "Screen Recorder",
+    "Lock screen",
+    "Show/Hide the dock",
+    "Shutdown interface",
+    "Terminal Quake Window",
+    "Screenshot",
+    "Full screenshot",
+    "Window screenshot",
+    "Delay screenshot",
+    "File manager",
+    "Disable Touchpad",
+    "Switch window effects",
+    "Fast Screen Off",
+    "System Monitor",
+    "Deepin Picker",
+    "Desktop AI Assistant",
+    "Text to Speech",
+    "Speech to Text",
+    "Clipboard",
+    "Translation",
 };
 
 static const QMap<QString, QString> SpecialKeyMap = {
@@ -926,7 +974,7 @@ QAction *DeepinWMFaker::accelAction(const QString accelKid) const
     //make it a foreign shortcut, which triggers a dbus signal sent to
     //kglobalaccel when changed. this gives KWin the chance to listen for
     //the externally shortcut changes and and allow effects to respond.
-    action->setProperty("isConfigurationAction", true);
+    action->setProperty("isConfigurationAction", !NotConfigurationAction.contains(accelKid));
 
     return action;
 }
