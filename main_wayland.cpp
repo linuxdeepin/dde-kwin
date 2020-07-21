@@ -416,6 +416,7 @@ void ApplicationWayland::startXwaylandServer()
     QProcessEnvironment env = m_environment;
     env.insert("WAYLAND_SOCKET", QByteArray::number(wlfd));
     env.insert("EGL_PLATFORM", QByteArrayLiteral("DRM"));
+    env.remove("LD_PRELOAD");
     m_xwaylandProcess->setProcessEnvironment(env);
     m_xwaylandProcess->setArguments({QStringLiteral("-displayfd"),
                            QString::number(pipeFds[1]),
