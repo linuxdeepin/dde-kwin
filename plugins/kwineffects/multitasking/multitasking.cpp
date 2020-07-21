@@ -20,6 +20,7 @@
  */
 
 #include <QtCore>
+#include <QtDBus>
 
 #include "multitasking.h"
 #include <QtGui>
@@ -39,6 +40,10 @@
 #include "multitasking_model.h"
 
 #define ACTION_NAME  "ShowMultitasking"
+
+#define DBUS_DEEPIN_WM_SERVICE "com.deepin.wm"
+#define DBUS_DEEPIN_WM_OBJ "/com/deepin/wm"
+#define DBUS_DEEPIN_WM_INTF "com.deepin.wm"
 
 Q_LOGGING_CATEGORY(BLUR_CAT, "kwin.blur", QtCriticalMsg);
 
@@ -282,10 +287,15 @@ MultitaskingEffect::MultitaskingEffect()
     connect( m_multitaskingModel,SIGNAL(countChanged(int)),this,SLOT( onNumberDesktopsChanged(int) ) );
     connect( m_multitaskingModel,SIGNAL( windowSelectedSignal(QVariant) ),this,SLOT( windowSelectSlot(QVariant) ) );
 
+    // Touch screen
+    QDBusConnection::sessionBus().connect(QString(), QString(), "com.deepin.daemon.Gesture", "TouchBorderOutDistance", this, SLOT(touchBorderOutDistance()));
+    QDBusConnection::sessionBus().connect(QString(), QString(), "com.deepin.daemon.Gesture", "TouchUpOrCancel", this, SLOT(touchBorderLeaved()));
+
     BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
+    touchBorderOutDistance();
 }
 
 MultitaskingEffect::~MultitaskingEffect()
@@ -1490,6 +1500,13 @@ void MultitaskingEffect::setActive(bool active)
     }
 
     m_multitaskingViewVisible = active;
+
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    wm.call("SetMultiTaskingStatus", active);
+
+    QDBusReply<bool> reply = wm.call("GetMultiTaskingStatus");
+    qDebug() << "                       1509  " << reply.value();
+
     if (m_multitaskingViewVisible) {
         if (m_targetDesktop != effects->currentDesktop()) {
             m_targetDesktop = effects->currentDesktop();
@@ -2003,4 +2020,24 @@ void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant wi
         return;
     auto* ew = effects->findWindow(winid.toULongLong());
     ew->closeWindow();
+}
+
+void MultitaskingEffect::touchBorderOutDistance()
+{
+    m_currentDateTime = QDateTime::currentDateTime();
+}
+
+void MultitaskingEffect::touchBorderLeaved()
+{
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusReply<double> reply = wm.call("GetTouchBorderInterval");
+    double dinterval = reply.value();
+
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    qint64 interval = currentDateTime.msecsTo(m_currentDateTime);
+    interval = qAbs(interval);
+
+    if(interval >= dinterval*1000) {
+        setActive(true);
+    }
 }

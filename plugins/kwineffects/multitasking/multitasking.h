@@ -274,12 +274,14 @@ public:
 
     void updateHighlightWindow(EffectWindow* w);
     QVector<int> desktopList(const EffectWindow *w) const;
+
 // zhd add 
 Q_SIGNALS:
     void modeChanged();
     void forceResetDesktopModel();
 //zhd add ok
     void updateDesktopThumBackground();
+
 public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {
@@ -323,6 +325,9 @@ public Q_SLOTS:
     // added when refactor 
     void refreshWindows();
 
+    // Touch screen
+    void touchBorderOutDistance();
+    void touchBorderLeaved();
 private slots:
     void onNumberDesktopsChanged(int old);
     void onNumberScreensChanged();
@@ -446,6 +451,9 @@ private:
 	MultitaskingModel *m_multitaskingModel { nullptr };
 
     EffectWindow *m_pEffectWindow;
+
+    //Touch Screen
+    QDateTime m_currentDateTime;
 };
 
 

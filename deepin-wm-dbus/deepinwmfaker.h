@@ -125,6 +125,11 @@ public Q_SLOTS:
     void setCursorTheme(QString cursorTheme);
     void setCursorSize(int cursorSize);
 
+    // Touch Screen
+    bool GetMultiTaskingStatus();
+    void SetMultiTaskingStatus(bool isActive);
+    void SetTouchBorderInterval(double second = 0.5);
+    double GetTouchBorderInterval();
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
     void WorkspaceBackgroundChangedForMonitor(int index, const QString &strMonitorName, const QString &newUri);
@@ -181,6 +186,9 @@ private:
 #endif
 
     QPair<uint, bool> m_previewWinMiniPair;
+
+    bool m_isMultitaskingActived = false;
+    double touchBorderInterval = 0.5;
 };
 
 #endif // DEEPINWMFAKER_H

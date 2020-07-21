@@ -1099,3 +1099,23 @@ void DeepinWMFaker::updateCursorConfig()
     }
 }
 #endif // DISABLE_DEEPIN_WM
+
+bool DeepinWMFaker::GetMultiTaskingStatus()
+{
+    return m_isMultitaskingActived;
+}
+
+void DeepinWMFaker::SetMultiTaskingStatus(bool isActive)
+{
+    m_isMultitaskingActived = isActive;
+}
+
+void DeepinWMFaker::SetTouchBorderInterval(double second)
+{
+    touchBorderInterval = second;
+}
+
+double DeepinWMFaker::GetTouchBorderInterval()
+{
+    return touchBorderInterval;
+}

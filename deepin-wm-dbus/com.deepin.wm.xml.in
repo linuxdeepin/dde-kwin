@@ -162,4 +162,17 @@
         <arg type="i" name="to"/>
     </signal>
     ${DEEPIN_WM_SUFFIX}
+
+    <method name="GetMultiTaskingStatus">
+        <arg type="b" name="isActive" direction="out"/>
+    </method>
+    <method name="SetMultiTaskingStatus">
+        <arg type="b" name="isActive" direction="in"/>
+    </method>
+    <method name="GetTouchBorderInterval">
+        <arg type="d" name="interval" direction="out"/>
+    </method>
+    <method name="SetTouchBorderInterval">
+        <arg type="d" name="interval" direction="in"/>
+    </method>
 </interface>
