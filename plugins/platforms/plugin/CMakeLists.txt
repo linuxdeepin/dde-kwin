@@ -10,14 +10,9 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5DBus REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(DtkGui REQUIRED)
-find_package(KF5Wayland REQUIRED)
-find_package(PkgConfig)
-
-pkg_search_module(DDEWS REQUIRED dde-wayland-server)
 
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-include_directories(${DDEWS_INCLUDE_DIRS})
 include_directories(../lib)
 
 
@@ -93,8 +88,6 @@ target_link_libraries(
     Qt5::DBus
     Qt5::Quick
     Qt5::Widgets
-    KF5::WaylandServer
-    ${DDEWS_LIBRARIES}
     kwin-xcb
 )
 install(TARGETS ${TARGET_NAME} ${WAYLAND_TARGET_NAME} DESTINATION ${PLUGIN_INSTALL_PATH})

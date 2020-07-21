@@ -23,10 +23,6 @@
 #include "kwinutils.h"
 #include "kwinutilsadaptor.h"
 
-#include <dshellsurface.h>
-
-#include <KWayland/Server/display.h>
-
 #include <qpa/qplatformintegrationplugin.h>
 #include <qpa/qplatformintegrationfactory_p.h>
 #include <qpa/qplatformintegration.h>
@@ -43,7 +39,6 @@
 
 #include "libkwinpreload.h"
 
-using namespace DWaylandServer;
 QT_BEGIN_NAMESPACE
 
 #define KWinUtilsDbusService "org.kde.KWin"
@@ -236,16 +231,6 @@ public slots:
             }
         }
 
-        // 初始化wayland相关的内容
-        if (kwinUtils()->initForWayland()) {
-            auto display = qobject_cast<KWayland::Server::Display*>(kwinUtils()->waylandDisplay());
-            auto dde_shell_manager = new DShellSurfaceManager(display->operator wl_display *());
-            display->setProperty("_d_dwayland_dde_shell_manager", QVariant::fromValue(dde_shell_manager));
-            // 管理dde shell surface窗口
-            connect(dde_shell_manager, &DShellSurfaceManager::surfaceCreated, this, &Mischievous::onDDEShellSurfaceCreated);
-            connect(kwinUtils(), &KWinUtils::shellClientAdded, this, &Mischievous::onShellClientAdded);
-        }
-
         // 通知程序初始化完成
         kwinUtils()->setInitialized();
     }
@@ -287,55 +272,9 @@ public slots:
         }
     }
 
-    void onShellClientAdded(QObject *client)
-    {
-        Q_UNUSED(client)
-        if (feralShellSurface.size() > 3) {
-            // 不应该存在这么多未匹配的对象，除非findShellClient函数失效了
-            qWarning() << "Warning: Plase check KWinUtils::findShellClient";
-            return;
-        }
-
-        for (auto begin = feralShellSurface.begin(); begin != feralShellSurface.end(); ++begin) {
-            if (onDDEShellSurfaceCreated(*begin))
-                feralShellSurface.erase(begin);
-        }
-    }
-
-    bool onDDEShellSurfaceCreated(DShellSurface *surface)
-    {
-        auto shell_client = kwinUtils()->findShellClient(surface->surfaceResource());
-
-        if (!shell_client) {
-            if (!feralShellSurface.contains(surface))
-                feralShellSurface << surface;
-            return false;
-        }
-
-        shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
-        // 为其更关联窗口的geometry属性
-        surface->setGeometry(shell_client->property("geometry").toRect());
-        connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
-        return true;
-    }
-
-    static inline DShellSurface *getShellSurface(const QObject *shellClient)
-    {
-        return qvariant_cast<DShellSurface*>(shellClient->property("_d_dwayland_dde_shell_surface"));
-    }
-
-    Q_INVOKABLE void onShellClientGeometryChanged()
-    {
-        QObject *shell_client = sender();
-        DShellSurface *surface = getShellSurface(shell_client);
-        surface->setGeometry(shell_client->property("geometry").toRect());
-    }
-
 public:
     static Mischievous *self;
     QMap<QString, QObject*> moduleMap;
-    // 未能匹配到ShellClient的ShellSurface，需要等ShellClient创建后重新调用onDDEShellSurfaceCreated
-    QList<DShellSurface*> feralShellSurface;
 };
 
 Mischievous *Mischievous::self = nullptr;
