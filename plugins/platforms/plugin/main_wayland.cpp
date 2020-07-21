@@ -302,28 +302,6 @@ public slots:
         }
     }
 
-    static void updateSurfaceInfos(DShellSurface *surface, const QObject *client)
-    {
-        // 为其更关联窗口的geometry属性，此属性包含窗口边框信息
-        const QRect &geometry = client->property("geometry").toRect();
-
-        if (!geometry.isValid())
-            return;
-
-        // 使用rect是因为其容易和QVariant转换
-        const QPoint client_pos = client->property("clientPos").toPoint();
-        const QSize client_size = client->property("clientSize").toSize();
-        QRect frameMargins(client_pos, QPoint(0, 0));
-
-        if (client_size.isValid()) {
-            frameMargins.setRight(geometry.width() - client_size.width() - client_pos.x());
-            frameMargins.setBottom(geometry.height() - client_size.height() - client_pos.y());
-        }
-
-        surface->setProperty("frameMargins", frameMargins);
-        surface->setGeometry(geometry);
-    }
-
     bool onDDEShellSurfaceCreated(DShellSurface *surface)
     {
         auto shell_client = kwinUtils()->findShellClient(surface->surfaceResource());
@@ -335,8 +313,9 @@ public slots:
         }
 
         shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
+        // 为其更关联窗口的geometry属性
+        surface->setGeometry(shell_client->property("geometry").toRect());
         connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
-        updateSurfaceInfos(surface, shell_client);
         return true;
     }
 
@@ -349,7 +328,7 @@ public slots:
     {
         QObject *shell_client = sender();
         DShellSurface *surface = getShellSurface(shell_client);
-        updateSurfaceInfos(surface, shell_client);
+        surface->setGeometry(shell_client->property("geometry").toRect());
     }
 
 public:
