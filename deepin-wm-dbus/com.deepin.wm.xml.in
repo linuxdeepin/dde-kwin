@@ -175,4 +175,10 @@
     <method name="SetTouchBorderInterval">
         <arg type="d" name="interval" direction="in"/>
     </method>
+    <method name="GetIsShowDesktop">
+        <arg type="b" name="isShowDesktop" direction="out"/>
+    </method>
+    <method name="SetShowDesktop">
+        <arg type="b" name="isShowDesktop" direction="in"/>
+    </method>
 </interface>

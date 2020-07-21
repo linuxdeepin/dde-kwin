@@ -1119,3 +1119,13 @@ double DeepinWMFaker::GetTouchBorderInterval()
 {
     return touchBorderInterval;
 }
+
+bool DeepinWMFaker::GetIsShowDesktop()
+{
+    return m_isShowDesktop;
+}
+
+void DeepinWMFaker::SetShowDesktop(bool isShowDesktop)
+{
+    m_isShowDesktop = isShowDesktop;
+}

@@ -130,6 +130,10 @@ public Q_SLOTS:
     void SetMultiTaskingStatus(bool isActive);
     void SetTouchBorderInterval(double second = 0.5);
     double GetTouchBorderInterval();
+
+    // minin client
+    bool GetIsShowDesktop();
+    void SetShowDesktop(bool isShowDesktop);
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
     void WorkspaceBackgroundChangedForMonitor(int index, const QString &strMonitorName, const QString &newUri);
@@ -189,6 +193,8 @@ private:
 
     bool m_isMultitaskingActived = false;
     double touchBorderInterval = 0.5;
+
+    bool m_isShowDesktop = false;
 };
 
 #endif // DEEPINWMFAKER_H
