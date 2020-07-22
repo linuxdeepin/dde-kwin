@@ -181,4 +181,7 @@
     <method name="SetShowDesktop">
         <arg type="b" name="isShowDesktop" direction="in"/>
     </method>
+    <method name="GetCurrentDesktopStatus">
+        <arg type="b" name="isDesktop" direction="out"/>
+    </method>
 </interface>

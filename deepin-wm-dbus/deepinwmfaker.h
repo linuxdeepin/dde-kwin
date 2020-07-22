@@ -1,4 +1,4 @@
-#ifndef DEEPINWMFAKER_H
+﻿#ifndef DEEPINWMFAKER_H
 #define DEEPINWMFAKER_H
 
 #include "kwinutils_interface.h"
@@ -134,6 +134,8 @@ public Q_SLOTS:
     // minin client
     bool GetIsShowDesktop();
     void SetShowDesktop(bool isShowDesktop);
+
+    bool GetCurrentDesktopStatus();
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
     void WorkspaceBackgroundChangedForMonitor(int index, const QString &strMonitorName, const QString &newUri);
@@ -148,6 +150,8 @@ Q_SIGNALS:
     void compositingEnabledChanged(bool compositingEnabled);
     // 工作区个数
     void workspaceCountChanged(int count);
+
+    void desktopStatusChanged();
 
 private:
     QAction *accelAction(const QString accelKid) const;

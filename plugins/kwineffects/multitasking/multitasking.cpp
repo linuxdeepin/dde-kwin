@@ -1504,9 +1504,6 @@ void MultitaskingEffect::setActive(bool active)
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
     wm.call("SetMultiTaskingStatus", active);
 
-    QDBusReply<bool> reply = wm.call("GetMultiTaskingStatus");
-    qDebug() << "                       1509  " << reply.value();
-
     if (m_multitaskingViewVisible) {
         if (m_targetDesktop != effects->currentDesktop()) {
             m_targetDesktop = effects->currentDesktop();
@@ -1543,11 +1540,11 @@ void MultitaskingEffect::setActive(bool active)
             connect(m_multitaskingModel, SIGNAL(switchDesktop(int, int)), this, SLOT(switchTwoDesktop(int, int)));
         }
 
-        QList<QScreen *> pScreenLst = QGuiApplication::screens();
+        QList<QScreen *> screenList = QGuiApplication::screens();
         QList<QMap<QString,QVariant>> screenInfoLst;
-        for(int i = 0; i < pScreenLst.count(); i++) {
+        for(int i = 0; i < screenList.count(); i++) {
             QMap<QString,QVariant> screeninfo;
-            QScreen *pScreen = pScreenLst.at(i);
+            QScreen *pScreen = screenList.at(i);
             QString monitorName = pScreen->name();
             screeninfo[monitorName] = pScreen->size();
             screenInfoLst << screeninfo;
@@ -2032,6 +2029,10 @@ void MultitaskingEffect::touchBorderLeaved()
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
     QDBusReply<double> reply = wm.call("GetTouchBorderInterval");
     double dinterval = reply.value();
+
+    if(reply.value() <= 0.00) {
+        dinterval = 0.5;
+    }
 
     QDateTime currentDateTime = QDateTime::currentDateTime();
     qint64 interval = currentDateTime.msecsTo(m_currentDateTime);

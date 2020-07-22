@@ -1129,3 +1129,17 @@ void DeepinWMFaker::SetShowDesktop(bool isShowDesktop)
 {
     m_isShowDesktop = isShowDesktop;
 }
+
+bool DeepinWMFaker::GetCurrentDesktopStatus()
+{
+    int currentDesktop = m_windowSystem->currentDesktop();
+
+    for (auto wid: KWindowSystem::self()->windows()) {
+        KWindowInfo info(wid, NET::WMDesktop);
+        if (info.valid() && info.desktop() == currentDesktop && info.isMinimized()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
