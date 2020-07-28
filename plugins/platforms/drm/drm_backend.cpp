@@ -65,6 +65,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define KWIN_DRM_EVENT_CONTEXT_VERSION 2
 
+#include <sys/sdt.h>
+
 namespace KWin
 {
 
@@ -847,6 +849,7 @@ OpenGLBackend *DrmBackend::createOpenGLBackend()
 DrmDumbBuffer *DrmBackend::createBuffer(const QSize &size)
 {
     DrmDumbBuffer *b = new DrmDumbBuffer(m_fd, size);
+    DTRACE_PROBE2(drm_backend, createBufferSize, size.width(), size.height());
     return b;
 }
 
@@ -854,12 +857,14 @@ DrmDumbBuffer *DrmBackend::createBuffer(const QSize &size)
 DrmSurfaceBuffer *DrmBackend::createBuffer(const std::shared_ptr<GbmSurface> &surface)
 {
     DrmSurfaceBuffer *b = new DrmSurfaceBuffer(m_fd, surface);
+    DTRACE_PROBE(drm_backend, createBufferSurface);
     return b;
 }
 
 DrmSurfaceBuffer *DrmBackend::createBuffer(const std::shared_ptr<GbmSurface> &surface, uint32_t format, QVector<uint64_t> &modifiers)
 {
     DrmSurfaceBuffer *b = new DrmSurfaceBuffer(m_fd, surface, format, modifiers);
+    DTRACE_PROBE1(drm_backend, createBufferSurfaceFormat, format);
     return b;
 }
 #endif

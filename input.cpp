@@ -59,6 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QKeyEvent>
 
 #include <xkbcommon/xkbcommon.h>
+#include <sys/sdt.h>
 
 namespace KWin
 {
@@ -1469,6 +1470,7 @@ public:
 
         seat->setTimestamp(event->timestamp());
         passToWaylandServer(event);
+        DTRACE_PROBE1(ForwardInputFilter, keyboard_to_client, event->key());
 
         if (steal_focus && old) {
             auto seat = waylandServer()->seat();

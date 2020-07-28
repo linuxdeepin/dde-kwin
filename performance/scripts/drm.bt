@@ -1,0 +1,20 @@
+usdt:/usr/local/plugins/org.kde.kwin.waylandbackends/KWinWaylandDrmBackend.so:drm_backend:createBufferSize 
+{  
+    time("%D %H:%M:%S.%f "); printf("DRM createBufferSize %d %d.\n",arg0,arg1); 
+}
+usdt:/usr/local/plugins/org.kde.kwin.waylandbackends/KWinWaylandDrmBackend.so:drm_backend:createBufferSurface 
+{  
+    time("%D %H:%M:%S.%f "); printf("DRM createBufferSurface.\n"); 
+}
+usdt:/usr/local/plugins/org.kde.kwin.waylandbackends/KWinWaylandDrmBackend.so:drm_backend:createBufferSurfaceFormat 
+{  
+    time("%D %H:%M:%S.%f "); printf("DRM createBufferSurfaceFormatModifiers %d.\n",arg0); 
+}
+usdt:/usr/local/plugins/org.kde.kwin.waylandbackends/KWinWaylandDrmBackend.so:EglGbmBackend:presentOnOutput 
+{  
+    time("%D %H:%M:%S.%f "); printf("DRM swapBuffer.\n"); 
+}
+usdt:/usr/local/plugins/org.kde.kwin.waylandbackends/KWinWaylandDrmBackend.so:DrmSurfaceBuffer:releaseGbm 
+{  
+    time("%D %H:%M:%S.%f "); printf("DRM releaseBuffer.\n"); 
+}

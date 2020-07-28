@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QOpenGLContext>
 // system
 #include <gbm.h>
+#include <sys/sdt.h>
 
 #ifndef EGL_HUAWEI_partial_update
 #define EGL_HUAWEI_partial_update 1
@@ -632,6 +633,7 @@ void EglGbmBackend::present()
 void EglGbmBackend::presentOnOutput(EglGbmBackend::Output &o)
 {
     eglSwapBuffers(eglDisplay(), o.eglSurface);
+    DTRACE_PROBE(EglGbmBackend, presentOnOutput);
 
     if (o.m_modifiersEnabled) {
         o.buffer = m_backend->createBuffer(o.gbmSurface,

@@ -1,0 +1,44 @@
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:abstract_client:create_pid 
+{ 
+    time("%D %H:%M:%S.%f "); printf("App create client %d.\n",arg0); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:libinput:keyboard 
+{  
+    time("%D %H:%M:%S.%f "); printf("Input_event %s %d %d %d.\n",str(arg0),arg1,arg2,arg3); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:ForwardInputFilter:keyboard_to_client 
+{  
+    time("%D %H:%M:%S.%f "); printf("Input_event keyboard event pass to waylandclient %d.\n",arg0); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:addRepaint4 
+{  
+    time("%D %H:%M:%S.%f "); printf("Render repaint x,y,width,height %d %d %d %d.\n",arg0,arg1,arg2,arg3); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:addRepaintRect 
+{  
+    time("%D %H:%M:%S.%f "); printf("Render repaint Rect %d %d %d %d.\n",arg0,arg1,arg2,arg3); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:addRepaintRegion 
+{  
+    time("%D %H:%M:%S.%f "); printf("Render repaint Region %d %d %d %d.\n",arg0,arg1,arg2,arg3); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:addRepaintFull 
+{  
+    time("%D %H:%M:%S.%f "); printf("Render repaint Full.\n"); 
+} 
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:StartPerformCompositing 
+{  
+    time("%D %H:%M:%S.%f "); printf("Compositor compositor start.\n"); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:EndPerformCompositing
+{  
+    time("%D %H:%M:%S.%f "); printf("Compositor compositor end.\n"); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:StartRender 
+{  
+    time("%D %H:%M:%S.%f "); printf("Compositor render start.\n"); 
+}
+usdt:/usr/local/lib/aarch64-linux-gnu/libkwin.so:Compositor:EndRender
+{  
+    time("%D %H:%M:%S.%f "); printf("Compositor render end.\n");
+}

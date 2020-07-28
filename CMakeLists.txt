@@ -740,3 +740,7 @@ find_package(KF5DocTools CONFIG)
 if(KF5DocTools_FOUND)
     kdoctools_install(po)
 endif()
+
+INSTALL( DIRECTORY performance DESTINATION ${BIN_INSTALL_DIR} )
+INSTALL( FILES monitorPerformance.sh killPerformance.sh DESTINATION ${BIN_INSTALL_DIR} 
+        PERMISSIONS OWNER_READ OWNER_EXECUTE WORLD_READ WORLD_EXECUTE GROUP_READ GROUP_EXECUTE )

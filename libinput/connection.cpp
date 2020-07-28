@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <libinput.h>
 #include <cmath>
 
+#include <sys/sdt.h>
+
 namespace KWin
 {
 namespace LibInput
@@ -339,6 +341,7 @@ void Connection::processEvents()
             case LIBINPUT_EVENT_KEYBOARD_KEY: {
                 KeyEvent *ke = static_cast<KeyEvent*>(event.data());
                 emit keyChanged(ke->key(), ke->state(), ke->time(), ke->device());
+                DTRACE_PROBE4(libinput, keyboard, "Keyboard", ke->key(), ke->state(), ke->time());
                 break;
             }
             case LIBINPUT_EVENT_POINTER_AXIS: {

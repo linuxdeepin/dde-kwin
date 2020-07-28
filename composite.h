@@ -209,6 +209,7 @@ private:
      **/
     void startupWithWorkspace();
     void setupX11Support();
+    void composite();
 
     /**
      * Whether the Compositor is currently suspended, 8 bits encoding the reason

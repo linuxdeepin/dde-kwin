@@ -61,6 +61,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <xcb/composite.h>
 #include <xcb/damage.h>
 
+#include <sys/sdt.h>
+
 Q_DECLARE_METATYPE(KWin::Compositor::SuspendReason)
 
 namespace KWin
@@ -651,6 +653,7 @@ void Compositor::addRepaint(int x, int y, int w, int h)
         return;
     repaints_region += QRegion(x, y, w, h);
     scheduleRepaint();
+    DTRACE_PROBE4(Compositor, addRepaint4, x, y, w, h);
 }
 
 void Compositor::addRepaint(const QRect& r)
@@ -659,6 +662,7 @@ void Compositor::addRepaint(const QRect& r)
         return;
     repaints_region += r;
     scheduleRepaint();
+    DTRACE_PROBE4(Compositor, addRepaintRect, r.x(), r.y(), r.width(), r.height());
 }
 
 void Compositor::addRepaint(const QRegion& r)
@@ -667,6 +671,7 @@ void Compositor::addRepaint(const QRegion& r)
         return;
     repaints_region += r;
     scheduleRepaint();
+    DTRACE_PROBE4(Compositor, addRepaintRegion, r.boundingRect().x(), r.boundingRect().y(), r.boundingRect().width(), r.boundingRect().height());
 }
 
 void Compositor::addRepaintFull()
@@ -676,6 +681,7 @@ void Compositor::addRepaintFull()
     const QSize &s = screens()->size();
     repaints_region = QRegion(0, 0, s.width(), s.height());
     scheduleRepaint();
+    DTRACE_PROBE(Compositor, addRepaintFull);
 }
 
 void Compositor::timerEvent(QTimerEvent *te)
@@ -706,6 +712,14 @@ void Compositor::bufferSwapComplete()
 
 void Compositor::performCompositing()
 {
+    DTRACE_PROBE(Compositor, StartPerformCompositing);
+
+    composite();
+
+    DTRACE_PROBE(Compositor, EndPerformCompositing);
+}
+
+void Compositor::composite(){
     if (m_scene->usesOverlayWindow() && !isOverlayWindowVisible())
         return; // nothing is visible anyway
 
@@ -798,7 +812,11 @@ void Compositor::performCompositing()
     if (m_framesToTestForSafety > 0 && (m_scene->compositingType() & OpenGLCompositing)) {
         kwinApp()->platform()->createOpenGLSafePoint(Platform::OpenGLSafePoint::PreFrame);
     }
+    DTRACE_PROBE(Compositor, StartRender);
+
     m_timeSinceLastVBlank = m_scene->paint(repaints, windows);
+
+    DTRACE_PROBE(Compositor, EndRender);
     if (m_framesToTestForSafety > 0) {
         if (m_scene->compositingType() & OpenGLCompositing) {
             kwinApp()->platform()->createOpenGLSafePoint(Platform::OpenGLSafePoint::PostFrame);
@@ -830,6 +848,7 @@ void Compositor::performCompositing()
         scheduleRepaint();
     }
 }
+
 
 template <class T>
 static bool repaintsPending(const QList<T*> &windows)

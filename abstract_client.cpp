@@ -46,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMouseEvent>
 #include <QStyleHints>
 
+#include <sys/sdt.h>
+
 #include <pointer_input.h>
 #include <math.h>
 //resize limit
@@ -880,7 +882,11 @@ void AbstractClient::setupWindowManagementInterface()
     updateAppId();
     w->setSkipTaskbar(skipTaskbar());
     w->setSkipSwitcher(skipSwitcher());
-    w->setPid(pid());
+    //w->setPid(pid());
+    auto _pid = pid();
+    w->setPid(_pid);
+    DTRACE_PROBE1(abstract_client, create_pid, _pid);
+
     w->setShadeable(isShadeable());
     w->setShaded(isShade());
     w->setResizable(isResizable());

@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <xf86drmMode.h>
 #include <gbm.h>
 
+#include <sys/sdt.h>
+
 namespace KWin
 {
 
@@ -92,6 +94,7 @@ DrmSurfaceBuffer::~DrmSurfaceBuffer()
 void DrmSurfaceBuffer::releaseGbm()
 {
     m_surface->releaseBuffer(m_bo);
+    DTRACE_PROBE(DrmSurfaceBuffer, releaseGbm);
     m_bo = nullptr;
 }
 
