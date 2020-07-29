@@ -281,6 +281,7 @@ public:
     bool isComboBox() const;
     bool isDNDIcon() const;
     virtual bool isStandAlone() const;
+    virtual bool isOverride() const;
 
     virtual bool isLockScreen() const;
     virtual bool isInputMethod() const;
@@ -760,6 +761,11 @@ inline bool Toplevel::isDNDIcon() const
 }
 
 inline bool Toplevel::isStandAlone() const
+{
+    return false;
+}
+
+inline bool Toplevel::isOverride() const
 {
     return false;
 }

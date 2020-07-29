@@ -1127,7 +1127,7 @@ void AbstractClient::checkWorkspacePosition(QRect oldGeometry, int oldDesktop, Q
     if (isDock())
         return;
 
-    if (isStandAlone())
+    if (waylandServer() && (isStandAlone() || isOverride()))
         return;
 
     if (maximizeMode() != MaximizeRestore) {

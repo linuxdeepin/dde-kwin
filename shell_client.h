@@ -132,6 +132,7 @@ public:
     pid_t pid() const override;
 
     bool isStandAlone() const override;
+    bool isOverride() const override;
     bool isInternal() const;
     bool isLockScreen() const override;
     bool isInputMethod() const override;

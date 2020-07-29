@@ -363,6 +363,10 @@ Layer AbstractClient::belongsToLayer() const
         return UnderDesktopLayer;
     }
 
+    if (isOverride()){
+        return UnmanagedLayer;
+    }
+
     if (isOnScreenDisplay())
         return OnScreenDisplayLayer;
     if (isNotification())
@@ -374,6 +378,7 @@ Layer AbstractClient::belongsToLayer() const
         return BelowLayer;
     if (isActiveFullScreen())
         return ActiveLayer;
+
     if (keepAbove())
         return AboveLayer;
 

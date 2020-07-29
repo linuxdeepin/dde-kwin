@@ -1195,6 +1195,14 @@ bool ShellClient::isStandAlone() const
     return false;
 }
 
+bool ShellClient::isOverride() const
+{
+    if (m_plasmaShellSurface) {
+        return m_plasmaShellSurface->role() == PlasmaShellSurfaceInterface::Role::Override;
+    }
+    return false;
+}
+
 bool ShellClient::isLockScreen() const
 {
     if (m_internalWindow) {
@@ -1339,6 +1347,9 @@ void ShellClient::installPlasmaShellSurface(PlasmaShellSurfaceInterface *surface
             break;
         case PlasmaShellSurfaceInterface::Role::ToolTip:
             type = NET::Tooltip;
+            break;
+        case PlasmaShellSurfaceInterface::Role::Override:
+            type = NET::Override;
             break;
         case PlasmaShellSurfaceInterface::Role::Normal:
         case PlasmaShellSurfaceInterface::Role::StandAlone:

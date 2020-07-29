@@ -1413,7 +1413,7 @@ void Client::takeFocus()
         if (workspace()->showingDesktop()) {
             // 最小化其它所有窗口
             for (Client *c : workspace()->clientList()) {
-                if (this == c || c->isDock() || c->isDesktop() || skipTaskbar() || c->isStandAlone()) {
+                if (this == c || c->isDock() || c->isDesktop() || skipTaskbar()) {
                     continue;
                 }
 
