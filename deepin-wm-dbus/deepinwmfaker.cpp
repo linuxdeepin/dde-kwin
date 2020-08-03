@@ -528,7 +528,7 @@ bool DeepinWMFaker::SetAccel(const QString &data)
         const QString &accelStr = jsonValue.toString();
         QKeySequence seq(transFromDaemonAccelStr(accelStr));
         if (seq.isEmpty()) {
-            qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
+            // qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
         }
         accelList.append(seq);
     }
@@ -536,7 +536,7 @@ bool DeepinWMFaker::SetAccel(const QString &data)
     // using setGlobalShortcat() only can set a new accel,
     // it will not override the exist global accel just change the default accel
     if (!m_globalAccel->setShortcut(action, accelList, KGlobalAccel::NoAutoloading)) {
-        qDebug() << "WARNING: set accel failed for" << kId << "with accels:" << accelList;
+        // qDebug() << "WARNING: set accel failed for" << kId << "with accels:" << accelList;
         result = false;
     }
 
@@ -607,10 +607,10 @@ void DeepinWMFaker::PreviewWindow(uint xid)
 
     // FIXME: preview window should not change the order of windows
 
-    qDebug() << "winid" << xid;
-    qDebug() << "windows" << m_windowSystem->windows();
-    qDebug() << "order" << m_windowSystem->stackingOrder();
-    qDebug() << "contains" << m_windowSystem->hasWId(xid);
+    // qDebug() << "winid" << xid;
+    // qDebug() << "windows" << m_windowSystem->windows();
+    // qDebug() << "order" << m_windowSystem->stackingOrder();
+    // qDebug() << "contains" << m_windowSystem->hasWId(xid);
 
     m_windowSystem->forceActiveWindow(xid);
     m_previewWinMiniPair.first = xid;
@@ -621,7 +621,7 @@ void DeepinWMFaker::PreviewWindow(uint xid)
         m_previewWinMiniPair.second = info.isMinimized();
     }
 
-    qDebug() << "preview" << m_previewWinMiniPair;
+    // qDebug() << "preview" << m_previewWinMiniPair;
 }
 
 void DeepinWMFaker::CancelPreviewWindow()
@@ -862,7 +862,7 @@ void DeepinWMFaker::EnableZoneDetected(bool enabled)
 QAction *DeepinWMFaker::accelAction(const QString accelKid) const
 {
     if (accelKid.isEmpty()) {
-        qDebug() << "ERROR: obtain action from an empty accel id";
+        // qDebug() << "ERROR: obtain action from an empty accel id";
         return nullptr;
     }
 

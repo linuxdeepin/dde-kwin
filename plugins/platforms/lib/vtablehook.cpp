@@ -174,8 +174,8 @@ bool VtableHook::ensureVtable(void *obj, std::function<void ()> destoryObjFun)
 
     // 虚析构函数查找失败
     if (index < 0) {
-        qWarning("Failed do override destruct function");
-        qDebug() << "object:" << obj;
+        // qWarning("Failed do override destruct function");
+        // qDebug() << "object:" << obj;
         abort();
     }
 
@@ -225,13 +225,13 @@ quintptr VtableHook::originalFun(void *obj, quintptr functionOffset)
     quintptr *vfptr_t2 = (quintptr*)(*_obj)[vtable_size + 1];
 
     if (!vfptr_t2) {
-        qWarning() << "Not override the object virtual table" << obj;
+        // qWarning() << "Not override the object virtual table" << obj;
 
         return 0;
     }
 
     if (functionOffset > UINT_LEAST16_MAX) {
-        qWarning() << "Is not a virtual function, function address: 0x" << hex << functionOffset;
+        // qWarning() << "Is not a virtual function, function address: 0x" << hex << functionOffset;
 
         return 0;
     }

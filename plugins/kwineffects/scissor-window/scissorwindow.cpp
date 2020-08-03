@@ -181,11 +181,11 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     m_fullMaskShader = KWin::ShaderManager::instance()->generateShaderFromResources(KWin::ShaderTrait::MapTexture, QString(), "full-mask.frag");
 
     if (!m_shader->isValid()) {
-        qWarning() << Q_FUNC_INFO << "Invalid fragment shader of corner mask";
+        // qWarning() << Q_FUNC_INFO << "Invalid fragment shader of corner mask";
     }
 
     if (!m_fullMaskShader->isValid()) {
-        qWarning() << Q_FUNC_INFO << "Invalid fragment shader of full mask";
+        // qWarning() << Q_FUNC_INFO << "Invalid fragment shader of full mask";
     }
 }
 

@@ -456,7 +456,7 @@ bool WindowThumbnail::xcbWindowToTextureEGL(WindowTextureNode *textureNode)
                       (EGLClientBuffer)m_pixmap, attribs);
 
             if (m_image == EGL_NO_IMAGE_KHR) {
-                qDebug() << "failed to create egl image";
+                // qDebug() << "failed to create egl image";
                 return false;
             }
 
@@ -488,7 +488,7 @@ void WindowThumbnail::resolveEGLFunctions()
             (extensions.contains(QByteArrayLiteral("EGL_KHR_image_base")) &&
              extensions.contains(QByteArrayLiteral("EGL_KHR_image_pixmap")))) {
         if (context->hasExtension(QByteArrayLiteral("GL_OES_EGL_image"))) {
-            qDebug() << "Have EGL texture from pixmap";
+            // qDebug() << "Have EGL texture from pixmap";
             m_eglCreateImageKHR = context->getProcAddress(QByteArrayLiteral("eglCreateImageKHR"));
             m_eglDestroyImageKHR = context->getProcAddress(QByteArrayLiteral("eglDestroyImageKHR"));
             m_glEGLImageTargetTexture2DOES = context->getProcAddress(QByteArrayLiteral("glEGLImageTargetTexture2DOES"));
@@ -572,8 +572,9 @@ void WindowThumbnail::resolveGLXFunctions()
     if (extensions.contains(QByteArrayLiteral("GLX_EXT_texture_from_pixmap"))) {
         m_bindTexImage = context->getProcAddress(QByteArrayLiteral("glXBindTexImageEXT"));
         m_releaseTexImage = context->getProcAddress(QByteArrayLiteral("glXReleaseTexImageEXT"));
-    } else
-        qWarning() << "couldn't resolve GLX_EXT_texture_from_pixmap functions";
+    } else {
+        // qWarning() << "couldn't resolve GLX_EXT_texture_from_pixmap functions";
+    }
     m_openGLFunctionsResolved = true;
 }
 
