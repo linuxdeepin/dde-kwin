@@ -140,6 +140,7 @@ private:
 private:
     LanczosFilter *m_lanczosFilter;
     QScopedPointer<GLTexture> m_cursorTexture;
+    QPoint m_cursorHotspot;
     QMatrix4x4 m_projectionMatrix;
     QMatrix4x4 m_screenProjectionMatrix;
     GLuint vao;

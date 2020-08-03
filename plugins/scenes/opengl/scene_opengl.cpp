@@ -613,6 +613,7 @@ void SceneOpenGL2::paintCursor()
                 return;
             }
             m_cursorTexture.reset(new GLTexture(img));
+            m_cursorHotspot = kwinApp()->platform()->softwareCursorHotspot();
         };
 
         // init now
@@ -623,7 +624,7 @@ void SceneOpenGL2::paintCursor()
     }
 
     // get cursor position in projection coordinates
-    const QPoint cursorPos = Cursor::pos() - kwinApp()->platform()->softwareCursorHotspot();
+    const QPoint cursorPos = Cursor::pos() - m_cursorHotspot;
     const QRect cursorRect(0, 0, m_cursorTexture->width(), m_cursorTexture->height());
     QMatrix4x4 mvp = m_projectionMatrix;
     mvp.translate(cursorPos.x(), cursorPos.y());

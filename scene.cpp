@@ -326,6 +326,9 @@ void Scene::paintSimpleScreen(int orig_mask, QRegion region)
     const QSize &screenSize = screens()->size();
     const QRegion displayRegion(0, 0, screenSize.width(), screenSize.height());
     bool fullRepaint(dirtyArea == displayRegion); // spare some expensive region operations
+    if (screens()->count() > 1) {
+        fullRepaint = true;
+    }
     if (!fullRepaint) {
         extendPaintRegion(dirtyArea, opaqueFullscreen);
         fullRepaint = (dirtyArea == displayRegion);
@@ -391,7 +394,10 @@ void Scene::paintSimpleScreen(int orig_mask, QRegion region)
     }
 
     // mark: may has bug here
-    {
+    if (fullRepaint) {
+        painted_region = displayRegion;
+        damaged_region = displayRegion;
+    } else {
         painted_region |= paintedArea;
 
         // Clip the repainted region from the damaged region.
