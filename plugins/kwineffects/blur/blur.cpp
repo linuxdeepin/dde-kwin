@@ -47,7 +47,7 @@ BlurEffect::BlurEffect(QObject *, const QVariantList &)
         QMetaObject::invokeMethod(effects, "isEffectLoaded", Qt::DirectConnection, Q_RETURN_ARG(bool, blur_loaded), Q_ARG(QString, "blur"));
 
         if (blur_loaded) {
-            qWarning() << "will try unload builtIn blur effect of kwin";
+            // qWarning() << "will try unload builtIn blur effect of kwin";
             QMetaObject::invokeMethod(effects, "unloadEffect", Qt::DirectConnection, Q_ARG(QString, "blur"));
         }
     }

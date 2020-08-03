@@ -202,7 +202,7 @@ static QByteArray atomName(xcb_atom_t atom)
     xcb_get_atom_name_cookie_t cookie = xcb_get_atom_name(QX11Info::connection(), atom);
     xcb_get_atom_name_reply_t *reply = xcb_get_atom_name_reply(QX11Info::connection(), cookie, &error);
     if (error) {
-        qWarning() << "atomName: bad Atom" << atom;
+        // qWarning() << "atomName: bad Atom" << atom;
         free(error);
     }
     if (reply) {
@@ -513,7 +513,7 @@ KWinUtils::KWinUtils(QObject *parent)
 #ifdef KWIN_VERSION
     // 往右移动8位是为了排除 build version 字段
     if ((kwinBuildVersion() >> 8) != (kwinRuntimeVersion() >> 8)) {
-        qWarning() << QString("Build on kwin " KWIN_VERSION_STR " version, but run on kwin %1 version").arg(qApp->applicationVersion());
+        // qWarning() << QString("Build on kwin " KWIN_VERSION_STR " version, but run on kwin %1 version").arg(qApp->applicationVersion());
     }
 #endif
 
@@ -523,7 +523,7 @@ KWinUtils::KWinUtils(QObject *parent)
         if (!connect(ws, SIGNAL(propertyNotify(long)), this, SLOT(_d_onPropertyChanged(long)))) {
             d->monitorRootWindowProperty = true;
 
-            qDebug() << "KWinUtils: Ignore the 'propertyNotify' signal connect warning";
+            // qDebug() << "KWinUtils: Ignore the 'propertyNotify' signal connect warning";
         }
     }
 }

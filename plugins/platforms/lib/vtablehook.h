@@ -166,7 +166,7 @@ public:
         rvf.oldFun = VtableHook::resetVfptrFun((void*)obj, fun_offset);
 
         if (!rvf.oldFun) {
-            qWarning() << "Reset the function failed, object:" << obj;
+            // qWarning() << "Reset the function failed, object:" << obj;
             abort();
         }
 

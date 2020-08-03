@@ -133,7 +133,7 @@ public:
         QPluginLoader loader(file);
 
         if (!loader.load()) {
-            qWarning() << Q_FUNC_INFO << loader.errorString();
+            // qWarning() << Q_FUNC_INFO << loader.errorString();
             return nullptr;
         }
 
@@ -244,7 +244,7 @@ public slots:
                     ok = true;
                     break;
                 } else {
-                    qWarning() << Q_FUNC_INFO << "Failed on load translators, file:" << dir + "/" + ts_file;
+                    // qWarning() << Q_FUNC_INFO << "Failed on load translators, file:" << dir + "/" + ts_file;
                 }
             }
 

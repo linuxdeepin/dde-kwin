@@ -139,7 +139,7 @@ void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
     QDBusReply<QDBusObjectPath> menu_path = manager_interface.call("RegisterMenu");
 
     if (menu_path.error().type() != QDBusError::NoError) {
-        qWarning() << menu_path.error();
+        // qWarning() << menu_path.error();
         return;
     }
 
