@@ -151,6 +151,7 @@ void ChameleonConfig::onClientAdded(KWin::Client *client)
 
     enforceWindowProperties(c);
     buildKWinX11Shadow(c);
+    debugWindowStartupTime(c);
 }
 
 void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
@@ -162,6 +163,7 @@ void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
 
     enforceWindowProperties(c);
     buildKWinX11Shadow(c);
+    debugWindowStartupTime(c);
 }
 
 static bool canForceSetBorder(const QObject *window)
@@ -587,6 +589,234 @@ void ChameleonConfig::updateClientClipPath(QObject *client)
         effect->setData(WindowClipPathRole, QVariant());
     } else {
         effect->setData(WindowClipPathRole, QVariant::fromValue(path));
+    }
+}
+
+static thread_local QHash<QObject*, qint64> appStartTimeMap;
+
+// 获取此窗口对应进程的启动时间
+static QString readPidEnviron(quint32 pid, const QByteArray &env_key) {
+    QFile env_file(QString("/proc/%1/environ").arg(pid));
+
+    if (!env_file.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+
+    const QByteArray &env_data = env_file.readAll();
+
+    int start_pos = env_data.startsWith(env_key) ? 0 : env_data.indexOf("\0" + env_key);
+
+    if (start_pos < 0) {
+        return {};
+    }
+
+    // 补充等号
+    start_pos += 1;
+
+    // 重定位到开头的位置
+    start_pos += env_key.size();
+
+    // 查找结束的位置
+    int end_pos = env_data.indexOf('\0', start_pos + 1);
+    if (end_pos < start_pos) {
+        return {};
+    }
+
+    return env_data.mid(start_pos, end_pos - start_pos);
+}
+
+static quint32 readPPid(quint32 pid) {
+    QFile status_file(QString("/proc/%1/status").arg(pid));
+    if (!status_file.open(QIODevice::ReadOnly)) {
+        return 0;
+    }
+
+    QTextStream stream(&status_file);
+    QString line;
+    while (stream.readLineInto(&line)) {
+        if (line.startsWith("PPid")) {
+            return line.split(":").last().simplified().toUInt();
+        }
+    }
+
+    return 0;
+}
+
+static quint32 getPidByTopLevel(QObject* toplevel) {
+    const QByteArray &pid_data = KWinUtils::readWindowProperty(toplevel, KWinUtils::internAtom("_NET_WM_PID", false), XCB_ATOM_CARDINAL);
+    return *reinterpret_cast<const quint32*>(pid_data.data());
+}
+
+static qint64 appStartTime(QObject *toplevel)
+{
+    if (!appStartTimeMap.contains(toplevel)) {
+        // 清理数据
+        QObject::connect(toplevel, &QObject::destroyed, toplevel, [toplevel] {
+            appStartTimeMap.remove(toplevel);
+        });
+
+        do {
+            // 此处使用windowId属性检测此QObject是否为KWin::Toplevel对象，如果w的父对象不是KWin::Toplevel对象
+            // 则无法继续后续的操作，此时应当认为无法获取应用程序启动时间
+            if (!toplevel->property("windowId").isValid()) {
+                break;
+            }
+            // 获取pid属性
+            quint32 pid = getPidByTopLevel(toplevel);
+            // 如果获取窗口对应进程的pid失败
+            if (pid == 0) {
+                break;
+            }
+
+            QString env_data;
+
+            do {
+                // 从进程环境变量中初始化此窗口所对应进程的启动时间
+                const QString &data = readPidEnviron(pid, "D_KWIN_DEBUG_APP_START_TIME");
+                if (!data.isEmpty()) {
+                    env_data = data;
+                    break;
+                } else {
+                    pid = readPPid(pid);
+                }
+            } while(pid != 1);
+
+            if (env_data.isEmpty()) {
+                break;
+            }
+
+            const qint64 timestamp = env_data.toLongLong();
+
+            // 保存时间戳数据
+            appStartTimeMap[toplevel] = timestamp;
+            return timestamp;
+        } while (false);
+
+        // 将失败的结果记录下来
+        appStartTimeMap[toplevel] = 0;
+        return 0;
+    }
+
+    return appStartTimeMap[toplevel];
+}
+
+void ChameleonConfig::debugWindowStartupTime(QObject *toplevel)
+{
+    // 只有能正常获取到启动的时间戳才认为此窗口开启了调试启动时间的功能
+    if (!appStartTime(toplevel))
+        return;
+
+    const quint32 pid = getPidByTopLevel(toplevel);
+    const QString &damage_count_str = readPidEnviron(pid, "_D_CHECKER_DAMAGE_COUNT");
+    toplevel->setProperty("_D_CHECKER_DAMAGE_COUNT", damage_count_str.isEmpty() ? 20 : damage_count_str.toInt());
+
+    // 监听窗口请求重绘的事件
+    connect(toplevel, SIGNAL(damaged(KWin::Toplevel*, const QRect&)),
+            this, SLOT(onToplevelDamaged(KWin::Toplevel*,QRect)), Qt::UniqueConnection);
+}
+
+void ChameleonConfig::onToplevelDamaged(KWin::Toplevel *toplevel, const QRect &damage)
+{
+    Q_UNUSED(damage)
+    QObject *w = reinterpret_cast<QObject*>(toplevel);
+    // 使用一个定时器，用于检测窗口在500ms之内是否再次进行了绘制操作
+    // 如果一个窗口在500ms内未进行绘制，则足以认为其已经处于稳定状态
+    // 此时也可以认为程序已经启动完毕，可以以此计算程序启动所消耗的时间
+    // 另外需要特别注意的是，我们需要采用其他手段识别对应进程的UI线程未
+    // 阻塞，因为如果UI线程阻塞，则也会出现在 500ms内无任何重绘的情况
+    // 但是此时并不能说明程序启动已经完成
+    QTimer *checker_timer = qvariant_cast<QTimer*>(w->property("_d_checker_timer"));
+
+    if (!checker_timer) {
+        const quint32 pid = getPidByTopLevel(w);
+
+        const QString &check_timer_interval_str = readPidEnviron(pid, "_D_CHECKER_TIMER_INTERVAL");
+        const int check_timer_interval = check_timer_interval_str.isEmpty() ? 100 : check_timer_interval_str.toInt();
+
+        const QString &ping_time_str = readPidEnviron(pid, "_D_CHECKER_PING_TIME");
+        const qint64 ping_time = ping_time_str.isEmpty() ? 50 : ping_time_str.toLongLong();
+
+        const QString &valid_count_str = readPidEnviron(pid, "_D_CHECKER_VALID_COUNT");
+        const int valid_count = valid_count_str.isEmpty() ? 10 : valid_count_str.toInt();
+
+        const quint32 timer_used_time = check_timer_interval * valid_count;
+
+        // 不要把w指定为计时器的父对象，它俩很可能属于不同的线程
+        checker_timer = new QTimer();
+        connect(w, &QObject::destroyed, checker_timer, &QTimer::deleteLater);
+        w->setProperty("_d_checker_timer", QVariant::fromValue(checker_timer));
+        checker_timer->setInterval(check_timer_interval);
+        // 每隔50ms给窗口发送一次ping时间，如若能在100ms内给出回应，则认为本次检测的结果有效
+        // 否则将从头进行检测行为
+        connect(checker_timer, &QTimer::timeout, w, [w, checker_timer] {
+            // 此时说明上一次的检测还未获取到结果，将停止检测等待client返回消息
+            if (checker_timer->property("_d_timestamp").isValid()) {
+                checker_timer->stop();
+                return;
+            }
+
+            // 记录发送ping事件的时间
+            checker_timer->setProperty("_d_timestamp", QDateTime::currentMSecsSinceEpoch());
+
+            // 使用ping检测client进程是否卡死
+            KWinUtils::sendPingToWindow(w, 0);
+        });
+
+        connect(KWinUtils::instance(), &KWinUtils::pingEvent, checker_timer,
+                [checker_timer, ping_time, valid_count, timer_used_time, w, this] (quint32 windowId, quint32 timestamp) {
+            if (timestamp || KWinUtils::getWindowId(w) != windowId)
+                return;
+
+            qint64 _d_timestamp = checker_timer->property("_d_timestamp").toLongLong();
+            // 清理时间戳属性
+            checker_timer->setProperty("_d_timestamp", QVariant());
+
+            if (!_d_timestamp)
+                return;
+
+            if (QDateTime::currentMSecsSinceEpoch() - _d_timestamp > ping_time) {
+                // 本次ping回复超时，将重启检测
+                checker_timer->setProperty("_d_valid_count", 0);
+                checker_timer->start();
+                return;
+            }
+
+            // 记录检测的次数
+            int _d_valid_count = checker_timer->property("_d_valid_count").toInt() + 1;
+            checker_timer->setProperty("_d_valid_count", _d_valid_count);
+
+            // 表明启动已完成
+            if (_d_valid_count >= valid_count) {
+                // 销毁定时器对象
+                checker_timer->stop();
+                checker_timer->deleteLater();
+                // 断开无用的链接
+                disconnect(w, SIGNAL(damaged(KWin::Toplevel*, const QRect&)),
+                           this, SLOT(onToplevelDamaged(KWin::Toplevel*,QRect)));
+                qint64 start = appStartTime(w);
+                // 结束应用启动时间的调试
+                appStartTimeMap[w] = 0;
+
+                qint64 end = QDateTime::currentMSecsSinceEpoch();
+                quint32 time = end - start - timer_used_time;
+                // 在窗口属性上保存其启动时间的信息
+                KWinUtils::setWindowProperty(w, KWinUtils::internAtom("_D_APP_STARTUP_TIME", false),
+                                             XCB_ATOM_CARDINAL, 32, QByteArray(reinterpret_cast<char*>(&time), sizeof(time) / sizeof(char)));
+            }
+        });
+    }
+
+    int damage_count = checker_timer->property("_d_damage_count").toInt();
+    int _d_damage_count = w->property("_D_CHECKER_DAMAGE_COUNT").toInt();
+
+    // 仅限在前20次绘制中重启检测定时器，client可能会一直处于绘制而未进入稳定状态，比如游戏或视频播放器
+    if (++damage_count < _d_damage_count) {
+        checker_timer->setProperty("_d_damage_count", damage_count);
+        // _d_valid_count 属性用于记录有效的检测次数，累计到10次时完成检测
+        // 遇到重回事件时应当将其重置为0
+        checker_timer->setProperty("_d_valid_count", 0);
+        checker_timer->setProperty("_d_timestamp", QVariant());
+        checker_timer->start();
     }
 }
 

@@ -41,6 +41,7 @@ namespace KWin {
 class Client;
 class Unmanaged;
 class EffectWindow;
+class Toplevel;
 }
 
 class X11Shadow;
@@ -106,6 +107,10 @@ private slots:
     void updateClientNoBorder(QObject *client, bool allowReset = true);
     void updateClientWindowRadius(QObject *client);
     void updateClientClipPath(QObject *client);
+
+    // 用于调试窗口启动速度
+    void debugWindowStartupTime(QObject *toplevel);
+    void onToplevelDamaged(KWin::Toplevel* toplevel, const QRect& damage);
 
 private:
     void init();

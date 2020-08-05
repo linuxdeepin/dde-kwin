@@ -291,6 +291,7 @@ class KWinInterface
     typedef QObject *(*WorkspaceFindClient)(void *, KWinUtils::Predicate, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanaged)(void *, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
+    typedef void (*WorkspaceSendPingToWindow)(void *, quint32, quint32);
     typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
     typedef void (*CompositorToggle)(void *, KWin::Compositor::SuspendReason);
     typedef int (*ClientWindowType)(const void*, bool, int);
@@ -308,6 +309,7 @@ public:
         findClient = (WorkspaceFindClient)KWinUtils::resolve("_ZNK4KWin9Workspace10findClientENS_9PredicateEj");
         findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
         findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
+        sendPingToWindow = (WorkspaceSendPingToWindow)KWinUtils::resolve("_ZN4KWin9Workspace16sendPingToWindowEjj");
         xcbExtensionsShapeNotifyEvent = (XcbExtensionsShapeNotifyEvent)KWinUtils::resolve("_ZNK4KWin3Xcb10Extensions16shapeNotifyEventEv");
         compositorSuspend = (CompositorToggle)KWinUtils::resolve("_ZN4KWin10Compositor7suspendENS0_13SuspendReasonE");
         if (!compositorSuspend) {
@@ -333,6 +335,7 @@ public:
     WorkspaceFindClient findClient;
     WorkspaceFindUnmanaged findUnmanaged;
     WorkspaceFindUnmanagedByFunction findUnmanagedByFunction;
+    WorkspaceSendPingToWindow sendPingToWindow;
     XcbExtensionsShapeNotifyEvent xcbExtensionsShapeNotifyEvent;
     CompositorToggle compositorSuspend;
     CompositorToggle compositorResume;
@@ -454,6 +457,18 @@ public:
             xcb_window_t window = reinterpret_cast<xcb_shape_notify_event_t*>(event)->affected_window;
 
             emit q->windowShapeChanged(window);
+        } else if (response_type == XCB_CLIENT_MESSAGE) {
+            xcb_client_message_event_t *message = reinterpret_cast<xcb_client_message_event_t*>(event);
+
+            static xcb_atom_t WM_PROTOCOLS = ::internAtom("WM_PROTOCOLS", false);
+            static xcb_atom_t _NET_WM_PING = ::internAtom("_NET_WM_PING", false);
+
+            if (message->type == WM_PROTOCOLS && message->data.data32[0] == _NET_WM_PING) {
+                xcb_timestamp_t timestamp = message->data.data32[1];
+                xcb_window_t window = message->data.data32[2];
+
+                emit q->pingEvent(window, timestamp);
+            }
         }
 
         return false;
@@ -699,6 +714,27 @@ void KWinUtils::clientCheckNoBorder(QObject *client)
     if (interface->clientCheckNoBorder) {
         interface->clientCheckNoBorder(client);
     }
+}
+
+bool KWinUtils::sendPingToWindow(quint32 WId, quint32 timestamp)
+{
+    if (!interface->sendPingToWindow)
+        return false;
+
+    interface->sendPingToWindow(workspace(), WId, timestamp);
+    return true;
+}
+
+bool KWinUtils::sendPingToWindow(QObject *client, quint32 timestamp)
+{
+    bool ok = false;
+    xcb_window_t wid = getWindowId(client, &ok);
+
+    if (!ok) {
+        return false;
+    }
+
+    return sendPingToWindow(wid, timestamp);
 }
 
 #if defined(Q_OS_LINUX) && !defined(QT_NO_DYNAMIC_LIBRARY) && !defined(QT_NO_LIBRARY)

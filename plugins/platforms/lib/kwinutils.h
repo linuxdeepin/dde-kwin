@@ -75,6 +75,8 @@ public:
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
     static void clientCheckNoBorder(QObject *client);
+    static bool sendPingToWindow(quint32 WId, quint32 timestamp);
+    static bool sendPingToWindow(QObject *client, quint32 timestamp);
 
     static QFunctionPointer resolve(const char *symbol);
 
@@ -159,6 +161,7 @@ Q_SIGNALS:
     void initialized();
     void windowPropertyChanged(quint32 windowId, quint32 property_atom);
     void windowShapeChanged(quint32 windowId);
+    void pingEvent(quint32 windowId, quint32 timestamp);
 
 protected:
     explicit KWinUtils(QObject *parent = nullptr);
