@@ -703,10 +703,6 @@ FbConfigInfo *getConfig(xcb_visualid_t visual)
         0
     };
 
-    /*if (QByteArray((char *)glGetString(GL_RENDERER)).contains("llvmpipe")) {
-        return nullptr;
-    }*/
-
     int count = 0;
     GLXFBConfig *configs = glXChooseFBConfig(dpy, QX11Info::appScreen(), attribs, &count);
     if (count < 1) {
