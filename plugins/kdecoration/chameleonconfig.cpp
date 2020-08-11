@@ -659,7 +659,8 @@ static qint64 appStartTime(QObject *toplevel)
             // 此处使用windowId属性检测此QObject是否为KWin::Toplevel对象，如果w的父对象不是KWin::Toplevel对象
             // 则无法继续后续的操作，此时应当认为无法获取应用程序启动时间
             if (!toplevel->property("windowId").isValid()) {
-                break;
+                appStartTimeMap[toplevel] = 0;
+                return 0;
             }
             // 获取pid属性
             quint32 pid = getPidByTopLevel(toplevel);
@@ -692,9 +693,12 @@ static qint64 appStartTime(QObject *toplevel)
             return timestamp;
         } while (false);
 
-        // 将失败的结果记录下来
-        appStartTimeMap[toplevel] = 0;
-        return 0;
+        // fallback到kwin自身记录的启动时间, 也就说为kwin设置了D_KWIN_DEBUG_APP_START_TIME环境变量，即表明
+        // 将调试所有窗口的启动时间，而无论这个窗口对应进程是否设置了D_KWIN_DEBUG_APP_START_TIME环境变量。此功
+        // 能是为了能debug无法通过外部手段为其设置环境变量的程序
+        static qint64 kwin_start_time = qgetenv("D_KWIN_DEBUG_APP_START_TIME").toLongLong();
+        appStartTimeMap[toplevel] = kwin_start_time;
+        return kwin_start_time;
     }
 
     return appStartTimeMap[toplevel];
