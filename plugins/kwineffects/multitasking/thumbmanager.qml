@@ -785,6 +785,8 @@ Rectangle {
                                 property int originX
                                 property int originY
 
+                                property bool enableCalcThumbnailGeometry: false
+
                                // property var lastPos:0;
 
 
@@ -795,16 +797,17 @@ Rectangle {
 
 
                                 onEntered: {
+                                    if (windowThumbnailitem.Drag.active && pressed) {
+                                        return;
+                                    }
                                     $Model.setCurrentSelectIndex(modelData);
                                     closeClientBtn.visible = true;
                                     stickedBtn.visible = true;
-                                    if($Model.getWindowKeepAbove(modelData))
-                                    {
+                                    if ($Model.getWindowKeepAbove(modelData)) {
                                         stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
-                                    }else{
+                                    } else {
                                         stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
                                     }
-                                    
                                 }
                               
                                 //  excute on released
@@ -817,85 +820,86 @@ Rectangle {
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
                                 }
+                                Timer {
+                                    id: pressedTimer
+                                    interval: 200; running: false; repeat: false
+                                    onTriggered: {
+                                        windowThumbnailitemMousearea.enableCalcThumbnailGeometry = true
+                                    }
+                                }
                            
-                                onPressed:{
-                                    //console.log("onPressed x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +" width:"+windowThumbnailitem.width+" height:"+windowThumbnailitem.height+ " mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
-                                    originWidth = windowThumbnailitem.width
-                                    originHeight = windowThumbnailitem.height
-                                    originX = windowThumbnailitem.x
-                                    originY = windowThumbnailitem.y
+                                onPressed: {
+                                     originWidth = windowThumbnailitem.width
+                                     originHeight = windowThumbnailitem.height
+                                     originX = windowThumbnailitem.x
+                                     originY = windowThumbnailitem.y
+                                     enableCalcThumbnailGeometry = false
 
+                                     pressedTimer.start()
 
+                                     closeClientBtn.visible = false;
+                                     stickedBtn.visible = false;
+                                }
+                                function calcDragingThumbnailGeometry() {
 
-                                    var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
-                                    var imgwidth  =   $Model.getWindowWidth(windowThumbnailitem.winId);
-
-                                   
-                                    var scale=1;
-                                    if(imgwidth > 0 && imgheight > 0)
-                                        scale = imgwidth/imgheight;
-                                    else
-                                        scale = 0.75
+                                    if (!enableCalcThumbnailGeometry) {
+                                        return ;
+                                    }
 
                                     var dragingImgWidth
                                     var dragingImgHeight
+                                    var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
+                                    var imgwidth = $Model.getWindowWidth(windowThumbnailitem.winId);
+                                    var scale = 1;
 
-                                    if(scale>1){
+                                    enableCalcThumbnailGeometry = false
+
+                                    if (imgwidth > 0 && imgheight > 0) {
+                                        scale = imgwidth/imgheight;
+                                    } else {
+                                        scale = 0.75
+                                    }
+                                    if (scale>1) {
                                         dragingImgWidth = 120
                                         dragingImgHeight = dragingImgWidth /scale;
-                                    }else{
+                                    } else {
                                         dragingImgHeight = 120
                                         dragingImgWidth = dragingImgHeight * scale;
                                     }
-
-
                                     //只缩小，不设置位置，因为大小变了。这个ｍｏｕｓｅ　已经不是正确的位置了。只能下次再取（就是到　ｐｏｓｉｔｉｏｎ　中取得）
                                     windowThumbnailitem.width = dragingImgWidth
                                     windowThumbnailitem.height = dragingImgHeight
 
-                                    pressedTime = Date.now();
-
-                                    closeClientBtn.visible = false;
-                                    stickedBtn.visible = false;
-
-                                    windowThumbnailitem.Drag.active=true
+                                    windowThumbnailitem.Drag.active = true
                                 }
 
-                                
-                               
                                 //onpress 后，会马上执行　onMouseXChanged，然后再执行　onPositionChanged
                                 //此时要先用pressed 做条件，不能使用windowThumbnailitem.Drag.active
                                 onMouseXChanged: {
+                                    calcDragingThumbnailGeometry()
 
-                                    if(pressed){
-
+                                    if (pressed && !pressedTimer.running) { 
                                         //绝对坐标方法
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
-                                        windowThumbnailitem.x = (positionInRoot.x - windowThumbnailitem.width / 2);
-
-                                        //console.log("onMouseXChanged x:",windowThumbnailitem.x+"  y:"+windowThumbnailitem.y +"  lastPos.x:"+ lastPos + " posInRoot x:"+positionInRoot.x+" posInRoot y:"+positionInRoot.y+" mouse.x:" + mouse.x+  "  mouse.y:"+mouse.y)
-
-                                        //相对坐标方法
-                                        //windowThumbnailitem.x += (mouse.x - windowThumbnailitem.width / 2);
-
+                                        var mousePosInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        windowThumbnailitem.x = (mousePosInRoot.x - windowThumbnailitem.width / 2);
                                     }
                                         
                                 }
                                 onMouseYChanged: {
-                                    if(pressed){
-                                        var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
-                                        windowThumbnailitem.y = (positionInRoot.y - windowThumbnailitem.height / 2);
+                                    calcDragingThumbnailGeometry()
 
+                                    if (pressed && !pressedTimer.running) {
+                                        var mousePosInRoot = mapToItem(root, mouse.x, mouse.y) 
+                                        windowThumbnailitem.y = (mousePosInRoot.y - windowThumbnailitem.height / 2);
                                     }
                                 }
-                                onReleased:{
-                                    var curtime = Date.now();
-                                    if((curtime - pressedTime) < 200){
+                                onReleased: {
+                                    if (pressedTimer.running) {
+                                        pressedTimer.stop()
                                         $Model.setCurrentSelectIndex(modelData);
                                         $Model.windowSelected( modelData );
-                                        //
-                                    }else{
-                                        if(!windowThumbnailitem.Drag.active){
+                                    } else {
+                                        if (!windowThumbnailitem.Drag.active || enableCalcThumbnailGeometry) {
                                             ////恢复现场
                                             windowThumbnailitem.width = originWidth
                                             windowThumbnailitem.height = originHeight
@@ -903,21 +907,13 @@ Rectangle {
                                             windowThumbnailitem.y = originY
                                             closeClientBtn.visible = true;
                                             stickedBtn.visible = true;
+                                            enableCalcThumbnailGeometry = false
                                         }
                                     }
                                     windowThumbnailitem.Drag.drop()
-                                    windowThumbnailitem.Drag.active=false
-                                    
+                                    windowThumbnailitem.Drag.active = false
                                 }
-                                /*drag.onActiveChanged: {
-                                    if (!windowThumbnailitemMousearea.drag.active) {
-                                      //  console.log('------- release on ' + windowThumbnailitemMousearea.drag.target + index)
-                                        windowThumbnailitem.Drag.drop();
-
-                                    }else{
-                                        //console.log("mouse.x"+mouseDragStart.x+ " mouse.y:"+mouseDragStart.y +" win X: " +windowThumbnailitem.x+" win Y: "+windowThumbnailitem.y);
-                                    }
-                                }*/
+                             
                                 states: [
                                     State {
                                     when: windowThumbnailitem.Drag.active;
