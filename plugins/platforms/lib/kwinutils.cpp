@@ -88,6 +88,8 @@ public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
     bool compositing() const;
+    void slotTouchPadTomoveWindow(int x, int y);
+    void slotEndTouchPadToMoveWindow();
 
 #if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 10, 95, 0)
     // kwin < 5.10.95
@@ -1079,6 +1081,22 @@ void KWinUtils::WindowMove()
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         ws->slotWindowMove();
+    }
+}
+
+void KWinUtils::TouchPadToMoveWindow(int x, int y)
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        ws->slotTouchPadTomoveWindow(x,y);
+    }
+}
+
+void KWinUtils::EndTouchPadToMoveWindow()
+{
+    KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+    if (ws) {
+        ws->slotEndTouchPadToMoveWindow();
     }
 }
 

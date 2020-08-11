@@ -136,6 +136,9 @@ public Q_SLOTS:
     void SetShowDesktop(bool isShowDesktop);
 
     bool GetCurrentDesktopStatus();
+
+    void TouchToMove(int x, int y);
+    void ClearMoveStatus();
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
     void WorkspaceBackgroundChangedForMonitor(int index, const QString &strMonitorName, const QString &newUri);

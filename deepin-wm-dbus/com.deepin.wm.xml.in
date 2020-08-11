@@ -184,4 +184,10 @@
     <method name="GetCurrentDesktopStatus">
         <arg type="b" name="isDesktop" direction="out"/>
     </method>
+    <method name="TouchToMove">
+        <arg type="i" name="x" direction="in"/>
+        <arg type="i" name="y" direction="in"/>
+    </method>
+    <method name="ClearMoveStatus">
+    </method>
 </interface>

@@ -156,6 +156,8 @@ public Q_SLOTS:
     void ShowWindowsView();
     void ResumeCompositor(int type);
     void SuspendCompositor(int type);
+    void TouchPadToMoveWindow(int x, int y);
+    void EndTouchPadToMoveWindow();
 
 Q_SIGNALS:
     void initialized();

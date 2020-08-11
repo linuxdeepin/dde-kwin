@@ -22,4 +22,10 @@
     <method name="SuspendCompositor">
         <arg type="i" name="type" direction="in"/>
     </method>
+    <method name="TouchPadToMoveWindow">
+        <arg type="i" name="x" direction="in"/>
+        <arg type="i" name="y" direction="in"/>
+    </method>
+    <method name="EndTouchPadToMoveWindow">
+    </method>
 </interface>

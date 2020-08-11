@@ -681,6 +681,16 @@ void DeepinWMFaker::BeginToMoveActiveWindow()
     m_kwinUtilsInter->WindowMove();
 }
 
+void DeepinWMFaker::TouchToMove(int x, int y)
+{
+    m_kwinUtilsInter->TouchPadToMoveWindow(x,y);
+}
+
+void DeepinWMFaker::ClearMoveStatus()
+{
+    m_kwinUtilsInter->EndTouchPadToMoveWindow();
+}
+
 void DeepinWMFaker::SwitchApplication(bool backward)
 {
     if (!m_kwinUtilsInter->isValid()) {
