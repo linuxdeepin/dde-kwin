@@ -88,7 +88,7 @@ public:
     void selectPrevWindow();
     void selectNextSametypeWindow();
     void selectPrevSametypeWindow();
-    QList<int> getScreenDesktopByWinID(int winid);
+    QPair<int,int> getScreenDesktopByWinID(int winid);
     bool isAllScreensEmpty();
     Q_INVOKABLE void windowSelected( QVariant winId );
     Q_INVOKABLE QPixmap getWindowIcon( QVariant winId );

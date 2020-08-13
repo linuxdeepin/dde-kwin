@@ -2003,7 +2003,7 @@ void MultitaskingEffect::windowSelectSlot( QVariant winid )
 {
     toggleActive();
     EffectWindow *ew = effects->findWindow(winid.toULongLong());
-    if(ew)
+    if (ew)
     {
         effects->activateWindow( ew );
     }
@@ -2012,8 +2012,8 @@ void MultitaskingEffect::windowSelectSlot( QVariant winid )
 
 void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant winid)
 {
-    if(!m_multitaskingModel) 
-        return;
+    if (!m_multitaskingModel)
+       return;
     auto* ew = effects->findWindow(winid.toULongLong());
     ew->closeWindow();
 }
@@ -2029,15 +2029,15 @@ void MultitaskingEffect::touchBorderLeaved()
     QDBusReply<double> reply = wm.call("GetTouchBorderInterval");
     double dinterval = reply.value();
 
-    if(reply.value() <= 0.00) {
-        dinterval = 0.5;
+    if (reply.value() <= 0.00) {
+       dinterval = 0.5;
     }
 
     QDateTime currentDateTime = QDateTime::currentDateTime();
     qint64 interval = currentDateTime.msecsTo(m_currentDateTime);
     interval = qAbs(interval);
 
-    if(interval >= dinterval*1000) {
-        setActive(true);
+    if (interval >= dinterval*1000) {
+       setActive(true);
     }
 }

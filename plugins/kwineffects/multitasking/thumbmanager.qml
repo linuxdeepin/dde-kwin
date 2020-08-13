@@ -438,12 +438,12 @@ Rectangle {
                                         multitaskingModel.remove(index);
                                 } else {
                                     if (from === to) return
-                                    if(drop.source.originParent !== originParent) return
+                                    if (drop.source.originParent !== originParent) return
                                     log("from:"+from + " to:"+to)
                                     multitaskingModel.move(from-1, to-1);
                                 }
                             }
-                            if(drop.keys[0]==="DraggingWindowAvatar" || drop.keys[0]==="DragwindowThumbnailitemdata"){  //zhd add
+                            if (drop.keys[0] === "DraggingWindowAvatar" || drop.keys[0] === "DragwindowThumbnailitemdata") {  //zhd add
 
                                 log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
@@ -679,13 +679,13 @@ Rectangle {
 
                         var from = drop.source.desktop
 
-                        if(from !== bigWindowThrumbContainer.curdesktop && bigWindowThrumbContainer.curdesktop!=null && drop.keys[0] === "DraggingWindowAvatar"){
+                        if (from !== bigWindowThrumbContainer.curdesktop && bigWindowThrumbContainer.curdesktop!=null && drop.keys[0] === "DraggingWindowAvatar"){
 
                             console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
                             setGridviewData();
                         }
-                        if(drop.keys[0] === "DragwindowThumbnailitemdata") {
+                        if (drop.keys[0] === "DragwindowThumbnailitemdata") {
                             //console.log(currentScreen+"---------"+multitaskingModel.currentIndex()+"---------"+drag.source.draggingdata);
                             if (!multitaskingModel.isCurrentScreenWindows(currentScreen,multitaskingModel.currentIndex()+1, drag.source.draggingdata)) {
                                 multitaskingModel.moveToScreen(currentScreen,multitaskingModel.currentIndex()+1, drag.source.draggingdata);
@@ -799,7 +799,7 @@ Rectangle {
                                     multitaskingModel.setCurrentSelectIndex(modelData);
                                     closeClientBtn.visible = true;
                                     stickedBtn.visible = true;
-                                    if(multitaskingModel.getWindowKeepAbove(modelData))
+                                    if (multitaskingModel.getWindowKeepAbove(modelData))
                                     {
                                         stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
                                     }else{
@@ -833,7 +833,7 @@ Rectangle {
 
                                    
                                     var scale=1;
-                                    if(imgwidth > 0 && imgheight > 0)
+                                    if (imgwidth > 0 && imgheight > 0)
                                         scale = imgwidth/imgheight;
                                     else
                                         scale = 0.75
@@ -841,7 +841,7 @@ Rectangle {
                                     var dragingImgWidth
                                     var dragingImgHeight
 
-                                    if(scale>1){
+                                    if (scale>1) {
                                         dragingImgWidth = 120
                                         dragingImgHeight = dragingImgWidth /scale;
                                     }else{
@@ -868,7 +868,7 @@ Rectangle {
                                 //此时要先用pressed 做条件，不能使用windowThumbnailitem.Drag.active
                                 onMouseXChanged: {
 
-                                    if(pressed){
+                                    if (pressed) {
 
                                         //绝对坐标方法
                                         var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
@@ -883,7 +883,7 @@ Rectangle {
                                         
                                 }
                                 onMouseYChanged: {
-                                    if(pressed){
+                                    if (pressed) {
                                         var positionInRoot = mapToItem(root, mouse.x, mouse.y) 
                                         windowThumbnailitem.y = (positionInRoot.y - windowThumbnailitem.height / 2);
 
@@ -891,12 +891,12 @@ Rectangle {
                                 }
                                 onReleased:{
                                     var curtime = Date.now();
-                                    if((curtime - pressedTime) < 200){
+                                    if ((curtime - pressedTime) < 200) {
                                         multitaskingModel.setCurrentSelectIndex(modelData);
                                         multitaskingModel.windowSelected( modelData );
                                         //
-                                    }else{
-                                        if(!windowThumbnailitem.Drag.active){
+                                    } else {
+                                        if (!windowThumbnailitem.Drag.active) {
                                             ////恢复现场
                                             windowThumbnailitem.width = originWidth
                                             windowThumbnailitem.height = originHeight
@@ -993,10 +993,10 @@ Rectangle {
                                     Accessible.onPressAction: pressed()
 
                                     onClicked: {
-                                        if(multitaskingModel.getWindowKeepAbove(modelData))
+                                        if (multitaskingModel.getWindowKeepAbove(modelData))
                                         {
                                             stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
-                                        }else{
+                                        } else {
                                             stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
                                         }
                                         multitaskingModel.setWindowKeepAbove(modelData);
