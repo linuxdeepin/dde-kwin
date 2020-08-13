@@ -22,7 +22,6 @@
 #include <QtCore>
 #include <QtDBus>
 
-#include "multitasking.h"
 #include <QtGui>
 #include <QMetaObject>
 #include <QtWidgets>
@@ -37,6 +36,7 @@
 #include "backgroundimageprovider.h"
 #include "windowthumbnail.h"
 
+#include "multitasking.h"
 #include "multitasking_model.h"
 
 #define ACTION_NAME  "ShowMultitasking"
@@ -1529,10 +1529,9 @@ void MultitaskingEffect::setActive(bool active)
             qmlRegisterType<Plasma::WindowThumbnail>("org.kde.plasma", 2, 0, "WindowThumbnail");
             m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
             m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
-            m_multitaskingView->rootContext()->setContextProperty("$Model", m_multitaskingModel);
+            m_multitaskingView->rootContext()->setContextProperty("multitaskingModel", m_multitaskingModel);
             m_multitaskingView->rootContext()->setContextProperty("numScreens", effects->numScreens());
             m_multitaskingView->setWindowFlags(Qt::BypassWindowManagerHint);
-            auto root = m_multitaskingView->rootObject();
             connect(m_multitaskingModel, SIGNAL(appendDesktop()), m_thumbManager, SIGNAL(requestAppendDesktop()));
             connect(m_multitaskingModel, SIGNAL(removeDesktop(int)), m_thumbManager, SIGNAL(requestDeleteDesktop(int)));
             connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), m_thumbManager, SIGNAL(requestChangeCurrentDesktop(int)));

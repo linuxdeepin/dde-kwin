@@ -37,8 +37,8 @@ DesktopThumbnailItem::DesktopThumbnailItem()
 MultitaskingModel::MultitaskingModel(QObject *parent)
     : QAbstractListModel(parent)
     , m_currentIndex(0)
+    , m_nCurrentSelectIndex(-1)
 {
-    m_nCurrentSelectIndex = -1;
 }
 
 MultitaskingModel::~MultitaskingModel()
@@ -326,16 +326,18 @@ int MultitaskingModel::getNextWindowID()
     {
         if(scrn == effects->numScreens() - 1)  // at the last screen
         {
-            if(m_windows[0][desk].size() == 0) // if first screen has no winthumb
+            if(m_windows[0][desk].size() == 0) { // if first screen has no winthumb
                 return m_windows[scrn][desk].first().toInt();
-            else
+            } else {
                 return m_windows[0][desk].first().toInt();
+            }
         }
         else
-            if(m_windows[scrn+1][desk].size() == 0) // if next screen has no winthumb
+            if(m_windows[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return m_windows[scrn][desk].first().toInt();
-            else
+            } else {
                 return m_windows[scrn+1][desk].first().toInt();
+            }
     }
     else
         return m_windows[scrn][desk][winindex+1].toInt();
@@ -354,16 +356,18 @@ int MultitaskingModel::getPrevWindowID()
     {
         if(scrn == 0)  // at the first screen 
         {
-            if(m_windows[numScreens()-1][desk].size() == 0) // if end screen has no winthumb
+            if(m_windows[numScreens()-1][desk].size() == 0) { // if end screen has no winthumb
                 return m_windows[scrn][desk].last().toInt();
-            else
+            } else {
                 return m_windows[numScreens()-1][desk].last().toInt();
+            }
         }
         else
-            if(m_windows[scrn-1][desk].size() == 0) // if previous screen has no winthumb
+            if(m_windows[scrn-1][desk].size() == 0) { // if previous screen has no winthumb
                 return m_windows[scrn][desk].last().toInt();
-            else
+            } else {
                 return m_windows[scrn-1][desk].last().toInt();
+            }
     }
     else
         return m_windows[scrn][desk][winindex-1].toInt();
@@ -420,14 +424,18 @@ bool MultitaskingModel::isCurrentScreensEmpty()
 int MultitaskingModel::getWindowHeight(QVariant winId)
 {
     EffectWindow *ew = effects->findWindow(winId.toULongLong());
-    //qDebug() << "----------------------height" <<ew->height() <<endl;;
+    if (!ew) {
+       return -1; //ERROR code
+    }
     return ew->height();
 }
 
 int MultitaskingModel::getWindowWidth(QVariant winId)
 {
     EffectWindow *ew = effects->findWindow(winId.toULongLong());
-    //qDebug() << "----------------------width" <<ew->width() <<endl;
+    if (!ew) {
+       return -1; //ERROR code
+    }
     return ew->width();
 }
 
@@ -484,32 +492,35 @@ int MultitaskingModel::getNextSametypeWindowID()
     QMap<int, QMap<int, QVariantList> > windowsClass;
     int scrn = sd.at(0);
     int desk = sd.at(1);
-    windowsClass.clear();
     int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
     EffectWindow *ew = effects->findWindow(m_windows[scrn][desk][winindex].toULongLong());
-    for(int i=0; i< effects->numScreens();i++) {
-        for (int j=0;j< m_windows[i][desk].size();j++) {
-            if(ew->windowClass() ==  effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
+
+    for (int i=0; i< effects->numScreens(); i++) {
+        for (int j=0; j < m_windows[i][desk].size(); j++) {
+            if (ew->windowClass() == effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
             {
                 windowsClass[i][desk].push_back(m_windows[i][desk][j]);
             }
         }
     }
+
     int winClassIndex = windowsClass[scrn][desk].indexOf(m_nCurrentSelectIndex);
-    if(winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
+    if (winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
     {
-        if(scrn == effects->numScreens() - 1)  // at the last screen
+        if (scrn == effects->numScreens() - 1)  // at the last screen
         {
-            if(windowsClass[0][desk].size() == 0) // if first screen has no winthumb
+            if (windowsClass[0][desk].size() == 0) {// if first screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
-            else
+            } else {
                 return windowsClass[0][desk].first().toInt();
+            }
         }
         else
-            if(windowsClass[scrn+1][desk].size() == 0) // if next screen has no winthumb
+            if (windowsClass[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
-            else
+            } else {
                 return windowsClass[scrn+1][desk].first().toInt();
+            }
     }
     else
         return windowsClass[scrn][desk][winClassIndex+1].toInt();
@@ -521,32 +532,35 @@ int MultitaskingModel::getPrevSametypeWindowID()
     QMap<int, QMap<int, QVariantList> > windowsClass;
     int scrn = sd.at(0);
     int desk = sd.at(1);
-
     int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
     EffectWindow *ew = effects->findWindow(m_windows[scrn][desk][winindex].toULongLong());
-    for(int i=0; i< effects->numScreens();i++) {
-        for (int j=0;j< m_windows[i][desk].size();j++) {
-            if(ew->windowClass() ==  effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
-            {
-                windowsClass[i][desk].append(m_windows[i][desk][j]);
-            }
+
+    for (int i=0; i< effects->numScreens(); i++) {
+        for (int j=0; j < m_windows[i][desk].size(); j++) {
+           if (ew->windowClass() == effects->findWindow(m_windows[i][desk][j].toULongLong())->windowClass())
+           {
+              windowsClass[i][desk].append(m_windows[i][desk][j]);
+           }
         }
     }
+
     int winClassIndex = windowsClass[scrn][desk].indexOf(m_nCurrentSelectIndex);
-    if(winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
+    if (winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
     {
-        if(scrn == effects->numScreens() - 1)  // at the last screen
+        if (scrn == effects->numScreens() - 1)  // at the last screen
         {
-            if(windowsClass[0][desk].size() == 0) // if first screen has no winthumb
+            if (windowsClass[0][desk].size() == 0) { // if first screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
-            else
+            } else {
                 return windowsClass[0][desk].first().toInt();
+            }
         }
         else
-            if(windowsClass[scrn+1][desk].size() == 0) // if next screen has no winthumb
+            if (windowsClass[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
-            else
+            } else {
                 return windowsClass[scrn+1][desk].first().toInt();
+            }
     }
     else
         return windowsClass[scrn][desk][winClassIndex-1].toInt();

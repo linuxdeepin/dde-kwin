@@ -14,7 +14,6 @@ Rectangle {
     width: manager.containerSize.width;
     height: manager.containerSize.height;
     color: "transparent"
-
     objectName: "root"
 
     function log(msg) {
@@ -35,8 +34,8 @@ Rectangle {
             color: "red";
             function resetWindowThumbnailModel()
             {
-                windowThumbnailViewGrid.columns = $Model.getCalculateColumnsCount(screen,desktop);
-                windowThumbnailRepeater.model = $Model.windows(screen, desktop);
+                windowThumbnailViewGrid.columns = multitaskingModel.getCalculateColumnsCount(screen,desktop);
+                windowThumbnailRepeater.model = multitaskingModel.windows(screen, desktop);
                 windowThumbnailRepeater.update();
             } 
             GridLayout {
@@ -46,10 +45,10 @@ Rectangle {
                 width: desktopThumbnailWidth*5/7 - closeBtnWidth/4 - 14;
                 height: desktopThumbnailHeight*8/10 - closeBtnHeight/4 - 14;
 
-                columns : $Model.getCalculateColumnsCount(screen,desktop);
+                columns : multitaskingModel.getCalculateColumnsCount(screen,desktop);
                 Repeater {
                     id: windowThumbnailRepeater
-                    model: $Model.windows(screen, desktop);
+                    model: multitaskingModel.windows(screen, desktop);
                     PlasmaCore.WindowThumbnail {
                         Layout.fillWidth: true;
                         Layout.fillHeight: true;
@@ -88,7 +87,7 @@ Rectangle {
                             onReleased: {
                                 releaseTime = Date.now();
                                 if ((releaseTime - pressedTime) < 200) {
-                                    $Model.setCurrentIndex(desktop - 1);
+                                    multitaskingModel.setCurrentIndex(desktop - 1);
                                 }
                             }
                             drag.onActiveChanged: {
@@ -130,7 +129,7 @@ Rectangle {
                     target: root
                     onQmlForceResetDesktopModel: {
                         resetWindowThumbnailModel()
-                        $Model.forceResetModel()
+                        multitaskingModel.forceResetModel()
                         //console.log(" model is changed !!!!!!!!!!")
                     }
                 }
@@ -139,7 +138,7 @@ Rectangle {
     }
 
     Component {
-        id: desktopThumbmailView;
+        id: desktopThumbnailView;
         Rectangle {
             Rectangle {
                 id: mostBigbackgroundRect
@@ -159,14 +158,14 @@ Rectangle {
                     target: root
                     onQmlUpdateBackground: {
                         backgroundImage.source = "";
-                        backgroundImage.source = "image://BackgroundImageProvider/" + ($Model.currentIndex()+1 + "/" + screenname);
+                        backgroundImage.source = "image://BackgroundImageProvider/" + (multitaskingModel.currentIndex()+1 + "/" + screenname);
                     }
                 }
             }
 
-            property int desktopThumbmailItemWidth: screenWidth/7;
-            property int desktopThumbmailItemHeight: screenHeight/6;
-            id:wholeDesktopThumbmailView
+            property int desktopThumbnailItemWidth: screenWidth/7;
+            property int desktopThumbnailItemHeight: screenHeight/6;
+            id:wholeDesktopThumbnailView
             width: screenWidth;
             height: parent.height;
             color: "transparent"
@@ -183,23 +182,22 @@ Rectangle {
             }
             ListView {
                 id: view
-                y:desktopThumbmailItemHeight/8;
+                y:desktopThumbnailItemHeight/8;
                 width: 0;
                 height: parent.height;
                 orientation: ListView.Horizontal;
-                model: $Model
+                model: multitaskingModel
                 interactive : false;
                 clip: true;
-//                spacing: desktopThumbmailItemWidth/10
 
                 delegate: Rectangle {
 
                     id: thumbDelegate;
-                    width: desktopThumbmailItemWidth;
-                    height: desktopThumbmailItemHeight;
+                    width: desktopThumbnailItemWidth;
+                    height: desktopThumbnailItemHeight;
                     color: "transparent"
 
-                    property bool isDesktopHightlighted: index === $Model.currentDeskIndex
+                    property bool isDesktopHightlighted: index === multitaskingModel.currentDeskIndex
 
                     Rectangle {
                         id: desktopThumbnail;
@@ -245,8 +243,6 @@ Rectangle {
 
                         Rectangle {
                             id: closeBtn;
-//                            x: parent.width - (parent.width - parent.width*0.85)/2 - closeBtnIcon.width/2
-//                            y: (parent.height - parent.height*0.85)/2 - closeBtnIcon.height/2
                             x: thumbDelegate.width - closeBtn.width
                             y: 0
                             z: 100
@@ -260,7 +256,6 @@ Rectangle {
                             Image {
                                 id: closeBtnIcon;
                                 source: "qrc:///icons/data/close_normal.svg"
-//                                anchors.centerIn: parent
                             }
 
 
@@ -273,7 +268,7 @@ Rectangle {
                             MouseArea {
                                 anchors.fill: parent;
                                 onClicked: {
-                                    $Model.remove(index);
+                                    multitaskingModel.remove(index);
                                 }
                                 Accessible.role: Accessible.Button
                                 Accessible.name: "Ma_deskThumb_closeBtn_"+(index+1)+"_"+currentScreen
@@ -295,7 +290,7 @@ Rectangle {
                             Accessible.onPressAction: pressed()
 
                             onClicked: {
-                                $Model.setCurrentIndex(index);
+                                multitaskingModel.setCurrentIndex(index);
                             }
 
                             drag.target: desktopThumbnail;
@@ -316,7 +311,7 @@ Rectangle {
                             }
 
                             onEntered: {
-                                if ($Model.rowCount() != 1) {
+                                if (multitaskingModel.rowCount() !== 1) {
                                     closeBtn.visible = true;
                                 }
                             }
@@ -393,7 +388,7 @@ Rectangle {
 //                            MouseArea {
 //                                anchors.fill: closeBtn;
 //                                onClicked: {
-//                                    $Model.remove(index);
+//                                    multitaskingModel.remove(index);
 //                                }
 //                            }
 
@@ -437,22 +432,20 @@ Rectangle {
                             if (drop.keys[0] === 'workspaceThumb') {
                                 var from = drop.source.desktop
                                 var to = workspaceThumbDrop.designated
-                                if (workspaceThumbDrop.designated == drop.source.desktop && drop.source.pendingDragRemove) {
+                                if (workspaceThumbDrop.designated === drop.source.desktop && drop.source.pendingDragRemove) {
                                         //FIXME: could be a delete operation but need more calculation
                                         log("----------- workspaceThumbDrop: close desktop " + from)
-                                        $Model.remove(index);
+                                        multitaskingModel.remove(index);
                                 } else {
-                                    if (from == to) return
-                                    if(drop.source.originParent != originParent) return
+                                    if (from === to) return
+                                    if(drop.source.originParent !== originParent) return
                                     log("from:"+from + " to:"+to)
-                                    $Model.move(from-1, to-1);
-//                                    console.log("===============",smalldesktopThumbnail.monitor)
-                                    //log("----------- workspaceThumbDrop: reorder desktop ")
+                                    multitaskingModel.move(from-1, to-1);
                                 }
                             }
                             if(drop.keys[0]==="DraggingWindowAvatar" || drop.keys[0]==="DragwindowThumbnailitemdata"){  //zhd add
 
-                                console.log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
+                                log("DraggingWindowAvatar :Droppsource   " +drag.source.draggingdata +"desktop index:" + desktopThumbnail.desktop + "current screen: "+ currentScreen);
                                 qmlRequestMove2Desktop(currentScreen,desktopThumbnail.desktop,drag.source.draggingdata);
                                 setGridviewData();
                                 drag.source.dropreceived=true
@@ -526,19 +519,19 @@ Rectangle {
                 }
                 //center
                 onCountChanged: {
-                    view.width = desktopThumbmailItemWidth * count+view.spacing*(count-1);
+                    view.width = desktopThumbnailItemWidth * count+view.spacing * (count-1);
                     view.x = (parent.width - view.width) / 2;
                     plus.visible = count < 4;
                     setGridviewData();
-                    bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add
+                    bigWindowThrumbContainer.curdesktop=multitaskingModel.currentIndex()+1 //zhd add
                 }
 
 
                 Connections {
-                    target: $Model;
+                    target: multitaskingModel;
                     onCurrentIndexChanged: {
                         setGridviewData();
-                        bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1 //zhd add 
+                        bigWindowThrumbContainer.curdesktop=multitaskingModel.currentIndex()+1 //zhd add
                     }
                 }
             }
@@ -548,11 +541,11 @@ Rectangle {
                 enabled: visible
                 color: "#33ffffff"
 
-                x:screenWidth-desktopThumbmailItemWidth;
-                y:desktopThumbmailItemHeight/8+desktopThumbmailItemHeight/2-plus.height/2;
+                x:screenWidth - desktopThumbnailItemWidth;
+                y:desktopThumbnailItemHeight/8 + desktopThumbnailItemHeight/2 - plus.height/2;
 
-                width: desktopThumbmailItemHeight/2;
-                height: desktopThumbmailItemHeight/2;
+                width: desktopThumbnailItemHeight/2;
+                height: desktopThumbnailItemHeight/2;
                 radius: width > 120 ? 30: 15
 
                 Image {
@@ -598,11 +591,6 @@ Rectangle {
                     }
                 }
 
-//                Behavior on x {
-//                    enabled: animateLayouting
-//                    PropertyAnimation { duration: 300; easing.type: Easing.Linear }
-//                }
-
                 MouseArea {
                     anchors.fill: parent
                     //hoverEnabled: true
@@ -613,8 +601,8 @@ Rectangle {
                     Accessible.onPressAction: pressed()
 
                     onClicked: {
-                        $Model.append();
-                        $Model.setCurrentIndex($Model.rowCount() - 1);
+                        multitaskingModel.append();
+                        multitaskingModel.setCurrentIndex(multitaskingModel.rowCount() - 1);
                     }
                     onEntered: {
                         //backgroundManager.shuffleDefaultBackgroundURI()
@@ -627,54 +615,55 @@ Rectangle {
                 }
             } //~ plus button
             DropArea {
-                anchors.right:wholeDesktopThumbmailView.right;
+                anchors.right:wholeDesktopThumbnailView.right;
                 width: screenWidth-view.x-view.width;
                 height: view.height;
                 onEntered: console.log("entered")
                 keys:['PlusButton']
                 onDropped: {
                     var winId = drag.source.winId;
-                    $Model.append();
-                    var currentDesktop = $Model.rowCount();
+                    multitaskingModel.append();
+                    var currentDesktop = multitaskingModel.rowCount();
                     qmlRequestMove2Desktop(currentScreen, currentDesktop, winId);
-                    $Model.setCurrentIndex(currentDesktop - 1);
+                    multitaskingModel.setCurrentIndex(currentDesktop - 1);
                 }
             }
             //window thumbnail
 
             function setGridviewData() {
-                if ($Model.getDesktopClientCount(currentScreen,$Model.currentIndex()+1) !== 0) {
-                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)
-                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
-                    //console.log('++++++++++++++++++'+grid.rows+'------------------'+grid.columns)
-                    for(var i=0;i<windowThumbnail.count;i++) {
-                            var scale = $Model.getWindowHeight(windowThumbnail.itemAt(i).winId)/$Model.getWindowWidth(windowThumbnail.itemAt(i).winId);
-                            var calculationwidth= (screenWidth*5/7/grid.columns)*4/5;
-                            var calculationheight = calculationwidth*scale;
-                            var narrow = 0.8;
-                            //console.log('1++++++++++++++++++'+(screenHeight - view.height-35)/grid.rows+'------------------'+calculationheight+grid.rows);
-                            while (calculationheight > grid.height/grid.rows) {
-                                calculationwidth = calculationwidth * narrow;
-                                calculationheight = calculationheight* narrow;
-                                //console.log('++++++++++++++++++'+grid.height/grid.rows+'------------------'+calculationheight);
-                            }
-                            windowThumbnail.itemAt(i).Layout.preferredWidth = calculationwidth;
-                            windowThumbnail.itemAt(i).Layout.preferredHeight = calculationheight;
+               if (multitaskingModel.getDesktopClientCount(currentScreen,multitaskingModel.currentIndex()+1) !== 0) {
+
+                    grid.rows = multitaskingModel.getCalculateRowCount(currentScreen,multitaskingModel.currentIndex()+1)
+                    grid.columns = multitaskingModel.getCalculateColumnsCount(currentScreen,multitaskingModel.currentIndex()+1);
+                    windowThumbnail.model = multitaskingModel.windows(currentScreen, multitaskingModel.currentIndex()+1);
+
+                    for (var i=0; i < windowThumbnail.count; i++) {
+
+                        var scale = multitaskingModel.getWindowHeight(windowThumbnail.itemAt(i).winId)/multitaskingModel.getWindowWidth(windowThumbnail.itemAt(i).winId);
+                        var calculationwidth= (screenWidth*5/7/grid.columns)*4/5;
+                        var calculationheight = calculationwidth * scale;
+                        var narrow = 0.8;
+                        while (calculationheight > grid.height/grid.rows) {
+                           calculationwidth = calculationwidth * narrow;
+                           calculationheight = calculationheight * narrow;
+                        }
+
+                        windowThumbnail.itemAt(i).Layout.preferredWidth = calculationwidth;
+                        windowThumbnail.itemAt(i).Layout.preferredHeight = calculationheight;
                     }
-                }else{
-                    grid.rows = $Model.getCalculateRowCount(currentScreen,$Model.currentIndex()+1)
-                    grid.columns = $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
-                    windowThumbnail.model = $Model.windows(currentScreen, $Model.currentIndex()+1);
+                } else {
+                    grid.rows = multitaskingModel.getCalculateRowCount(currentScreen,multitaskingModel.currentIndex()+1)
+                    grid.columns = multitaskingModel.getCalculateColumnsCount(currentScreen,multitaskingModel.currentIndex()+1);
+                    windowThumbnail.model = multitaskingModel.windows(currentScreen, multitaskingModel.currentIndex()+1);
                 }
                 grid.update();
-             }
+            }
             Rectangle{
                 id: bigWindowThrumbContainer
                 x: 0
                 y: view.y + view.height;
                 width: screenWidth  //  other area except grid  can receove
-                height: screenHeight - view.height-35;
+                height: screenHeight - view.height - 35;
                 color:"transparent"
 
                 property int curdesktop:1
@@ -690,17 +679,17 @@ Rectangle {
 
                         var from = drop.source.desktop
 
-                        if(from!=bigWindowThrumbContainer.curdesktop && bigWindowThrumbContainer.curdesktop!=null && drop.keys[0]==="DraggingWindowAvatar"){
+                        if(from !== bigWindowThrumbContainer.curdesktop && bigWindowThrumbContainer.curdesktop!=null && drop.keys[0] === "DraggingWindowAvatar"){
 
                             console.log("DraggingWindow on big view  :Dropsource:" +drag.source.draggingdata +"  desktop index:" +  bigWindowThrumbContainer.curdesktop+ "  current screen: "+ currentScreen);
                             qmlRequestMove2Desktop(currentScreen,bigWindowThrumbContainer.curdesktop,drag.source.draggingdata);
                             setGridviewData();
                         }
                         if(drop.keys[0] === "DragwindowThumbnailitemdata") {
-                            //console.log(currentScreen+"---------"+$Model.currentIndex()+"---------"+drag.source.draggingdata);
-                            if (!$Model.isCurrentScreenWindows(currentScreen,$Model.currentIndex()+1, drag.source.draggingdata)) {
-                                $Model.moveToScreen(currentScreen,$Model.currentIndex()+1, drag.source.draggingdata);
-                                qmlRequestMove2Desktop(currentScreen,$Model.currentIndex()+1,drag.source.draggingdata);
+                            //console.log(currentScreen+"---------"+multitaskingModel.currentIndex()+"---------"+drag.source.draggingdata);
+                            if (!multitaskingModel.isCurrentScreenWindows(currentScreen,multitaskingModel.currentIndex()+1, drag.source.draggingdata)) {
+                                multitaskingModel.moveToScreen(currentScreen,multitaskingModel.currentIndex()+1, drag.source.draggingdata);
+                                qmlRequestMove2Desktop(currentScreen,multitaskingModel.currentIndex()+1,drag.source.draggingdata);
                                 setGridviewData();
                             }
                         }
@@ -730,15 +719,15 @@ Rectangle {
                     width: screenWidth*5/7;
                     height: screenHeight - view.height-35;
                     anchors.centerIn: parent;
-                    columns : $Model.getCalculateColumnsCount(currentScreen,$Model.currentIndex()+1);
+                    columns : multitaskingModel.getCalculateColumnsCount(currentScreen,multitaskingModel.currentIndex()+1);
                     Repeater {
                         id: windowThumbnail;
-                        //model: $Model.windows(currentScreen)
+                        //model: multitaskingModel.windows(currentScreen)
 
                         Rectangle {
                             id:windowThumbnailitem
                             color: "transparent"
-                            property bool isHightlighted: winId == $Model.currentWindowThumbnail;
+                            property bool isHightlighted: winId == multitaskingModel.currentWindowThumbnail;
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth:-1;
                             Layout.preferredHeight:-1;
@@ -788,7 +777,7 @@ Rectangle {
                                 property var pressedTime;
 
                                 Accessible.role: Accessible.Button
-                                Accessible.name: "Ma_winThumb_"+($Model.currentIndex()+1) + "_" + currentScreen + "_" + winId
+                                Accessible.name: "Ma_winThumb_"+(multitaskingModel.currentIndex()+1) + "_" + currentScreen + "_" + winId
                                 Accessible.description: "windowThumbnail_desktop_screen_winId"
                                 Accessible.onPressAction: pressed()
 
@@ -807,10 +796,10 @@ Rectangle {
 
 
                                 onEntered: {
-                                    $Model.setCurrentSelectIndex(modelData);
+                                    multitaskingModel.setCurrentSelectIndex(modelData);
                                     closeClientBtn.visible = true;
                                     stickedBtn.visible = true;
-                                    if($Model.getWindowKeepAbove(modelData))
+                                    if(multitaskingModel.getWindowKeepAbove(modelData))
                                     {
                                         stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
                                     }else{
@@ -821,8 +810,8 @@ Rectangle {
                               
                                 //  excute on released
                                 // onClicked: {
-                                //     $Model.setCurrentSelectIndex(modelData);
-                                //     $Model.windowSelected( modelData );
+                                //     multitaskingModel.setCurrentSelectIndex(modelData);
+                                //     multitaskingModel.windowSelected( modelData );
 
                                 // }
                                 onExited: {
@@ -839,8 +828,8 @@ Rectangle {
 
 
 
-                                    var imgheight = $Model.getWindowHeight(windowThumbnailitem.winId);
-                                    var imgwidth  =   $Model.getWindowWidth(windowThumbnailitem.winId);
+                                    var imgheight = multitaskingModel.getWindowHeight(windowThumbnailitem.winId);
+                                    var imgwidth  =   multitaskingModel.getWindowWidth(windowThumbnailitem.winId);
 
                                    
                                     var scale=1;
@@ -903,8 +892,8 @@ Rectangle {
                                 onReleased:{
                                     var curtime = Date.now();
                                     if((curtime - pressedTime) < 200){
-                                        $Model.setCurrentSelectIndex(modelData);
-                                        $Model.windowSelected( modelData );
+                                        multitaskingModel.setCurrentSelectIndex(modelData);
+                                        multitaskingModel.windowSelected( modelData );
                                         //
                                     }else{
                                         if(!windowThumbnailitem.Drag.active){
@@ -971,11 +960,11 @@ Rectangle {
                                 MouseArea {
                                     anchors.fill: closeClientBtn;
                                     Accessible.role: Accessible.Button
-                                    Accessible.name: "Ma_winThumb_closeBtn_"+($Model.currentIndex()+1)+"_"+currentScreen+"_"+ windowThumbnailitem.winId 
+                                    Accessible.name: "Ma_winThumb_closeBtn_"+(multitaskingModel.currentIndex()+1)+"_"+currentScreen+"_"+ windowThumbnailitem.winId
                                     Accessible.description: "windowThumbnail_closeButton_desktop_screen_winId"
                                     Accessible.onPressAction: pressed()
                                     onClicked: {
-                                        qmlRemoveWindowThumbnail(currentScreen,$Model.currentIndex()+1, windowThumbnailitem.winId)
+                                        qmlRemoveWindowThumbnail(currentScreen,multitaskingModel.currentIndex()+1, windowThumbnailitem.winId)
                                     }
                                 }
                             }
@@ -999,18 +988,18 @@ Rectangle {
                                     anchors.fill: stickedBtn;
 
                                     Accessible.role: Accessible.Button
-                                    Accessible.name: "Ma_winThumb_stickedBtn_"+($Model.currentIndex()+1)+"_"+currentScreen+"_" + windowThumbnailitem.winId 
+                                    Accessible.name: "Ma_winThumb_stickedBtn_"+(multitaskingModel.currentIndex()+1)+"_"+currentScreen+"_" + windowThumbnailitem.winId
                                     Accessible.description: "windowThumbnai_stickedButton_desktop_screen_winId"
                                     Accessible.onPressAction: pressed()
 
                                     onClicked: {
-                                        if($Model.getWindowKeepAbove(modelData))
+                                        if(multitaskingModel.getWindowKeepAbove(modelData))
                                         {
                                             stickedBtnIcon.source = "qrc:///icons/data/unsticked_normal.svg"
                                         }else{
                                             stickedBtnIcon.source = "qrc:///icons/data/sticked_normal.svg"
                                         }
-                                        $Model.setWindowKeepAbove(modelData);
+                                        multitaskingModel.setWindowKeepAbove(modelData);
                                     }
                                 }
 
@@ -1050,7 +1039,7 @@ Rectangle {
                     target: root
                     onResetModel: {
                         setGridviewData();
-                        bigWindowThrumbContainer.curdesktop=$Model.currentIndex()+1
+                        bigWindowThrumbContainer.curdesktop=multitaskingModel.currentIndex()+1
                     }
                 }
                 }
@@ -1059,12 +1048,12 @@ Rectangle {
     }
     Component.onCompleted: {
         var numScreens = 1;
-        if ($Model.isExtensionMode) {
-           numScreens = $Model.numScreens();
+        if (multitaskingModel.isExtensionMode) {
+           numScreens = multitaskingModel.numScreens();
         }
 
         for (var i = 0; i < numScreens; ++i) {
-            var geom = $Model.screenGeometry(i);
+            var geom = multitaskingModel.screenGeometry(i);
             var src =
                 'import QtQuick 2.0;' +
                 'Loader {' +
@@ -1074,9 +1063,9 @@ Rectangle {
                 '   property int screenHeight: '+ geom.height + ';'+
                 '   height: '+ geom.height/5+';'+
                 '   property int currentScreen: ' + i + ';' +
-                '   sourceComponent: desktopThumbmailView;' +
-                '   property var screenname: $Model.screenName(x,y);' +
-                '   property int currentIndex: $Model.currentIndex();' +
+                '   sourceComponent: desktopThumbnailView;' +
+                '   property var screenname: multitaskingModel.screenName(x,y);' +
+                '   property int currentIndex: multitaskingModel.currentIndex();' +
                 '}';
             Qt.createQmlObject(src, root, "dynamicSnippet");
         }
