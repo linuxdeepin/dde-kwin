@@ -437,8 +437,12 @@ Rectangle {
                                         log("----------- workspaceThumbDrop: close desktop " + from)
                                         multitaskingModel.remove(index);
                                 } else {
-                                    if (from === to) return
-                                    if (drop.source.originParent !== originParent) return
+                                    if (from === to) {
+                                        return;
+                                    }
+                                    if (drop.source.originParent !== originParent) {
+                                        return;
+                                    }
                                     log("from:"+from + " to:"+to)
                                     multitaskingModel.move(from-1, to-1);
                                 }

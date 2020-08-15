@@ -11,7 +11,7 @@ class ImageProvider : public QQuickImageProvider
 public:
     ImageProvider(QQmlImageProviderBase::ImageType type, QQmlImageProviderBase::Flags flags = Flags());
 
-    virtual QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
+    virtual QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
 
 private:
     MultitaskingModel *m_pMultitaskingModel;

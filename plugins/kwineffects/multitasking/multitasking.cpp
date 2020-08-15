@@ -39,18 +39,18 @@
 #include "multitasking.h"
 #include "multitasking_model.h"
 
-#define ACTION_NAME  "ShowMultitasking"
+const QString actionName = "ShowMultitasking";
 
-#define DBUS_DEEPIN_WM_SERVICE "com.deepin.wm"
-#define DBUS_DEEPIN_WM_OBJ "/com/deepin/wm"
-#define DBUS_DEEPIN_WM_INTF "com.deepin.wm"
+const QString dbusDeepinWmService = "com.deepin.wm";
+const QString dbusDeepinWmObj = "/com/deepin/wm";
+const QString dbusDeepinWmInif =  "com.deepin.wm";
 
 Q_LOGGING_CATEGORY(BLUR_CAT, "kwin.blur", QtCriticalMsg);
 
 static const QByteArray s_GtkFrameAtomName = QByteArrayLiteral("_GTK_FRAME_EXTENTS");
 
 DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
-    :QWidget(0),
+    :QWidget(nullptr),
     m_effectWindow(nullptr),
     m_handler(h)
 {
@@ -259,7 +259,7 @@ MultitaskingEffect::MultitaskingEffect()
 	m_multitaskingModel(new MultitaskingModel)
 {
     QAction* a = m_showAction;
-    a->setObjectName(QStringLiteral(ACTION_NAME));
+    a->setObjectName(actionName);
     a->setText(i18n("Show Multitasking View"));
 
     QKeySequence ks(Qt::META + Qt::Key_S);
@@ -1501,7 +1501,7 @@ void MultitaskingEffect::setActive(bool active)
 
     m_multitaskingViewVisible = active;
 
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusInterface wm(dbusDeepinWmService, dbusDeepinWmObj, dbusDeepinWmInif);
     wm.call("SetMultiTaskingStatus", active);
 
     if (m_multitaskingViewVisible) {
@@ -1587,7 +1587,7 @@ void MultitaskingEffect::OnWindowLocateChanged(int screen,int desktop,int winid)
 
 void MultitaskingEffect::globalShortcutChanged(QAction *action, const QKeySequence &seq)
 {
-    if (action->objectName() != QStringLiteral(ACTION_NAME)) {
+    if (action->objectName() != actionName) {
         return;
     }
     shortcut.clear();
@@ -1973,17 +1973,21 @@ void MultitaskingEffect::calculateWindowTransformationsClosest(EffectWindowList 
 bool MultitaskingEffect::isOverlappingAny(EffectWindow *w, const QHash<EffectWindow*, QRect> &targets, const QRegion &border)
 {
     QHash<EffectWindow*, QRect>::const_iterator winTarget = targets.find(w);
-    if (winTarget == targets.constEnd())
+    if (winTarget == targets.constEnd()) {
         return false;
-    if (border.intersects(*winTarget))
+    }
+    if (border.intersects(*winTarget)) {
         return true;
+    }
     // Is there a better way to do this?
     QHash<EffectWindow*, QRect>::const_iterator target;
     for (target = targets.constBegin(); target != targets.constEnd(); ++target) {
-        if (target == winTarget)
+        if (target == winTarget) {
             continue;
-        if (winTarget->adjusted(-5, -5, 5, 5).intersects(target->adjusted(-5, -5, 5, 5)))
+        }
+        if (winTarget->adjusted(-5, -5, 5, 5).intersects(target->adjusted(-5, -5, 5, 5))) {
             return true;
+        }
     }
     return false;
 }
@@ -2012,8 +2016,9 @@ void MultitaskingEffect::windowSelectSlot( QVariant winid )
 
 void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant winid)
 {
-    if (!m_multitaskingModel)
+    if (!m_multitaskingModel) {
        return;
+    }
     auto* ew = effects->findWindow(winid.toULongLong());
     ew->closeWindow();
 }
@@ -2025,7 +2030,7 @@ void MultitaskingEffect::touchBorderOutDistance()
 
 void MultitaskingEffect::touchBorderLeaved()
 {
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusInterface wm(dbusDeepinWmService, dbusDeepinWmObj, dbusDeepinWmInif);
     QDBusReply<double> reply = wm.call("GetTouchBorderInterval");
     double dinterval = reply.value();
 

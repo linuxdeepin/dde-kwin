@@ -25,9 +25,9 @@
 #include <QDBusReply>
 #include <QScreen>
 
-#define DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE "com.deepin.daemon.Display"
-#define DBUS_DEEPIN_DAEMON_DISPLAY_OBJ "/com/deepin/daemon/Display"
-#define DBUS_DEEPIN_DAEMON_DISPLAY_INTF "com.deepin.daemon.Display"
+const QString dbusDeepinDaemonDisplayService = "com.deepin.daemon.Display";
+const QString dbusDeepinDaemonDisplayObj = "/com/deepin/daemon/Display";
+const QString dbusDeepinDaemonDisplayIntf = "com.deepin.daemon.Display";
 
 DesktopThumbnailItem::DesktopThumbnailItem()
 {
@@ -58,7 +58,6 @@ QVariant MultitaskingModel::data(const QModelIndex &index, int role) const
        return QVariant();
     }
 
-    const DesktopThumbnailItem &data = m_desktopThumbnailItemList[row];
     switch (role) {
     case ThumbnailRole:
 //        return data.thumbnail();
@@ -278,19 +277,25 @@ QPair<int,int> MultitaskingModel::getScreenDesktopByWinID(int winid)
 
 void MultitaskingModel::selectNextWindow()
 {
-    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) {
+        return;
+    }
     int winid = getNextWindowID();
     setCurrentSelectIndex(winid);
 }
 void MultitaskingModel::selectPrevWindow()
 {    
-    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) {
+        return;
+    }
     int winid = getPrevWindowID();
     setCurrentSelectIndex(winid);
 }
 void MultitaskingModel::selectNextWindowVert(int dir)
 {
-    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) {
+        return;
+    }
 
     QPair<int,int> sd = getScreenDesktopByWinID(m_nCurrentSelectIndex);
     int scrn = sd.first;
@@ -304,10 +309,12 @@ void MultitaskingModel::selectNextWindowVert(int dir)
     int toIndex = fromIndex + dir * columns;
     QVariantList winlist = m_windows[scrn][desk];
 
-    if (dir == 1 && toIndex < winlist.size() )
+    if (dir == 1 && toIndex < winlist.size() ) {
         setCurrentSelectIndex(winlist[toIndex].toInt());
-    if (dir == -1 && toIndex >= 0)
+    }
+    if (dir == -1 && toIndex >= 0) {
         setCurrentSelectIndex(winlist[toIndex].toInt());
+    }
 }
 
 int MultitaskingModel::getNextWindowID()
@@ -326,16 +333,16 @@ int MultitaskingModel::getNextWindowID()
             } else {
                 return m_windows[0][desk].first().toInt();
             }
-        }
-        else
+        } else {
             if (m_windows[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return m_windows[scrn][desk].first().toInt();
             } else {
                 return m_windows[scrn+1][desk].first().toInt();
             }
-    }
-    else
+        }
+    } else {
         return m_windows[scrn][desk][winindex+1].toInt();
+    }
 }
 
 int MultitaskingModel::getPrevWindowID()
@@ -355,16 +362,16 @@ int MultitaskingModel::getPrevWindowID()
             } else {
                 return m_windows[numScreens()-1][desk].last().toInt();
             }
-        }
-        else
+        } else {
             if (m_windows[scrn-1][desk].size() == 0) { // if previous screen has no winthumb
                 return m_windows[scrn][desk].last().toInt();
             } else {
                 return m_windows[scrn-1][desk].last().toInt();
             }
-    }
-    else
+        }
+    } else {
         return m_windows[scrn][desk][winindex-1].toInt();
+    }
 }
 
 bool MultitaskingModel::isAllScreensEmpty()
@@ -450,7 +457,9 @@ void MultitaskingModel::setWindowKeepAbove(QVariant winId)
         }
     }
 
-    if (keepAboveWId == 0) return;
+    if (keepAboveWId == 0) {
+        return;
+    }
 
     if (ew->keepAbove())
     {
@@ -468,14 +477,18 @@ void MultitaskingModel::forceResetModel()
 
 void MultitaskingModel::selectNextSametypeWindow()
 {
-    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) {
+        return;
+    }
     int winid = getNextSametypeWindowID();
     setCurrentSelectIndex(winid);
 }
 
 void MultitaskingModel::selectPrevSametypeWindow()
 {
-    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) return;
+    if (m_nCurrentSelectIndex == -1 || m_nCurrentSelectIndex == 0) {
+        return;
+    }
     int winid = getPrevSametypeWindowID();
     setCurrentSelectIndex(winid);
 }
@@ -508,16 +521,16 @@ int MultitaskingModel::getNextSametypeWindowID()
             } else {
                 return windowsClass[0][desk].first().toInt();
             }
-        }
-        else
+        } else {
             if (windowsClass[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
             } else {
                 return windowsClass[scrn+1][desk].first().toInt();
             }
-    }
-    else
+        }
+    } else {
         return windowsClass[scrn][desk][winClassIndex+1].toInt();
+    }
 }
 
 int MultitaskingModel::getPrevSametypeWindowID()
@@ -548,21 +561,21 @@ int MultitaskingModel::getPrevSametypeWindowID()
             } else {
                 return windowsClass[0][desk].first().toInt();
             }
-        }
-        else
+        } else {
             if (windowsClass[scrn+1][desk].size() == 0) { // if next screen has no winthumb
                 return windowsClass[scrn][desk].first().toInt();
             } else {
                 return windowsClass[scrn+1][desk].first().toInt();
             }
-    }
-    else
+        }
+    } else {
         return windowsClass[scrn][desk][winClassIndex-1].toInt();
+    }
 }
 
 int MultitaskingModel::displayMode() const
 {
-    QDBusInterface wm(DBUS_DEEPIN_DAEMON_DISPLAY_SERVICE, DBUS_DEEPIN_DAEMON_DISPLAY_OBJ, DBUS_DEEPIN_DAEMON_DISPLAY_INTF);
+    QDBusInterface wm(dbusDeepinDaemonDisplayService, dbusDeepinDaemonDisplayObj, dbusDeepinDaemonDisplayIntf);
     auto displayMode = wm.property("DisplayMode");
     return displayMode.toInt();
 }

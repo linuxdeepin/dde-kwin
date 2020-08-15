@@ -9,5 +9,7 @@ ImageProvider::ImageProvider(QQmlImageProviderBase::ImageType type, QQmlImagePro
 
 QPixmap ImageProvider::requestPixmap(const QString &id, QSize *size, const QSize &requestedSize)
 {
+    Q_UNUSED(size);
+    Q_UNUSED(requestedSize);
     return  m_pMultitaskingModel->getWindowIcon( id );
 }
