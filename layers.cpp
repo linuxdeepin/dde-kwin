@@ -735,11 +735,23 @@ ToplevelList Workspace::xStackingOrder() const
 
 void Workspace::updateXStackingOrder()
 {
+    //UnmanagedLayer clients list
+    ToplevelList unmanagedShellClients;
+
     x_stacking.clear();
     std::unique_ptr<Xcb::Tree> tree{std::move(m_xStackingQueryTree)};
     // use our own stacking order, not the X one, as they may differ
-    foreach (Toplevel * c, stacking_order)
-    x_stacking.append(c);
+
+    // make all UnmanagedLayer clients beyond all x11 unmanaged clients
+    // this is rough method and need to improve in feature
+    foreach (Toplevel * c, stacking_order) {
+        if(!c->isOverride()) {
+            x_stacking.append(c);
+        }
+        else {
+            unmanagedShellClients.append(c);
+        }
+    }
 
     if (tree && !tree->isNull()) {
         xcb_window_t *windows = tree->children();
@@ -762,6 +774,13 @@ void Workspace::updateXStackingOrder()
         }
     }
     if (waylandServer()) {
+        for (auto p: unmanagedShellClients) {
+            AbstractClient * c = qobject_cast<AbstractClient *>(p);
+            if(c->isShown(false)) {
+                x_stacking << p;
+            }
+        }
+
         const auto clients = waylandServer()->internalClients();
         for (auto c: clients) {
             if (c->isShown(false)) {
