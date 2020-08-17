@@ -57,9 +57,6 @@ DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     setObjectName("DesktopThumbnailManager");
     setWindowTitle("DesktopThumbnailManager");
 
-    setWindowFlags(Qt::BypassWindowManagerHint | Qt::FramelessWindowHint);
-    setAttribute(Qt::WA_TranslucentBackground, true);
-
     QString qm = QString(":/translations/multitasking_%1.qm").arg(QLocale::system().name());
     auto tran = new QTranslator(this);
     if (tran->load(qm)) {
@@ -570,91 +567,28 @@ void MultitaskingEffect::reconfigure(ReconfigureFlags)
 // Screen painting
 void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
 {
-    if (m_thumbManager) {
-        if (!m_thumbManager->effectWindow()) {
-            auto* ew = effects->findWindow(m_thumbManager->winId());
+    //EffectWindow of m_multitaskingView changes every time when
+    //multitaskingView show, we need to set EffectWindow before paintwindow
+    if (m_multitaskingView) { 
+        if (!multitaskingViewEffectWindow()) {
+            auto* ew = effects->findWindow(m_multitaskingView->winId());
             if (ew) {
-                // without this, it crashes when draw window
-                ew->setData(WindowForceBlurRole, QVariant(true));
-                m_thumbManager->setEffectWindow(ew);
-
-                m_thumbMotion.manage(ew);
-                QRect target = ew->geometry();
-                target.moveTopLeft({0, 0});
-                m_thumbMotion.moveWindow(ew, target);
+                setMultitaskingViewEffectWindow(ew);
             }
         }
     }
-
-    if (isActive()) {
-        int new_time = m_toggleTimeline.currentTime() + (m_activated ? time: -time);
-        m_toggleTimeline.setCurrentTime(new_time);
-
-        //qCDebug(BLUR_CAT) << "-------------- " << __func__ << time << m_toggleTimeline.currentValue();
-
-        //The window that displays all screens during the multitasking preview
-        //data.mask |= PAINT_SCREEN_TRANSFORMED;
-        data.mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS;
-
-        for (auto& mm: m_motionManagers) {
-            mm.calculate(time/2.0);
-        }
-
-        if (m_thumbManager->effectWindow()) {
-            m_thumbMotion.calculate(time);
-        }
-
-        if (m_activated && m_toggleTimeline.currentValue()) {
-            if (m_thumbManager->y() < 0) {
-                //NOTE: we have to move real window here to receive events
-                m_thumbManager->move(0, 0);
-            }
-        } else if (!m_activated && m_toggleTimeline.currentValue()) {
-            if (m_thumbManager->y() == 0) {
-                //NOTE: we have to move real window here to receive events
-                m_thumbManager->move(0, -m_thumbManager->height());
-            }
-        }
-
-        if (!m_activated && m_toggleTimeline.currentValue() == 0) {
-            cleanup();
-        }
-    }
-
-    // this makes blurred windows work, should we need it ?
-    for (auto const& w: effects->stackingOrder()) {
-        w->setData(WindowForceBlurRole, QVariant(true));
-    }
-
     effects->prePaintScreen(data, time);
 }
 
 void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &data)
 {
     effects->paintScreen(mask, region, data);
-
-    if (isActive() && m_movingWindow && m_isWindowMoving) {
-        // the moving window has to be painted on top of all desktops
-        QPoint diff = cursorPos() - m_movingWindowStartPoint;
-        QRect geo = m_movingWindowGeometry.translated(diff);
-        WindowPaintData d(m_movingWindow, data.projectionMatrix());
-        d *= QVector2D((qreal)geo.width() / (qreal)m_movingWindow->width(), (qreal)geo.height() / (qreal)m_movingWindow->height());
-        d += QPoint(geo.left() - m_movingWindow->x(), geo.top() - m_movingWindow->y());
-        //paint with PAINT_WINDOW_LANCZOS seems cause problem when holding the moving window
-        //for a few seconds
-        effects->drawWindow(m_movingWindow, PAINT_WINDOW_TRANSFORMED, infiniteRegion(), d);
-    }
-
 }
 
 void MultitaskingEffect::postPaintScreen()
 {
-    if ((m_activated && m_toggleTimeline.currentValue() != 1)
-            || (!m_activated && m_toggleTimeline.currentValue() != 0))
-        effects->addRepaintFull();
-
-    for (auto const& w: effects->stackingOrder()) {
-        w->setData(WindowForceBlurRole, QVariant());
+    for (auto const& w: effects->stackingOrder()) { 
+        w->setData(WindowForceBlurRole, QVariant()); 
     }
     effects->postPaintScreen();
 }
@@ -663,14 +597,19 @@ void MultitaskingEffect::postPaintScreen()
 // Window painting
 void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &data, int time)
 {
+    if (m_multitaskingView && multitaskingViewEffectWindow() 
+        && w == multitaskingViewEffectWindow()) {
+        effects->prePaintWindow(w, data, time);
+        return;
+    }
+
     data.mask |= PAINT_WINDOW_TRANSFORMED;
 
-    if (m_activated) {
+    if (m_multitaskingViewVisible) {
         w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
     }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w))
-            && (w != m_thumbManager->effectWindow())) {
+    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w))) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
         w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
     }
@@ -680,116 +619,7 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 
 void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data)
 {
-    if (m_isWindowMoving && m_movingWindow == w)
-        return;
-
-    if (!isActive()) {
-        effects->paintWindow(w, mask, region, data);
-        return;
-    }
-
-    if (w == m_thumbManager->effectWindow()) {
-        mask &= ~PAINT_WINDOW_LANCZOS;
-        auto ew = m_thumbManager->effectWindow();
-        WindowPaintData d = data;
-
-        float scale = m_toggleTimeline.currentValue();
-        auto geo = m_thumbMotion.transformedGeometry(ew);
-        auto new_pos = QPointF(
-                interpolate( 0, 0, scale),
-                interpolate( -m_thumbManager->height(), 0, scale));
-        d += QPoint(qRound(new_pos.x() - ew->x()), qRound(new_pos.y() - ew->y()));
-        effects->paintWindow(ew, mask, infiniteRegion(), d);
-        return;
-    }
-
-    int desktop = effects->currentDesktop();
-    WindowMotionManager& wmm = m_motionManagers[desktop-1];
-    if (wmm.isManaging(w) || w->isDesktop()) {
-        auto area = effects->clientArea(ScreenArea, 0, 0);
-
-        WindowPaintData d = data;
-        if (w->isDesktop()) {
-            d.setBrightness(0.4);
-            effects->paintWindow(w, mask, area, d);
-
-        } else if (!w->isDesktop()) {
-            //NOTE: add lanczos will make partial visible window be rendered completely,
-            //but slow down the animation
-            //mask |= PAINT_WINDOW_LANCZOS;
-            auto geo = m_motionManagers[desktop-1].transformedGeometry(w);
-
-            if (m_selectedWindow == w) {
-                geo = highlightedGeometry(geo);
-            }
-
-            d += QPoint(qRound(geo.x() - w->x()), qRound(geo.y() - w->y()));
-            d.setScale(QVector2D((float)geo.width() / w->width(), (float)geo.height() / w->height()));
-
-
-            auto wd = m_windowDatas.constFind(w);
-            if (m_selectedWindow == w) {
-                if (!m_highlightFrame) {
-                    m_highlightFrame = effects->effectFrame(EffectFrameStyled, false);
-                }
-                QRect geo_frame = geo.toRect();
-                if (wd != m_windowDatas.constEnd()) {
-                    auto ext = wd->gtkFrameExtents;
-                    QMargins scaled_ext(ext.left() * d.xScale(), ext.top() * d.yScale(),
-                            ext.right() * d.xScale(), ext.bottom() * d.yScale());
-                    geo_frame = geo_frame.marginsRemoved(scaled_ext);
-                }
-                geo_frame.adjust(-1, -1, 1, 1);
-                m_highlightFrame->setGeometry(geo_frame);
-                m_highlightFrame->render(infiniteRegion(), 1.0, 0.8);
-            }
-
-            //qCDebug(BLUR_CAT) << "--------- window " << w->geometry() << geo;
-            effects->paintWindow(w, mask, area, d);
-            if (wd != m_windowDatas.constEnd()) {
-                auto ext = wd->gtkFrameExtents;
-                QPoint wp(geo.center().rx(), geo.bottom());
-                if (wd->csd && !ext.isNull()) {
-                    wp.ry() -= ext.bottom() * d.yScale();
-                }
-                if (wd->icon) {
-                    wd->icon->setPosition(wp);
-                    wd->icon->render(region, 1.0, 0.0);
-                }
-                    if (!wd->icon) {
-                        qCDebug(BLUR_CAT) << "---------- no icon ! " << w << w->windowClass();
-                    }
-
-                if (m_highlightWindow == w) {
-                    wp = geo.topRight().toPoint();
-                    if (wd->csd && !ext.isNull()) {
-                        wp.rx() -= ext.right() * d.xScale();
-                        wp.ry() += ext.top() * d.yScale();
-                    }
-
-                    if (wd->close) {
-                        wd->close->setPosition(wp);
-                        wd->close->render(region, 1.0, 0.0);
-                    }
-
-                    wp = geo.topLeft().toPoint();
-                    if (wd->csd && !ext.isNull()) {
-                        wp.rx() += ext.left() * d.xScale();
-                        wp.ry() += ext.top() * d.yScale();
-                    }
-                    if (wd->isAbove && wd->unpin) {
-                        wd->unpin->setPosition(wp);
-                        wd->unpin->render(region, 1.0, 0.0);
-                    } else if (wd->pin) {
-                        wd->pin->setPosition(wp);
-                        wd->pin->render(region, 1.0, 0.0);
-                    }
-                }
-            }
-        }
-    } else {
-        effects->paintWindow(w, mask, region, data);
-    }
+    effects->paintWindow(w, mask, region, data);
 }
 
 bool MultitaskingEffect::isRelevantWithPresentWindows(EffectWindow *w) const
@@ -1277,7 +1107,7 @@ void MultitaskingEffect::selectWindow(EffectWindow* w)
 
 bool MultitaskingEffect::isActive() const
 {
-    return (m_activated || m_toggleTimeline.currentValue() != 0) && !effects->isScreenLocked();
+    return m_multitaskingViewVisible && !effects->isScreenLocked();
 }
 
 void MultitaskingEffect::cleanup()
@@ -1592,6 +1422,10 @@ void MultitaskingEffect::setActive(bool active)
     }
     
     m_multitaskingView->setVisible(m_multitaskingViewVisible);
+    if (m_multitaskingViewVisible) {
+        // set nullptr to avoid confusing prepaintscreen check
+        setMultitaskingViewEffectWindow(nullptr);
+    }
 }
 
 void MultitaskingEffect::OnWindowLocateChanged(int screen,int desktop,int winid){
@@ -1632,248 +1466,6 @@ QMargins MultitaskingEffect::desktopMargins()
 }
 
 
-void MultitaskingEffect::calculateWindowTransformationsNatural(EffectWindowList windowlist, int screen,
-        WindowMotionManager& motionManager)
-{
-    float m_accuracy = 20.0;
-
-    // If windows do not overlap they scale into nothingness, fix by resetting. To reproduce
-    // just have a single window on a Xinerama screen or have two windows that do not touch.
-    // TODO: Work out why this happens, is most likely a bug in the manager.
-    foreach (EffectWindow * w, windowlist)
-        if (motionManager.transformedGeometry(w) == w->geometry())
-            motionManager.reset(w);
-
-    // As we are using pseudo-random movement (See "slot") we need to make sure the list
-    // is always sorted the same way no matter which window is currently active.
-    qSort(windowlist);
-
-    bool showPanel = true;
-    QRect area = effects->clientArea(ScreenArea, screen, effects->currentDesktop());
-    if (showPanel)   // reserve space for the panel
-        area = effects->clientArea(MaximizeArea, screen, effects->currentDesktop());
-
-    area -= desktopMargins();
-    QRect bounds = area;
-    qCDebug(BLUR_CAT) << "---------- area" << area << bounds << desktopMargins();
-
-    int direction = 0;
-    QHash<EffectWindow*, QRect> targets;
-    QHash<EffectWindow*, int> directions;
-    foreach (EffectWindow * w, windowlist) {
-        bounds = bounds.united(w->geometry());
-        targets[w] = w->geometry();
-        // Reuse the unused "slot" as a preferred direction attribute. This is used when the window
-        // is on the edge of the screen to try to use as much screen real estate as possible.
-        directions[w] = direction;
-        direction++;
-        if (direction == 4)
-            direction = 0;
-    }
-
-    // Iterate over all windows, if two overlap push them apart _slightly_ as we try to
-    // brute-force the most optimal positions over many iterations.
-    bool overlap;
-    do {
-        overlap = false;
-        foreach (EffectWindow * w, windowlist) {
-            QRect *target_w = &targets[w];
-            foreach (EffectWindow * e, windowlist) {
-                if (w == e)
-                    continue;
-                QRect *target_e = &targets[e];
-                if (target_w->adjusted(-5, -5, 5, 5).intersects(target_e->adjusted(-5, -5, 5, 5))) {
-                    overlap = true;
-
-                    // Determine pushing direction
-                    QPoint diff(target_e->center() - target_w->center());
-                    // Prevent dividing by zero and non-movement
-                    if (diff.x() == 0 && diff.y() == 0)
-                        diff.setX(1);
-                    // Try to keep screen aspect ratio
-                    //if (bounds.height() / bounds.width() > area.height() / area.width())
-                    //    diff.setY(diff.y() / 2);
-                    //else
-                    //    diff.setX(diff.x() / 2);
-                    // Approximate a vector of between 10px and 20px in magnitude in the same direction
-                    diff *= m_accuracy / double(diff.manhattanLength());
-                    // Move both windows apart
-                    target_w->translate(-diff);
-                    target_e->translate(diff);
-
-                    // Try to keep the bounding rect the same aspect as the screen so that more
-                    // screen real estate is utilised. We do this by splitting the screen into nine
-                    // equal sections, if the window center is in any of the corner sections pull the
-                    // window towards the outer corner. If it is in any of the other edge sections
-                    // alternate between each corner on that edge. We don't want to determine it
-                    // randomly as it will not produce consistant locations when using the filter.
-                    // Only move one window so we don't cause large amounts of unnecessary zooming
-                    // in some situations. We need to do this even when expanding later just in case
-                    // all windows are the same size.
-                    // (We are using an old bounding rect for this, hopefully it doesn't matter)
-                    int xSection = (target_w->x() - bounds.x()) / (bounds.width() / 3);
-                    int ySection = (target_w->y() - bounds.y()) / (bounds.height() / 3);
-                    diff = QPoint(0, 0);
-                    if (xSection != 1 || ySection != 1) { // Remove this if you want the center to pull as well
-                        if (xSection == 1)
-                            xSection = (directions[w] / 2 ? 2 : 0);
-                        if (ySection == 1)
-                            ySection = (directions[w] % 2 ? 2 : 0);
-                    }
-                    if (xSection == 0 && ySection == 0)
-                        diff = QPoint(bounds.topLeft() - target_w->center());
-                    if (xSection == 2 && ySection == 0)
-                        diff = QPoint(bounds.topRight() - target_w->center());
-                    if (xSection == 2 && ySection == 2)
-                        diff = QPoint(bounds.bottomRight() - target_w->center());
-                    if (xSection == 0 && ySection == 2)
-                        diff = QPoint(bounds.bottomLeft() - target_w->center());
-                    if (diff.x() != 0 || diff.y() != 0) {
-                        diff *= m_accuracy / double(diff.manhattanLength());
-                        target_w->translate(diff);
-                    }
-
-                    // Update bounding rect
-                    bounds = bounds.united(*target_w);
-                    bounds = bounds.united(*target_e);
-                }
-            }
-        }
-    } while (overlap);
-
-    // Work out scaling by getting the most top-left and most bottom-right window coords.
-    // The 20's and 10's are so that the windows don't touch the edge of the screen.
-    double scale;
-    if (bounds == area)
-        scale = 1.0; // Don't add borders to the screen
-    else if (area.width() / double(bounds.width()) < area.height() / double(bounds.height()))
-        scale = (area.width() - 20) / double(bounds.width());
-    else
-        scale = (area.height() - 20) / double(bounds.height());
-    // Make bounding rect fill the screen size for later steps
-    bounds = QRect(
-            bounds.x() - (area.width() - 20 - bounds.width() * scale) / 2 - 10 / scale,
-            bounds.y() - (area.height() - 20 - bounds.height() * scale) / 2 - 10 / scale,
-            area.width() / scale,
-            area.height() / scale
-            );
-
-    // Move all windows back onto the screen and set their scale
-    QHash<EffectWindow*, QRect>::iterator target = targets.begin();
-    while (target != targets.end()) {
-        target->setRect((target->x() - bounds.x()) * scale + area.x(),
-                (target->y() - bounds.y()) * scale + area.y(),
-                target->width() * scale,
-                target->height() * scale
-                );
-        ++target;
-    }
-
-    bool m_fillGaps = true;
-    // Try to fill the gaps by enlarging windows if they have the space
-    if (m_fillGaps) {
-        // Don't expand onto or over the border
-        QRegion borderRegion(area.adjusted(-200, -200, 200, 200));
-        borderRegion ^= area.adjusted(10 / scale, 10 / scale, -10 / scale, -10 / scale);
-
-        bool moved;
-        do {
-            moved = false;
-            foreach (EffectWindow * w, windowlist) {
-                QRect oldRect;
-                QRect *target = &targets[w];
-                // This may cause some slight distortion if the windows are enlarged a large amount
-                int widthDiff = m_accuracy;
-                int heightDiff = heightForWidth(w, target->width() + widthDiff) - target->height();
-                int xDiff = widthDiff / 2;  // Also move a bit in the direction of the enlarge, allows the
-                int yDiff = heightDiff / 2; // center windows to be enlarged if there is gaps on the side.
-
-                // heightDiff (and yDiff) will be re-computed after each successfull enlargement attempt
-                // so that the error introduced in the window's aspect ratio is minimized
-
-                // Attempt enlarging to the top-right
-                oldRect = *target;
-                target->setRect(target->x() + xDiff,
-                        target->y() - yDiff - heightDiff,
-                        target->width() + widthDiff,
-                        target->height() + heightDiff
-                        );
-                if (isOverlappingAny(w, targets, borderRegion))
-                    *target = oldRect;
-                else {
-                    moved = true;
-                    heightDiff = heightForWidth(w, target->width() + widthDiff) - target->height();
-                    yDiff = heightDiff / 2;
-                }
-
-                // Attempt enlarging to the bottom-right
-                oldRect = *target;
-                target->setRect(
-                        target->x() + xDiff,
-                        target->y() + yDiff,
-                        target->width() + widthDiff,
-                        target->height() + heightDiff
-                        );
-                if (isOverlappingAny(w, targets, borderRegion))
-                    *target = oldRect;
-                else {
-                    moved = true;
-                    heightDiff = heightForWidth(w, target->width() + widthDiff) - target->height();
-                    yDiff = heightDiff / 2;
-                }
-
-                // Attempt enlarging to the bottom-left
-                oldRect = *target;
-                target->setRect(
-                        target->x() - xDiff - widthDiff,
-                        target->y() + yDiff,
-                        target->width() + widthDiff,
-                        target->height() + heightDiff
-                        );
-                if (isOverlappingAny(w, targets, borderRegion))
-                    *target = oldRect;
-                else {
-                    moved = true;
-                    heightDiff = heightForWidth(w, target->width() + widthDiff) - target->height();
-                    yDiff = heightDiff / 2;
-                }
-
-                // Attempt enlarging to the top-left
-                oldRect = *target;
-                target->setRect(
-                        target->x() - xDiff - widthDiff,
-                        target->y() - yDiff - heightDiff,
-                        target->width() + widthDiff,
-                        target->height() + heightDiff
-                        );
-                if (isOverlappingAny(w, targets, borderRegion))
-                    *target = oldRect;
-                else
-                    moved = true;
-            }
-        } while (moved);
-
-        // The expanding code above can actually enlarge windows over 1.0/2.0 scale, we don't like this
-        // We can't add this to the loop above as it would cause a never-ending loop so we have to make
-        // do with the less-than-optimal space usage with using this method.
-        foreach (EffectWindow * w, windowlist) {
-            QRect *target = &targets[w];
-            double scale = target->width() / double(w->width());
-            if (scale > 2.0 || (scale > 1.0 && (w->width() > 300 || w->height() > 300))) {
-                scale = (w->width() > 300 || w->height() > 300) ? 1.0 : 2.0;
-                target->setRect(
-                        target->center().x() - int(w->width() * scale) / 2,
-                        target->center().y() - int(w->height() * scale) / 2,
-                        w->width() * scale,
-                        w->height() * scale);
-            }
-        }
-    }
-
-    // Notify the motion manager of the targets
-    foreach (EffectWindow * w, windowlist)
-        motionManager.moveWindow(w, targets.value(w));
-}
 
 static inline int distance(QPoint &pos1, QPoint &pos2)
 {

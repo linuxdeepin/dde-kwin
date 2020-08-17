@@ -344,6 +344,13 @@ private slots:
 
     void windowSelectSlot( QVariant winid );
     void removeEffectWindow(int screen, int desktop, QVariant winid);
+
+    EffectWindow* multitaskingViewEffectWindow() {
+        return m_multitaskingViewEffectWindow;
+    }
+    void setMultitaskingViewEffectWindow(EffectWindow* w) {
+        m_multitaskingViewEffectWindow = w;
+    }
 private:
     struct WindowData {
         bool isAbove {false};
@@ -377,8 +384,6 @@ private:
     QRectF highlightedGeometry(QRectF geometry);
 
     // borrowed from PresentWindows effect
-    void calculateWindowTransformationsNatural(EffectWindowList windowlist, int screen,
-            WindowMotionManager& motionManager);
     void calculateWindowTransformationsClosest(EffectWindowList windowlist, int screen,
             WindowMotionManager& motionManager);
     void clearGrids();
@@ -449,6 +454,7 @@ private:
 	MultitaskingModel *m_multitaskingModel { nullptr };
 
     EffectWindow *m_pEffectWindow;
+    EffectWindow *m_multitaskingViewEffectWindow { nullptr };
 
     //Touch Screen
     QDateTime m_currentDateTime;
