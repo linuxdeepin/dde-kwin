@@ -1508,7 +1508,7 @@ void MultitaskingEffect::setActive(bool active)
         if (m_targetDesktop != effects->currentDesktop()) {
             m_targetDesktop = effects->currentDesktop();
         }
-        const int desktopCount = m_thumbManager->desktopCount();
+        const int desktopCount = effects->numberOfDesktops();
         for (int d = 1; d <= desktopCount; ++d) {
             for (int screen = 0; screen < effects->numScreens(); ++screen) {
                 auto windows = windowsFor(screen, d);
@@ -1571,8 +1571,10 @@ void MultitaskingEffect::setActive(bool active)
         connect(m_multitaskingModel, SIGNAL(updateQmlBackground()), root, SIGNAL(qmlUpdateBackground()));
 
         EffectWindow* active_window = effects->activeWindow();
-        if (active_window) {
+        if (active_window && !active_window->isSpecialWindow()) {
             m_multitaskingModel->setCurrentSelectIndex(findWId(active_window));
+        } else {
+            m_multitaskingModel->setCurrentSelectIndex(-1);
         }
     } else {
         effects->ungrabKeyboard();

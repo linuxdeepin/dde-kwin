@@ -269,9 +269,18 @@ QPair<int,int> MultitaskingModel::getScreenDesktopByWinID(int winid)
 {
     QPair<int,int> scrnDesk;
     EffectWindow *ew = effects->findWindow(winid);
-    int scrn = effects->screenNumber(ew->pos());
-    scrnDesk.first = scrn;
-    scrnDesk.second = m_currentIndex+1;
+    scrnDesk.first = ew->screen();
+    const int desktopCount = effects->numberOfDesktops();
+    if (ew->isOnAllDesktops()) {
+        scrnDesk.second = m_currentIndex+1;
+    } else {
+        for (int d = 1; d <= desktopCount; ++d) {
+            if (ew->isOnDesktop(d)) {
+                scrnDesk.second = d;
+                break;
+            }
+        }
+    }
     return scrnDesk;
 }
 
