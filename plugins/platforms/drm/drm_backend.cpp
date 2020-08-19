@@ -500,6 +500,16 @@ void DrmBackend::updateOutputs()
         output->setEnabled(true);
     }
 
+    if (!m_outputs.isEmpty() && m_defaultOutput) {
+        m_defaultOutput->waylandOutputDevice()->setEnabled(KWayland::Server::OutputDeviceInterface::Enablement::Disabled);
+        m_defaultOutput->waylandOutputDevice()->destroy();
+        m_defaultOutput->waylandOutput()->destroy();
+        delete m_defaultOutput;
+        m_defaultOutput = nullptr;
+        qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss:zzz") << Q_FUNC_INFO
+                << " ut-gfx-output: remove default output";
+    }
+
     readOutputsConfiguration();
     outputDpmsChanged();
     if (!m_outputs.isEmpty()) {
@@ -514,6 +524,7 @@ void DrmBackend::updateOutputs()
 void DrmBackend::installDefaultDisplay()
 {
     DrmOutput *output = new DrmOutput(this);
+    output->m_isVirtual = true;
 
     qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
             << " ut-gfx-start:";
@@ -543,12 +554,12 @@ void DrmBackend::installDefaultDisplay()
     //1.Add mode info
     output->m_mode = mode;
 
-    output->setRawPhysicalSize(QSize(mode.hdisplay, mode.vdisplay));
+    output->setRawPhysicalSize(QSize(0, 0));
 
     //2.init wayland output device
-    QString model = "VGA-1-unknown";
+    QString model = "VGA-1000-unknown";
     QString manufacturer = "UOS";
-    QByteArray uuid = "q42e92efb7";
+    QByteArray uuid = "ffffffffff";
     QVector<KWayland::Server::OutputDeviceInterface::Mode> modes;
     KWayland::Server::OutputDeviceInterface::Mode dmode;
     dmode.id = 0;
@@ -568,6 +579,8 @@ void DrmBackend::installDefaultDisplay()
 
     //5.set wayland mode
     output->setWaylandMode();
+
+    m_defaultOutput = output;
 
     qDebug() << QDateTime::currentDateTime().toString("yyyy-mm-dd hh:mm:ss") << Q_FUNC_INFO
             << " ut-gfx-start-display:Add default output name " << output->m_mode.name

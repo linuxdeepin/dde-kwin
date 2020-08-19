@@ -194,6 +194,7 @@ private:
     QScopedPointer<DpmsInputEventFilter> m_dpmsFilter;
     KWayland::Server::OutputManagementInterface *m_outputManagement = nullptr;
     gbm_device *m_gbmDevice = nullptr;
+    DrmOutput *m_defaultOutput = nullptr;
 };
 
 

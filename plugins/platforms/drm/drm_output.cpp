@@ -72,6 +72,9 @@ DrmOutput::~DrmOutput()
 void DrmOutput::teardown()
 {
     m_teardown = true;
+    if (m_isVirtual) {
+        return;
+    }
     if (m_deleted) {
         hideCursor();
         m_crtc->blank();

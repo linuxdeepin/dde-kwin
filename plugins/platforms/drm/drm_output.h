@@ -103,6 +103,8 @@ public:
         return m_primaryPlane;
     }
 
+    bool m_isVirtual = false;
+
 Q_SIGNALS:
     void dpmsChanged();
 
