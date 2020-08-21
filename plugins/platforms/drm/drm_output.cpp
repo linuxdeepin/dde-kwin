@@ -92,8 +92,8 @@ void DrmOutput::teardown()
         m_crtc->setOutput(nullptr);
         m_conn->setOutput(nullptr);
 
-        delete m_cursor[0];
-        delete m_cursor[1];
+        m_cursor[0].reset(nullptr);
+        m_cursor[1].reset(nullptr);
     } else {
         if (!m_pageFlipPending) {
             qDebug() << "-------" << __func__ << waylandOutput();
@@ -128,7 +128,7 @@ bool DrmOutput::showCursor(DrmDumbBuffer *c)
 
 bool DrmOutput::showCursor()
 {
-    const bool ret = showCursor(m_cursor[m_cursorIndex]);
+    const bool ret = showCursor(m_cursor[m_cursorIndex].data());
     if (!ret) {
         return ret;
     }
@@ -611,7 +611,7 @@ bool DrmOutput::initCursorPlane()       // TODO: Add call in init (but needs lay
 bool DrmOutput::initCursor(const QSize &cursorSize)
 {
     auto createCursor = [this, cursorSize] (int index) {
-        m_cursor[index] = m_backend->createBuffer(cursorSize);
+        m_cursor[index].reset(m_backend->createBuffer(cursorSize));
         if (!m_cursor[index]->map(QImage::Format_ARGB32_Premultiplied)) {
             return false;
         }
