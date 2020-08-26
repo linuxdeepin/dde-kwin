@@ -1584,7 +1584,10 @@ void MultitaskingEffect::setActive(bool active)
             m_multitaskingModel->setCurrentSelectIndex(-1);
         }
     } else {
-        effects->ungrabKeyboard();
+        if (m_hasKeyboardGrab) {
+            effects->ungrabKeyboard();
+        }
+        m_hasKeyboardGrab = false;
         effects->stopMouseInterception(this);
     }
     
