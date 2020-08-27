@@ -59,6 +59,8 @@ bool ScreenShotEffect::supported()
 
 ScreenShotEffect::ScreenShotEffect()
     : m_scheduledScreenshot(0)
+    , m_width(0)
+    , m_height(0)
 {
     connect ( effects, SIGNAL(windowClosed(KWin::EffectWindow*)), SLOT(windowClosed(KWin::EffectWindow*)) );
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/Screenshot"), this, QDBusConnection::ExportScriptableContents);
