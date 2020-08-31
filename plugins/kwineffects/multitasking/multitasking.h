@@ -323,9 +323,6 @@ public Q_SLOTS:
     // added when refactor 
     void refreshWindows();
 
-    // Touch screen
-    void touchBorderOutDistance();
-    void touchBorderLeaved();
 private slots:
     void onNumberDesktopsChanged(int old);
     void onNumberScreensChanged();

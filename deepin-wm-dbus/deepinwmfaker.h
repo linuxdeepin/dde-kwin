@@ -128,14 +128,10 @@ public Q_SLOTS:
     // Touch Screen
     bool GetMultiTaskingStatus();
     void SetMultiTaskingStatus(bool isActive);
-    void SetTouchBorderInterval(double second = 0.5);
-    double GetTouchBorderInterval();
 
     // minin client
     bool GetIsShowDesktop();
     void SetShowDesktop(bool isShowDesktop);
-
-    bool GetCurrentDesktopStatus();
 
     void TouchToMove(int x, int y);
     void ClearMoveStatus();
@@ -199,7 +195,6 @@ private:
     QPair<uint, bool> m_previewWinMiniPair;
 
     bool m_isMultitaskingActived = false;
-    double touchBorderInterval = 0.5;
 
     bool m_isShowDesktop = false;
 };

@@ -1120,16 +1120,6 @@ void DeepinWMFaker::SetMultiTaskingStatus(bool isActive)
     m_isMultitaskingActived = isActive;
 }
 
-void DeepinWMFaker::SetTouchBorderInterval(double second)
-{
-    touchBorderInterval = second;
-}
-
-double DeepinWMFaker::GetTouchBorderInterval()
-{
-    return touchBorderInterval;
-}
-
 bool DeepinWMFaker::GetIsShowDesktop()
 {
     return m_isShowDesktop;
@@ -1138,18 +1128,4 @@ bool DeepinWMFaker::GetIsShowDesktop()
 void DeepinWMFaker::SetShowDesktop(bool isShowDesktop)
 {
     m_isShowDesktop = isShowDesktop;
-}
-
-bool DeepinWMFaker::GetCurrentDesktopStatus()
-{
-    int currentDesktop = m_windowSystem->currentDesktop();
-
-    for (auto wid: KWindowSystem::self()->windows()) {
-        KWindowInfo info(wid, NET::WMDesktop);
-        if (info.valid() && info.desktop() == currentDesktop && info.isMinimized()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 }

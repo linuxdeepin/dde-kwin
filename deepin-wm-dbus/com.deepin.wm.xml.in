@@ -169,20 +169,11 @@
     <method name="SetMultiTaskingStatus">
         <arg type="b" name="isActive" direction="in"/>
     </method>
-    <method name="GetTouchBorderInterval">
-        <arg type="d" name="interval" direction="out"/>
-    </method>
-    <method name="SetTouchBorderInterval">
-        <arg type="d" name="interval" direction="in"/>
-    </method>
     <method name="GetIsShowDesktop">
         <arg type="b" name="isShowDesktop" direction="out"/>
     </method>
     <method name="SetShowDesktop">
         <arg type="b" name="isShowDesktop" direction="in"/>
-    </method>
-    <method name="GetCurrentDesktopStatus">
-        <arg type="b" name="isDesktop" direction="out"/>
     </method>
     <method name="TouchToMove">
         <arg type="i" name="x" direction="in"/>

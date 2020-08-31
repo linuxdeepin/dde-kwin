@@ -284,15 +284,10 @@ MultitaskingEffect::MultitaskingEffect()
     connect( m_multitaskingModel,SIGNAL(countChanged(int)),this,SLOT( onNumberDesktopsChanged(int) ) );
     connect( m_multitaskingModel,SIGNAL( windowSelectedSignal(QVariant) ),this,SLOT( windowSelectSlot(QVariant) ) );
 
-    // Touch screen
-    QDBusConnection::sessionBus().connect(QString(), QString(), "com.deepin.daemon.Gesture", "TouchBorderOutDistance", this, SLOT(touchBorderOutDistance()));
-    QDBusConnection::sessionBus().connect(QString(), QString(), "com.deepin.daemon.Gesture", "TouchUpOrCancel", this, SLOT(touchBorderLeaved()));
-
     BackgroundManager::instance().updateDesktopCount(effects->numberOfDesktops());
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
-    touchBorderOutDistance();
 }
 
 MultitaskingEffect::~MultitaskingEffect()
@@ -1625,28 +1620,4 @@ void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant wi
     }
     auto* ew = effects->findWindow(winid.toULongLong());
     ew->closeWindow();
-}
-
-void MultitaskingEffect::touchBorderOutDistance()
-{
-    m_currentDateTime = QDateTime::currentDateTime();
-}
-
-void MultitaskingEffect::touchBorderLeaved()
-{
-    QDBusInterface wm(dbusDeepinWmService, dbusDeepinWmObj, dbusDeepinWmInif);
-    QDBusReply<double> reply = wm.call("GetTouchBorderInterval");
-    double dinterval = reply.value();
-
-    if (reply.value() <= 0.00) {
-       dinterval = 0.5;
-    }
-
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-    qint64 interval = currentDateTime.msecsTo(m_currentDateTime);
-    interval = qAbs(interval);
-
-    if (interval >= dinterval*1000) {
-       setActive(true);
-    }
 }
