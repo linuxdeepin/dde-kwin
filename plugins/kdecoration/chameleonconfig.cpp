@@ -647,6 +647,7 @@ static quint32 getPidByTopLevel(QObject* toplevel) {
     return *reinterpret_cast<const quint32*>(pid_data.data());
 }
 
+#define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
 static qint64 appStartTime(QObject *toplevel)
 {
     if (!appStartTimeMap.contains(toplevel)) {
@@ -673,7 +674,7 @@ static qint64 appStartTime(QObject *toplevel)
 
             do {
                 // 从进程环境变量中初始化此窗口所对应进程的启动时间
-                const QString &data = readPidEnviron(pid, "D_KWIN_DEBUG_APP_START_TIME");
+                const QString &data = readPidEnviron(pid, D_KWIN_DEBUG_APP_START_TIME);
                 if (!data.isEmpty()) {
                     env_data = data;
                     break;
@@ -693,11 +694,22 @@ static qint64 appStartTime(QObject *toplevel)
             return timestamp;
         } while (false);
 
+        // fallback到root窗口属性获取此进程启动时间
+        const QByteArray &time_data = KWinUtils::instance()->readWindowProperty(QX11Info::appRootWindow(),
+                                                                                KWinUtils::internAtom(D_KWIN_DEBUG_APP_START_TIME, false),
+                                                                                XCB_ATOM_CARDINAL);
+        if (!time_data.isEmpty()) {
+            quint64 start_time = *reinterpret_cast<const quint64*>(time_data.constData());
+            appStartTimeMap[toplevel] = start_time;
+            return start_time;
+        }
+
         // fallback到kwin自身记录的启动时间, 也就说为kwin设置了D_KWIN_DEBUG_APP_START_TIME环境变量，即表明
         // 将调试所有窗口的启动时间，而无论这个窗口对应进程是否设置了D_KWIN_DEBUG_APP_START_TIME环境变量。此功
         // 能是为了能debug无法通过外部手段为其设置环境变量的程序
-        static qint64 kwin_start_time = qgetenv("D_KWIN_DEBUG_APP_START_TIME").toLongLong();
+        static qint64 kwin_start_time = qgetenv(D_KWIN_DEBUG_APP_START_TIME).toLongLong();
         appStartTimeMap[toplevel] = kwin_start_time;
+
         return kwin_start_time;
     }
 
@@ -706,6 +718,10 @@ static qint64 appStartTime(QObject *toplevel)
 
 void ChameleonConfig::debugWindowStartupTime(QObject *toplevel)
 {
+    // 只在X11平台开启
+    if (!QX11Info::isPlatformX11())
+        return;
+
     // 只有能正常获取到启动的时间戳才认为此窗口开启了调试启动时间的功能
     if (!appStartTime(toplevel))
         return;
