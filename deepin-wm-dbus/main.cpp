@@ -10,6 +10,12 @@
 
 DCORE_USE_NAMESPACE
 
+//在wayland下，kwindowsystem默认使用wayland平台的接口，但目前wayland的接口currentDesktop()未实现，所以设置环境变量转为使用xcb平台的接口
+__attribute__((constructor))void init()
+{
+    qputenv("QT_QPA_PLATFORM", "xcb");
+}
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
