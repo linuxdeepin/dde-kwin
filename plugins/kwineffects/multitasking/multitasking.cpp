@@ -576,7 +576,11 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
     effects->prePaintScreen(data, time);
 }
 
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+void MultitaskingEffect::paintScreen(int mask, const QRegion &region, ScreenPaintData &data)
+#else
 void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &data)
+#endif
 {
     effects->paintScreen(mask, region, data);
 }

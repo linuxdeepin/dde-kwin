@@ -30,6 +30,7 @@
 #include <QPainter>
 #include <QExplicitlySharedDataPointer>
 #include <QSignalBlocker>
+#include <QPainterPath>
 
 Q_DECLARE_METATYPE(QPainterPath)
 
@@ -189,8 +190,14 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     }
 }
 
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, const QRegion &_region, KWin::WindowPaintData &data)
+{
+    QRegion region = _region;
+#else
 void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, KWin::WindowPaintData &data)
 {
+#endif
     // 工作区特效会使用PAINT_WINDOW_LANCZOS绘制，此时不支持多次调用Effect::drawWindow，
     // 否则只会显示第一次调用绘制的内容, 因此在这种模式下禁用掉窗口裁剪特效
     if (!w->isPaintingEnabled() || (mask & PAINT_WINDOW_LANCZOS)) {

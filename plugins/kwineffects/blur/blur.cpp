@@ -32,10 +32,17 @@
 #include <cmath> // for ceil()
 #include <QTimer>
 
+#ifdef KWaylandServer
 #include <KWayland/Server/surface_interface.h>
 #include <KWayland/Server/blur_interface.h>
 #include <KWayland/Server/shadow_interface.h>
 #include <KWayland/Server/display.h>
+#else
+#include <KWaylandServer/surface_interface.h>
+#include <KWaylandServer/blur_interface.h>
+#include <KWaylandServer/shadow_interface.h>
+#include <KWaylandServer/display.h>
+#endif
 
 static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEHIND_REGION");
 
@@ -61,7 +68,7 @@ BlurEffect::BlurEffect(QObject *, const QVariantList &)
     //     Should be included in _NET_SUPPORTED instead.
     if (m_shader && m_shader->isValid() && m_renderTargetsValid) {
         net_wm_blur_region = effects->announceSupportProperty(s_blurAtomName, this);
-        KWayland::Server::Display *display = effects->waylandDisplay();
+        KWaylandServer::Display *display = effects->waylandDisplay();
         if (display) {
             m_blurManager = display->createBlurManager(this);
             m_blurManager->create();
@@ -310,7 +317,7 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
         }
     }
 
-    KWayland::Server::SurfaceInterface *surf = w->surface();
+    KWaylandServer::SurfaceInterface *surf = w->surface();
 
     if (surf && surf->blur()) {
         region = surf->blur()->region();
@@ -338,10 +345,10 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
 
 void BlurEffect::slotWindowAdded(EffectWindow *w)
 {
-    KWayland::Server::SurfaceInterface *surf = w->surface();
+    KWaylandServer::SurfaceInterface *surf = w->surface();
 
     if (surf) {
-        windowBlurChangedConnections[w] = connect(surf, &KWayland::Server::SurfaceInterface::blurChanged, this, [this, w] () {
+        windowBlurChangedConnections[w] = connect(surf, &KWaylandServer::SurfaceInterface::blurChanged, this, [this, w] () {
             if (w) {
                 updateBlurRegion(w);
             }
@@ -647,7 +654,11 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
     effects->drawWindow(w, mask, region, data);
 }
 
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+void BlurEffect::paintEffectFrame(EffectFrame *frame, const QRegion &region, double opacity, double frameOpacity)
+#else
 void BlurEffect::paintEffectFrame(EffectFrame *frame, QRegion region, double opacity, double frameOpacity)
+#endif
 {
     const QRect screen = effects->virtualScreenGeometry();
     bool valid = m_renderTargetsValid && m_shader && m_shader->isValid();

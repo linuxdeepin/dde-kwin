@@ -32,6 +32,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QScreen>
+#include <QPainterPath>
 
 class Settings;
 class ChameleonWindowTheme;

@@ -31,13 +31,21 @@
 
 using namespace KWin;
 
+#if QT_HAS_INCLUDE(<KWaylandServer/blur_interface.h>)
+namespace KWaylandServer {
+class BlurManagerInterface;
+}
+#else
 namespace KWayland
 {
 namespace Server
 {
 class BlurManagerInterface;
 }
+
+#define KWaylandServer KWayland::Server
 }
+#endif
 
 static const int borderSize = 5;
 
@@ -58,7 +66,11 @@ public:
     void prePaintScreen(ScreenPrePaintData &data, int time) override;
     void prePaintWindow(EffectWindow* w, WindowPrePaintData& data, int time) override;
     void paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data) override;
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+    void paintEffectFrame(EffectFrame *frame, const QRegion &region, double opacity, double frameOpacity) override;
+#else
     void paintEffectFrame(EffectFrame *frame, QRegion region, double opacity, double frameOpacity) override;
+#endif
 
     bool provides(Feature feature) override;
 
@@ -131,7 +143,7 @@ private:
     QVector <BlurValuesStruct> blurStrengthValues;
 
     QMap <EffectWindow*, QMetaObject::Connection> windowBlurChangedConnections;
-    KWayland::Server::BlurManagerInterface *m_blurManager = nullptr;
+    KWaylandServer::BlurManagerInterface *m_blurManager = nullptr;
 };
 
 inline

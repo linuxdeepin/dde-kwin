@@ -256,7 +256,11 @@ public:
 
     // Screen painting
     virtual void prePaintScreen(ScreenPrePaintData &data, int time) override;
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+    virtual void paintScreen(int mask, const QRegion &region, ScreenPaintData &data) override;
+#else
     virtual void paintScreen(int mask, QRegion region, ScreenPaintData &data) override;
+#endif
     virtual void postPaintScreen() override;
 
     // Window painting
