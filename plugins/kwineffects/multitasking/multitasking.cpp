@@ -595,11 +595,8 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 
     data.mask |= PAINT_WINDOW_TRANSFORMED;
 
-    if (m_multitaskingViewVisible) {
-        w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
-    }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDock() || w->isDesktop() || isRelevantWithPresentWindows(w))) {
+    if (!(w->isDock() || w->isDesktop())) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
         w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
     }
@@ -1410,7 +1407,6 @@ void MultitaskingEffect::setActive(bool active)
                     }
                     wmm.manage(w);
                 }
-                w->setMinimized(true);
             }
 
             calculateWindowTransformations(wmm.managedWindows(), wmm);
@@ -1426,13 +1422,13 @@ void MultitaskingEffect::setActive(bool active)
         auto p = m_motionManagers.begin();
         while (p != m_motionManagers.end()) {
             foreach (EffectWindow* w, p->managedWindows()) {
-                w->setMinimized(false);
                 p->moveWindow(w, w->geometry());
             }
             ++p;
         }
 
-        effects->ungrabKeyboard();
+        if (m_hasKeyboardGrab) effects->ungrabKeyboard();
+        m_hasKeyboardGrab = false;
         effects->stopMouseInterception(this);
     }
     
