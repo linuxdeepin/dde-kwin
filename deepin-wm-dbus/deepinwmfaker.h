@@ -162,7 +162,7 @@ private:
     void quitTransientBackground();
 
     QString getWorkspaceBackgroundForMonitor(const int index,const QString &strMonitorName) const;                    // index 为工作区索引，strMonitorName为显示器的名称
-    void setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri);         // index 为工作区索引，strMonitorName为显示器的名称，uri为图片资源
+    void const setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri) const;         // index 为工作区索引，strMonitorName为显示器的名称，uri为图片资源
 
 #ifndef DISABLE_DEEPIN_WM
     void onGsettingsDDEAppearanceChanged(const QString &key);
