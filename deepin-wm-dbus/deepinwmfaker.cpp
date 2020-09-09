@@ -44,7 +44,8 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinDBusPath "/KWin"
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
-const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
+const char defaultFirstBackgroundUri[] = "file:///usr/share/backgrounds/default_background.jpg";
+const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.jpg";
 
 using org::kde::KWin;
 
@@ -298,9 +299,16 @@ QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QS
 {
     QUrl uri = getWorkspaceBackgroundForMonitor(index, strMonitorName);
     if (uri.isEmpty()) {
-        uri = fallback_background_name;
-        if (!QFileInfo(uri.path()).isFile()) {
-            uri = GetWorkspaceBackground(1);
+        if (index == 1) {
+            uri = defaultFirstBackgroundUri;
+            if (!QFileInfo(uri.path()).isFile()) {
+                uri = GetWorkspaceBackground(1);
+            }
+        } else {
+            uri = defaultSecondBackgroundUri;
+            if (!QFileInfo(uri.path()).isFile()) {
+                uri = GetWorkspaceBackground(2);
+            }
         }
     }
     return uri.toString();
