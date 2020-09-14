@@ -28,6 +28,7 @@
 #include <kwingltexture.h>
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QExplicitlySharedDataPointer>
 #include <QSignalBlocker>
 
