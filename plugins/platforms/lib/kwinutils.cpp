@@ -296,6 +296,7 @@ class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
+    typedef void (*ActivateClient)(void*, void*, bool force);
     typedef void (*ClientUpdateCursor)(void *);
     typedef void (*ClientSetDepth)(void*, int);
     typedef void (*ClientCheckNoBorder)(void*);
@@ -315,6 +316,7 @@ public:
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
+        activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
         clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
         clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
@@ -341,6 +343,7 @@ public:
     ClientWindowType clientWindowType;
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
+    ActivateClient activateClient;
     ClientUpdateCursor clientUpdateCursor;
     ClientSetDepth clientSetDepth;
     ClientCheckNoBorder clientCheckNoBorder;
@@ -1002,6 +1005,15 @@ QVariant KWinUtils::isFullMaximized(const QObject *window) const
 
     return Window::isFullMaximized(window);
 }
+
+void KWinUtils::activateClient(QObject *window)
+{
+    if (interface->activateClient) {
+        KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+        interface->activateClient(ws, window, false);
+    }
+}
+
 
 QVariant KWinUtils::fullmaximizeWindow(QObject *window) const
 {

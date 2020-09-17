@@ -79,6 +79,7 @@ public:
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
     static void clientCheckNoBorder(QObject *client);
+    static void activateClient(QObject *window);
 
     static QFunctionPointer resolve(const char *symbol);
 
