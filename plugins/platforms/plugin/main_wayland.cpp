@@ -336,6 +336,9 @@ public slots:
 
         shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
         connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
+        connect(surface, &DShellSurface::activationRequested, [shell_client, this]() {
+            kwinUtils()->activateClient(shell_client);
+        });
         updateSurfaceInfos(surface, shell_client);
         return true;
     }
