@@ -119,12 +119,67 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "wm-switcher",            "Switch window effects"},
     { "turn-off-screen",        "Fast Screen Off"},
     { "system-monitor",         "System Monitor"},
-    { "color-picker",          "Deepin Picker"},
+    { "color-picker",           "Deepin Picker"},
     { "ai-assistant",           "Desktop AI Assistant"},
-    { "text-to-speech",        "Text to Speech"},
+    { "text-to-speech",         "Text to Speech"},
     { "speech-to-text",         "Speech to Text"},
     { "clipboard",              "Clipboard"},
     { "translation",            "Translation"},
+    { "messenger",              "Messenger"},
+    { "save",                   "Save"},
+    { "new",                    "New"},
+    { "wake-up",                "WakeUp"},
+    { "audio-rewind",           "AudioRewind"},
+    { "audio-mute",             "VolumeMute"},
+    { "MonBrightnessUp",      "MonBrightnessUp"},//mon-brightness-up
+    { "wlan",                   "WLAN"},
+    { "audio-media",            "AudioMedia"},
+    { "reply",                  "Reply"},
+    { "favorites",              "Favorites"},
+    { "audio-play",             "AudioPlay"},
+    { "audio-mic-mute",         "AudioMicMute"},
+    { "audio-pause",            "AudioPause"},
+    { "audio-stop",             "AudioStop"},
+    { "power-off",              "PowerOff"},
+    { "documents",              "Documents"},
+    { "game",                   "Game"},
+    { "search",                 "Search"},
+    { "audio-record",           "AudioRecord"},
+    { "display",                "Display"},
+    { "reload",                 "Reload"},
+    { "explorer",               "Explorer"},
+    { "calculator",             "Calculator"},
+    { "calendar",               "Calendar"},
+    { "forward",                "Forward"},
+    { "cut",                    "Cut"},
+    { "mon-brightness-down",    "MonBrightnessDown"},
+    { "copy",                   "Copy"},
+    { "tools",                  "Tools"},
+    { "audio-raise-volume",     "VolumeUp"},
+    { "close",                  "Close"},
+    { "www",                    "WWW"},
+    { "home-page",              "HomePage"},
+    { "sleep",                  "Sleep"},
+    { "audio-lower-volume",     "VolumeDown"},
+    { "audio-prev",             "AudioPrev"},
+    { "audio-next",             "AudioNext"},
+    { "paste",                  "Paste"},
+    { "open",                   "Open"},
+    { "send",                   "Send"},
+    { "my-computer",            "MyComputer"},
+    { "mail",                   "Mail"},
+    { "adjust-brightness",      "BrightnessAdjust"},
+    { "log-off",                "LogOff"},
+    { "pictures",               "Pictures"},
+    { "terminal",               "Terminal"},
+    { "video",                  "Video"},
+    { "music",                  "Music"},
+    { "app-left",               "ApplicationLeft"},
+    { "app-right",              "ApplicationRight"},
+    { "meeting",                "Meeting"},
+    { "switch-monitors",        "Switch monitors"},
+    { "capslock",               "Capslock"},
+    { "numlock",                "Numlock"},
 };
 
 
@@ -151,6 +206,61 @@ static const QStringList NotConfigurationAction = {
     "Speech to Text",
     "Clipboard",
     "Translation",
+    "Messenger",
+    "Save",
+    "New",
+    "WakeUp",
+    "AudioRewind",
+    "VolumeMute",
+    "MonBrightnessUp",
+    "WLAN",
+    "AudioMedia",
+    "Reply",
+    "Favorites",
+    "AudioPlay",
+    "AudioMicMute",
+    "AudioPause",
+    "AudioStop",
+    "PowerOff",
+    "Documents",
+    "Game",
+    "Search",
+    "AudioRecord",
+    "Display",
+    "Reload",
+    "Explorer",
+    "Calculator",
+    "Calendar",
+    "Forward",
+    "Cut",
+    "MonBrightnessDown",
+    "Copy",
+    "Tools",
+    "VolumeUp",
+    "Close",
+    "WWW",
+    "HomePage",
+    "Sleep",
+    "VolumeDown",
+    "AudioPrev",
+    "AudioNext",
+    "Paste",
+    "Open",
+    "Send",
+    "MyComputer",
+    "Mail",
+    "BrightnessAdjust",
+    "LogOff",
+    "Pictures",
+    "Terminal",
+    "Video",
+    "Music",
+    "ApplicationLeft",
+    "ApplicationRight",
+    "Meeting",
+    "Switch monitors",
+    "Capslock",
+    "Numlock",
 };
 
 static const QMap<QString, QString> SpecialKeyMap = {
@@ -604,10 +714,27 @@ bool DeepinWMFaker::SetAccel(const QString &data)
     const QJsonArray &accelArray = jsonObj.value("Accels").toArray();
     for (const QJsonValue &jsonValue : accelArray) {
         const QString &accelStr = jsonValue.toString();
-        QKeySequence seq(transFromDaemonAccelStr(accelStr));
-        if (seq.isEmpty()) {
-            // qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
+
+        qDebug() << "transFromDaemonAccelStr:" << transFromDaemonAccelStr(accelStr);
+
+    QKeySequence seq;
+    if(transFromDaemonAccelStr(accelStr).contains("Qt::Key_")){
+            bool isOk = false;
+            QMetaEnum metaEnum = QMetaEnum::fromType<Qt::Key>();
+            int iRet = metaEnum.keyToValue(accelStr.toStdString().c_str(),&isOk);
+            if (iRet <0 || !isOk){
+                qDebug() << "metaEnum err:" << accelStr;
+                return false;
+            }
+            Qt::Key keycode = Qt::Key(iRet);
+            seq = QKeySequence(keycode);
+        }else{
+            seq = QKeySequence(transFromDaemonAccelStr(accelStr));
         }
+
+        if (seq.isEmpty()) {
+             qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
+        } 
 
         if(!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
             m_globalAccel->stealShortcutSystemwide(seq);
