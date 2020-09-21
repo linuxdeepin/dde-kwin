@@ -131,7 +131,7 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "wake-up",                "WakeUp"},
     { "audio-rewind",           "AudioRewind"},
     { "audio-mute",             "VolumeMute"},
-    { "MonBrightnessUp",      "MonBrightnessUp"},//mon-brightness-up
+    { "mon-brightness-up",      "MonBrightnessUp"},//mon-brightness-up
     { "wlan",                   "WLAN"},
     { "audio-media",            "AudioMedia"},
     { "reply",                  "Reply"},
