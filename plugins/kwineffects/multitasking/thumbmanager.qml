@@ -415,6 +415,7 @@ Rectangle {
                     DropArea {
                         id: workspaceThumbDrop
                         anchors.fill: parent;
+                        anchors.topMargin: -workspaceThumbDrop.parent.parent.parent.y
                         property int designated: index + 1;
                         property var originParent: view
 
@@ -477,7 +478,7 @@ Rectangle {
                             if (drag.keys[0] === 'workspaceThumb') {
                                 var diff = workspaceThumbDrop.parent.y - drag.source.y
                        //         log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
-                                if (diff > 0 && diff > drag.source.height/2) {
+                                if (diff > 0 && diff > drag.source.height/3) {
                                     hint.visible = true
                                 } else {
                                     hint.visible = false
