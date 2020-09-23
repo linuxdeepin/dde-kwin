@@ -785,6 +785,8 @@ Rectangle {
                                 property int originHeight
                                 property int originX
                                 property int originY
+                                property int originMouseX
+                                property int originMouseY
 
                                 property bool enableCalcThumbnailGeometry: false
 
@@ -835,8 +837,12 @@ Rectangle {
                                      originX = windowThumbnailitem.x
                                      originY = windowThumbnailitem.y
                                      enableCalcThumbnailGeometry = false
+                                     originMouseX = mouse.x
+                                     originMouseY = mouse.y
 
-                                     pressedTimer.start()
+                                     if (!pressedTimer.running) {
+                                         pressedTimer.start()
+                                     }
 
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
@@ -898,7 +904,9 @@ Rectangle {
                                     if (pressedTimer.running) {
                                         pressedTimer.stop()
                                         $Model.setCurrentSelectIndex(modelData);
-                                        $Model.windowSelected( modelData );
+                                        if (Math.abs(originMouseX-mouse.x)<20 && Math.abs(originMouseY-mouse.y)<20) {
+                                            $Model.windowSelected( modelData );
+                                        }
                                     } else {
                                         if (!windowThumbnailitem.Drag.active || enableCalcThumbnailGeometry) {
                                             ////恢复现场
