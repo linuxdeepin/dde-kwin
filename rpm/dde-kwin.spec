@@ -8,7 +8,7 @@
 %endif
 
 Name:           dde-kwin
-Version:        5.1.0.20
+Version:        5.3.8
 Release:        %{specrelease}
 Summary:        KWin configuration for Deepin Desktop Environment
 License:        GPLv3+
@@ -89,6 +89,11 @@ export PATH=%{_qt5_bindir}:$PATH
 %install
 %make_install INSTALL_ROOT=%{buildroot}
 chmod 755 %{buildroot}%{_bindir}/kwin_no_scale
+install debian/dde-kwin.postinst  %{buildroot}%{_datadir}/kwin/scripts/
+chmod 755 %{buildroot}%{_datadir}/kwin/scripts/dde-kwin.postinst
+ 
+%post
+bash -x %{_datadir}/kwin/scripts/dde-kwin.postinst
 
 %ldconfig_scriptlets
 
