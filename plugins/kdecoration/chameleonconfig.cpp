@@ -722,6 +722,8 @@ void ChameleonConfig::debugWindowStartupTime(QObject *toplevel)
     if (!QX11Info::isPlatformX11())
         return;
 
+  
+
     // 只有能正常获取到启动的时间戳才认为此窗口开启了调试启动时间的功能
     if (!appStartTime(toplevel))
         return;
@@ -729,6 +731,10 @@ void ChameleonConfig::debugWindowStartupTime(QObject *toplevel)
     const quint32 pid = getPidByTopLevel(toplevel);
     const QString &damage_count_str = readPidEnviron(pid, "_D_CHECKER_DAMAGE_COUNT");
     toplevel->setProperty("_D_CHECKER_DAMAGE_COUNT", damage_count_str.isEmpty() ? 20 : damage_count_str.toInt());
+
+  // 只是用于儒码的标记.临时使用
+    system("sudo sh -c '/usr/bin/echo 'window_beigin_show' > /sys/kernel/debug/tracing/trace_marker'");
+
 
     // 监听窗口请求重绘的事件
     connect(toplevel, SIGNAL(damaged(KWin::Toplevel*, const QRect&)),
@@ -822,6 +828,9 @@ void ChameleonConfig::onToplevelDamaged(KWin::Toplevel *toplevel, const QRect &d
                 // 在窗口属性上保存其启动时间的信息
                 KWinUtils::setWindowProperty(w, KWinUtils::internAtom("_D_APP_STARTUP_TIME", false),
                                              XCB_ATOM_CARDINAL, 32, QByteArray(reinterpret_cast<char*>(&time), sizeof(time) / sizeof(char)));
+
+                system("sudo sh -c '/usr/bin/echo 'window_show_ok' > /sys/kernel/debug/tracing/trace_marker'");
+
             }
         });
     }
