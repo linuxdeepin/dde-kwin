@@ -684,7 +684,8 @@ static qint64 appStartTime(QObject *toplevel)
             } while(pid != 1);
 
             if (env_data.isEmpty()) {
-                break;
+                return 10000;
+                //break;
             }
 
             const qint64 timestamp = env_data.toLongLong();
@@ -819,12 +820,15 @@ void ChameleonConfig::onToplevelDamaged(KWin::Toplevel *toplevel, const QRect &d
                 // 断开无用的链接
                 disconnect(w, SIGNAL(damaged(KWin::Toplevel*, const QRect&)),
                            this, SLOT(onToplevelDamaged(KWin::Toplevel*,QRect)));
+                system("sudo sh -c '/usr/bin/echo 'window_show_ok' > /sys/kernel/debug/tracing/trace_marker'");
+
                 qint64 start = appStartTime(w);
                 // 结束应用启动时间的调试
                 appStartTimeMap[w] = 0;
 
                 qint64 end = QDateTime::currentMSecsSinceEpoch();
                 quint32 time = end - start - timer_used_time;
+                
                 // 在窗口属性上保存其启动时间的信息
                 KWinUtils::setWindowProperty(w, KWinUtils::internAtom("_D_APP_STARTUP_TIME", false),
                                              XCB_ATOM_CARDINAL, 32, QByteArray(reinterpret_cast<char*>(&time), sizeof(time) / sizeof(char)));
