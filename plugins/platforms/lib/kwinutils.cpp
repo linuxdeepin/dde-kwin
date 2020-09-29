@@ -299,6 +299,7 @@ class KWinInterface
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ActivateClient)(void*, void*, bool force);
+    typedef void (*SetWinProperty)(void *, void *, const QString &, const QVariant &);
     typedef void (*ClientUpdateCursor)(void *);
     typedef void (*ClientSetDepth)(void*, int);
     typedef void (*ClientCheckNoBorder)(void*);
@@ -320,6 +321,7 @@ public:
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
+        setWinProperty = (SetWinProperty)KWinUtils::resolve("_ZN4KWin9Workspace17setWindowPropertyEP11wl_resourceRK7QStringRK8QVariant");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
         clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
         clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
@@ -348,6 +350,7 @@ public:
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     ActivateClient activateClient;
+    SetWinProperty setWinProperty;
     ClientUpdateCursor clientUpdateCursor;
     ClientSetDepth clientSetDepth;
     ClientCheckNoBorder clientCheckNoBorder;
@@ -1047,6 +1050,15 @@ QVariant KWinUtils::isFullMaximized(const QObject *window) const
     return Window::isFullMaximized(window);
 }
 
+void KWinUtils::setWindowProperty(wl_resource *surface,const QString &name, const QVariant &value) {
+    if (interface->setWinProperty) {
+        KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+        if (ws) {
+            interface->setWinProperty(ws, surface, name, value);
+        }
+    }
+}
+
 void KWinUtils::activateClient(QObject *window)
 {
     if (interface->activateClient) {
@@ -1054,7 +1066,6 @@ void KWinUtils::activateClient(QObject *window)
         interface->activateClient(ws, window, false);
     }
 }
-
 
 QVariant KWinUtils::fullmaximizeWindow(QObject *window) const
 {
