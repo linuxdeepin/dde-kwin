@@ -80,7 +80,7 @@ public:
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
     static void clientCheckNoBorder(QObject *client);
     static void activateClient(QObject *window);
-
+    static void setWindowProperty(wl_resource *surface, const QString &name, const QVariant &value);
     static QFunctionPointer resolve(const char *symbol);
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
