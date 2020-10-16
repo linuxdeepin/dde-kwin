@@ -296,9 +296,13 @@ public slots:
             return;
         }
 
-        for (auto begin = feralShellSurface.begin(); begin != feralShellSurface.end(); ++begin) {
-            if (onDDEShellSurfaceCreated(*begin))
-                feralShellSurface.erase(begin);
+        auto itor = feralShellSurface.begin();
+        while (itor != feralShellSurface.end()) {
+            if (onDDEShellSurfaceCreated(*itor)) {
+                itor = feralShellSurface.erase(itor);
+            } else {
+                ++itor;
+            }
         }
     }
 
