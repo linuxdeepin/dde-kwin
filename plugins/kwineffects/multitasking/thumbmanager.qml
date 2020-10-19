@@ -547,11 +547,11 @@ Rectangle {
                 enabled: visible
                 color: "#33ffffff"
 
-                x:screenWidth - desktopThumbnailItemWidth;
-                y:desktopThumbnailItemHeight/8 + desktopThumbnailItemHeight/2 - plus.height/2;
+                x: screenWidth - 2*plus.width;
+                y: desktopThumbnailItemHeight/8 + desktopThumbnailItemHeight/2 - plus.height/2;
 
-                width: desktopThumbnailItemHeight/2;
-                height: desktopThumbnailItemHeight/2;
+                width: (screenWidth - (desktopThumbnailItemWidth*3 + view.spacing*2))/8;
+                height: plus.width;
                 radius: width > 120 ? 30: 15
 
                 Image {
