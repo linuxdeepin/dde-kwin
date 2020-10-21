@@ -771,9 +771,9 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
         glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
     }
 
-    upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
-
     doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection);
+
+    upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
 
     if (useSRGB) {
         glDisable(GL_FRAMEBUFFER_SRGB);
@@ -802,6 +802,7 @@ void BlurEffect::doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount,
 
     //Render to the screen
     vbo->draw(GL_TRIANGLES, start, blurRectCount);
+    GLRenderTarget::popRenderTarget();
 
     m_shader->unbind();
 }
@@ -835,7 +836,6 @@ void BlurEffect::upscaleRenderToScreen(GLVertexBuffer *vbo, int vboStart, int bl
 
     //Render to the screen
     vbo->draw(GL_TRIANGLES, vboStart, blurRectCount);
-    GLRenderTarget::popRenderTarget();
 
     glActiveTexture(GL_TEXTURE0);
     m_shader->unbind();
