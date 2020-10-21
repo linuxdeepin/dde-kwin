@@ -63,6 +63,7 @@ public:
     QString cursorTheme() const;
     int cursorSize() const;
 
+    const QString getDaemonBackgroundUri(int index) const;
 public Q_SLOTS:
     QString GetWorkspaceBackground(const int index) const;
     void SetWorkspaceBackground(const int index, const QString &uri);

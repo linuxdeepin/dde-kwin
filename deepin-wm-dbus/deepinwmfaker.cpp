@@ -6,6 +6,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSettings>
+#include <QStandardPaths>
 
 #include <KF5/KConfigCore/KConfig>
 #include <KF5/KConfigCore/KConfigGroup>
@@ -295,11 +297,28 @@ void DeepinWMFaker::SetCurrentWorkspaceBackground(const QString &uri)
     SetWorkspaceBackground(m_windowSystem->currentDesktop(), uri);
 }
 
+QString const DeepinWMFaker::getDaemonBackgroundUri(int index) const
+{
+    QString strUserName = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    strUserName = strUserName.split("/").last();
+
+    QSettings settingsRead(QString("/var/lib/AccountsService/deepin/users/%1").arg(strUserName), QSettings::IniFormat);
+    QString backgroundUri = settingsRead.value("User/DesktopBackgrounds").toString();
+    QStringList backgroundUriList;
+    backgroundUriList = backgroundUri.split(";");
+    if (backgroundUriList.count() >= index && index >=1 ) {
+        backgroundUri = backgroundUriList.at(index - 1);
+    } else {
+        backgroundUri = "";
+    }
+    return backgroundUri;
+}
+
 QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QString &strMonitorName) const
 {
     QUrl uri = getWorkspaceBackgroundForMonitor(index, strMonitorName);
     if (uri.isEmpty()) {
-        uri = GetWorkspaceBackground(index);
+        uri = getDaemonBackgroundUri(index);
         if (index == 1) {
             if(!QFileInfo(uri.path()).isFile()) {
                 uri = defaultFirstBackgroundUri;
