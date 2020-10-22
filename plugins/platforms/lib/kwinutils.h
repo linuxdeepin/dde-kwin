@@ -89,6 +89,7 @@ public:
     static bool sendPingToWindow(QObject *client, quint32 timestamp);
     static void activateClient(QObject *window);
     static void setWindowProperty(wl_resource *surface, const QString &name, const QVariant &value);
+    static void delWindowProperty(wl_resource *surface);
     static QFunctionPointer resolve(const char *symbol);
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
