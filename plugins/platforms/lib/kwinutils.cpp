@@ -298,6 +298,7 @@ class KWinInterface
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ActivateClient)(void*, void*, bool force);
     typedef void (*SetWinProperty)(void *, void *, const QString &, const QVariant &);
+    typedef void (*DelWinProperty)(void *, void *);
     typedef void (*ClientUpdateCursor)(void *);
     typedef void (*ClientSetDepth)(void*, int);
     typedef void (*ClientCheckNoBorder)(void*);
@@ -319,6 +320,7 @@ public:
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
         setWinProperty = (SetWinProperty)KWinUtils::resolve("_ZN4KWin9Workspace17setWindowPropertyEP11wl_resourceRK7QStringRK8QVariant");
+        delWinProperty = (DelWinProperty)KWinUtils::resolve("_ZN4KWin9Workspace17delWindowPropertyEP11wl_resource");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
         clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
         clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
@@ -347,6 +349,7 @@ public:
     ClientMaximize clientMaximize;
     ActivateClient activateClient;
     SetWinProperty setWinProperty;
+    DelWinProperty delWinProperty;
     ClientUpdateCursor clientUpdateCursor;
     ClientSetDepth clientSetDepth;
     ClientCheckNoBorder clientCheckNoBorder;
@@ -1014,6 +1017,15 @@ void KWinUtils::setWindowProperty(wl_resource *surface,const QString &name, cons
         KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
         if (ws) {
             interface->setWinProperty(ws, surface, name, value);
+        }
+    }
+}
+
+void KWinUtils::delWindowProperty(wl_resource *surface) {
+    if (interface->delWinProperty) {
+        KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
+        if (ws) {
+            interface->delWinProperty(ws,surface);
         }
     }
 }

@@ -330,29 +330,61 @@ public slots:
 
     bool onDDEShellSurfaceCreated(DShellSurface *surface)
     {
+        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "onDDEShellSurfaceCreated:" << surface;
         if (!surface) {
-            qCritical()<<__FILE__<< __FUNCTION__<<__LINE__<<"surface is null";
+            qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "surface is null";
             return false;
         }
-        connect(surface, &DShellSurface::propertyChanged, [surface,this](const QString &name, const QVariant &value) {
-            if (surface && !name.isNull() && !value.isNull()) {
-                wl_resource * wr = surface->surfaceResource();
-                if (wr) {
-                    kwinUtils()->setWindowProperty(wr, name, value);
-                } else {
-                    qCritical()<<__FILE__<< __FUNCTION__<<__LINE__<<"wl_resource is null";
-                }
-            }
-        });
+
         wl_resource * wr = surface->surfaceResource();
         if (!wr) {
-            qCritical()<<__FILE__<< __FUNCTION__<<__LINE__<<"wl_resource is null";
+            qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
             return false;
         }
+
         auto shell_client = kwinUtils()->findShellClient(wr);
         if (!shell_client) {
-            if (!feralShellSurface.contains(surface))
+            if (!feralShellSurface.contains(surface)) {
+                qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "add DShellSurface to list:" << surface;
                 feralShellSurface << surface;
+            }
+
+            connect(surface, &DShellSurface::surfaceDestroyed, [surface, this]() {
+                qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "DShellSurface surfaceDestroyed:" << surface;
+                bool inList = false;
+                auto itor = feralShellSurface.begin();
+                while (itor != feralShellSurface.end()) {
+                    if ( *itor == surface ) {
+                        itor = feralShellSurface.erase(itor);
+                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove DShellSurface from list:" << surface;
+                        surface->deleteLater();
+                        inList = true;
+                        break;
+                    }
+                    ++itor;
+                }
+                if (!inList) {
+                    wl_resource * wr = surface->surfaceResource();
+                    if (wr) {
+                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove resource from shell client:" << wr;
+                        kwinUtils()->delWindowProperty(wr);
+                    } else {
+                        qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
+                    }
+                    surface->deleteLater();
+                }
+            });
+
+            connect(surface, &DShellSurface::propertyChanged, [surface,this](const QString &name, const QVariant &value) {
+                if (surface && !name.isNull() && !value.isNull()) {
+                    wl_resource * wr = surface->surfaceResource();
+                    if (wr) {
+                        kwinUtils()->setWindowProperty(wr, name, value);
+                    } else {
+                        qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
+                    }
+                }
+            });
             return false;
         }
 
