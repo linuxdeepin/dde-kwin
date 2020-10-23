@@ -318,7 +318,8 @@ QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QS
 {
     QUrl uri = getWorkspaceBackgroundForMonitor(index, strMonitorName);
     if (uri.isEmpty()) {
-        uri = getDaemonBackgroundUri(index);
+//        uri = getDaemonBackgroundUri(index);
+        uri = _gsettings_dde_appearance->get(GsettingsBackgroundUri).toStringList().value(index - 1);
         if (index == 1) {
             if(!QFileInfo(uri.path()).isFile()) {
                 uri = defaultFirstBackgroundUri;
@@ -1019,7 +1020,20 @@ void const DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, cons
     m_deepinWMConfig->sync();
 
 #ifndef DISABLE_DEEPIN_WM
-    _gsettings_dde_appearance->set(GsettingsBackgroundUri, uri);
+    QStringList allWallpaper = _gsettings_dde_appearance->get(GsettingsBackgroundUri).toStringList();
+
+    // 当设置的工作区编号大于列表长度时，先填充数据
+    if (index > allWallpaper.size()) {
+        allWallpaper.reserve(index);
+
+        for (int i = allWallpaper.size(); i < index; ++i) {
+            allWallpaper.append(QString());
+        }
+    }
+
+    allWallpaper[index - 1] = uri;
+    // 将壁纸设置同步到 deepin-wm
+    _gsettings_dde_appearance->set(GsettingsBackgroundUri, allWallpaper);
 #endif // DISABLE_DEEPIN_WM
 }
 
