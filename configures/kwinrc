@@ -86,6 +86,7 @@ FocusStealingPreventionLevel=0
 #Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Drawer | Qt::WindowStaysOnTopHint
 #的窗口无法同时显示多个
 HideUtilityWindowsForInactive=false
+MaximizeButtonRightClickCommand=Maximize
 
 [MouseBindings]
 #禁用Alt+鼠标左键移动窗口
