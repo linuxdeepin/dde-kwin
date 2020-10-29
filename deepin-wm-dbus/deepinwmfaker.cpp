@@ -44,8 +44,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinDBusPath "/KWin"
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
-const char defaultFirstBackgroundUri[] = "file:///usr/share/backgrounds/default_background.jpg";
-const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.jpg";
+const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
 using org::kde::KWin;
 
@@ -299,18 +298,10 @@ QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QS
 {
     QUrl uri = getWorkspaceBackgroundForMonitor(index, strMonitorName);
     if (uri.isEmpty()) {
-        uri = _gsettings_dde_appearance->get(GsettingsBackgroundUri).toStringList().value(index - 1);
-        if (index == 1) {
-            if(!QFileInfo(uri.path()).isFile()) {
-                uri = defaultFirstBackgroundUri;
-            }
-        } else {
-            if (!QFileInfo(uri.path()).isFile()) {
-                uri = defaultSecondBackgroundUri;
-            }
+        uri = fallback_background_name;
+        if (!QFileInfo(uri.path()).isFile()) {
+            uri = GetWorkspaceBackground(1);
         }
-        const QString &workSpaceBackgroundUri = uri.toString();
-        setWorkspaceBackgroundForMonitor(index, strMonitorName, workSpaceBackgroundUri);
     }
     return uri.toString();
 }
@@ -994,24 +985,14 @@ QString DeepinWMFaker::getWorkspaceBackgroundForMonitor(const int index, const Q
 {
     return  m_deepinWMConfig->group("WorkspaceBackground").readEntry( QString("%1%2%3").arg(index).arg("@" ,strMonitorName)) ;
 }
-void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri) const
+void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
 {
     m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString("%1%2%3").arg(index).arg("@" ,strMonitorName), uri);
+    Q_EMIT WorkspaceBackgroundChangedForMonitor( index ,strMonitorName,uri );
     m_deepinWMConfig->sync();
 
 #ifndef DISABLE_DEEPIN_WM
-    QStringList allWallpaper = _gsettings_dde_appearance->get(GsettingsBackgroundUri).toStringList();
-
-    if (index > allWallpaper.size()) {
-        allWallpaper.reserve(index);
-
-        for (int i = allWallpaper.size(); i < index; ++i) {
-            allWallpaper.append(QString());
-        }
-    }
-
-    allWallpaper[index - 1] = uri;
-    _gsettings_dde_appearance->set(GsettingsBackgroundUri, allWallpaper);
+    _gsettings_dde_appearance->set(GsettingsBackgroundUri, uri);
 #endif // DISABLE_DEEPIN_WM
 }
 
