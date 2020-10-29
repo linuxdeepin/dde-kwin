@@ -45,7 +45,11 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
 const char defaultFirstBackgroundUri[] = "file:///usr/share/backgrounds/default_background.jpg";
-const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.jpg";
+#ifdef __mips__
+    const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.bmp";
+#else
+    const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.jpg";
+#endif
 
 using org::kde::KWin;
 
