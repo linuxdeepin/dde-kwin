@@ -140,6 +140,7 @@ void ChameleonConfig::onConfigChanged()
     }
 }
 
+#define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
 void ChameleonConfig::onClientAdded(KWin::Client *client)
 {
     QObject *c = reinterpret_cast<QObject*>(client);
@@ -151,7 +152,9 @@ void ChameleonConfig::onClientAdded(KWin::Client *client)
 
     enforceWindowProperties(c);
     buildKWinX11Shadow(c);
-    debugWindowStartupTime(c);
+    if (qEnvironmentVariableIsSet(D_KWIN_DEBUG_APP_START_TIME)) {
+        debugWindowStartupTime(c);
+    }
 }
 
 void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
@@ -647,7 +650,6 @@ static quint32 getPidByTopLevel(QObject* toplevel) {
     return *reinterpret_cast<const quint32*>(pid_data.data());
 }
 
-#define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
 static qint64 appStartTime(QObject *toplevel)
 {
     if (!appStartTimeMap.contains(toplevel)) {
@@ -681,7 +683,7 @@ static qint64 appStartTime(QObject *toplevel)
                 } else {
                     pid = readPPid(pid);
                 }
-            } while(pid != 1);
+            } while(pid > 1);
 
             if (env_data.isEmpty()) {
                 break;
