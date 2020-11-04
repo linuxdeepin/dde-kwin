@@ -88,6 +88,8 @@ public:
     void selectPrevWindow();
     void selectNextSametypeWindow();
     void selectPrevSametypeWindow();
+    void selectFirstWindow();
+    void selectLastWindow();
     QPair<int,int> getScreenDesktopByWinID(int winid);
     bool isAllScreensEmpty();
     Q_INVOKABLE void windowSelected( QVariant winId );
@@ -106,6 +108,10 @@ public:
     //0 custom Mode; 1 copy mode; 2 extension mode; 3 single screen mode
     int displayMode() const;
     bool isExtensionMode() const;
+
+    int currentDesktop();
+    int lastNoEmptyScreen();
+    int firstNoEmptyScreen();
 
 signals:
     void countChanged(int count);
@@ -127,6 +133,7 @@ protected: // interface QAbstractListModel
 private:
     QList<DesktopThumbnailItem> m_desktopThumbnailItemList;
     //QMap<screen, QMap<desktop, window>;
+    // screen begin from 0. desktop begin from 1;
     QMap<int, QMap<int, QVariantList> > m_windows;
     int m_currentIndex; // is Current Desktop Id - 1
     int m_nCurrentSelectIndex; // is Current Window Id

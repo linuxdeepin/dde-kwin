@@ -1003,81 +1003,12 @@ void MultitaskingEffect::selectNextWindow()
 
 void MultitaskingEffect::selectFirstWindow()
 {
-    int d = effects->currentDesktop();
-    const auto& takenSlots = m_takenSlots[d];
-
-    if (takenSlots.size() == 0) {
-        return;
-    }
-
-    int columns = m_gridSizes[d].columns;
-    int rows = m_gridSizes[d].rows;
-    if (takenSlots.size() != columns * rows)
-        return;
-
-    int row = 0;
-    int col = 0;
-    int max = columns * rows;
-    while (max-- > 0) {
-        int nextslot = row * columns + col;
-        if (nextslot < 0 || nextslot >= takenSlots.size())
-            return;
-
-        if (takenSlots[nextslot]) {
-            selectWindow(takenSlots[nextslot]);
-            break;
-        }
-
-        if (col + 1 < columns) {
-            col++;
-        } else if (row + 1 < rows) {
-            row++;
-            col = 0;
-        } else {
-            row = 0;
-            col = 0;
-        }
-    }
+    m_multitaskingModel->selectFirstWindow();
 }
 
 void MultitaskingEffect::selectLastWindow()
 {
-    int d = effects->currentDesktop();
-    const auto& takenSlots = m_takenSlots[d];
-
-    if (takenSlots.size() == 0) {
-        return;
-    }
-
-    int columns = m_gridSizes[d].columns;
-    int rows = m_gridSizes[d].rows;
-    if (takenSlots.size() != columns * rows)
-        return;
-
-    int row = rows-1;
-    int col = columns-1;
-    int max = columns * rows;
-    while (max-- > 0) {
-        int nextslot = row * columns + col;
-        if (nextslot < 0 || nextslot >= takenSlots.size())
-            return;
-
-        qCDebug(BLUR_CAT) << "---------- next " << row << col << nextslot;
-        if (takenSlots[nextslot]) {
-            selectWindow(takenSlots[nextslot]);
-            break;
-        }
-
-        if (col > 0) {
-            col--;
-        } else if (row > 0) {
-            row--;
-            col = columns-1;
-        } else {
-            row = rows-1;
-            col = columns-1;
-        }
-    }
+    m_multitaskingModel->selectLastWindow();
 }
 
 void MultitaskingEffect::selectNextWindowVert(int dir)
