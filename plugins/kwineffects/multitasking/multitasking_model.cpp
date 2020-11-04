@@ -574,3 +574,53 @@ QString MultitaskingModel::screenName(int x,int y)
     QScreen *pScreen = QGuiApplication::screenAt(QPoint(x,y));
     return pScreen->name();
 }
+
+int MultitaskingModel::currentDesktop()
+{
+    return m_currentIndex + 1;
+}
+
+int MultitaskingModel::lastNoEmptyScreen()
+{
+    int screenNumber = numScreens();
+    for (int i = screenNumber; i > 0; i--)
+    {
+        if(!m_windows[i-1][currentDesktop()].empty())
+            return i-1;
+    }
+    return -1;
+}
+
+int MultitaskingModel::firstNoEmptyScreen()
+{
+    int screenNumber = numScreens();
+    for (int i = 0; i < screenNumber; i++)
+    {
+        if(!m_windows[i][currentDesktop()].empty())
+            return i;
+    }
+    return -1;
+}
+
+void MultitaskingModel::selectFirstWindow()
+{
+    if (m_windows.empty()|| // no screen
+        m_windows.first().empty()) // no workspace
+        return;
+    int firstScreen = firstNoEmptyScreen();
+    if(firstScreen < 0)
+        return;
+    setCurrentSelectIndex(m_windows[firstScreen][currentDesktop()].first().toInt());
+}
+
+void MultitaskingModel::selectLastWindow()
+{
+    if (m_windows.empty()|| // no screen
+        m_windows.last().empty()) // no workspace
+        return;
+
+    int lastScreen = lastNoEmptyScreen();
+    if(lastScreen <0)
+        return;
+    setCurrentSelectIndex(m_windows[lastNoEmptyScreen()][currentDesktop()].last().toInt());
+}
