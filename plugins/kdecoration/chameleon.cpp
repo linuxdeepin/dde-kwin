@@ -337,7 +337,7 @@ void Chameleon::updateTitleGeometry()
     m_title = client().data()->caption();
     // 使用系统字体，不要使用 settings() 中的字体
     const QFontMetricsF fontMetrics(qGuiApp->font());
-    int full_width = fontMetrics.width(m_title);
+    int full_width = fontMetrics.width(m_title) * m_theme->windowPixelRatio();
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
         int buttons_width = m_leftButtons->geometry().width() 
