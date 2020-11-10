@@ -160,6 +160,7 @@ private:
     QString getWorkspaceBackground(const int index) const;
     void setWorkspaceBackground(const int index, const QString &uri);
     void quitTransientBackground();
+    void initCursor();
 
     QString getWorkspaceBackgroundForMonitor(const int index,const QString &strMonitorName) const;                    // index 为工作区索引，strMonitorName为显示器的名称
     void setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri) const;         // index 为工作区索引，strMonitorName为显示器的名称，uri为图片资源
