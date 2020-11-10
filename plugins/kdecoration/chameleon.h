@@ -73,6 +73,9 @@ signals:
 protected:
     void init() override;
 
+private Q_SLOTS:
+    void updateFont(QString updateType,QString val);
+
 private:
     void initButtons();
     void updateButtonsGeometry();
@@ -119,6 +122,7 @@ private:
     KDecoration2::DecorationButtonGroup *m_rightButtons = nullptr;
 
     QPointer<KWin::EffectWindow> m_effect;
+    QFont m_font;
 };
 
 #endif // CHAMELEON_H
