@@ -44,6 +44,10 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinDBusPath "/KWin"
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
+
+//default cursor size :24
+#define DEFAULTCURSORSIZE 24
+
 const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
 using org::kde::KWin;
@@ -327,6 +331,23 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
             SetDecorationDeepinTheme("dark");
         }
     }
+    initCursor();
+}
+void DeepinWMFaker::initCursor()
+{
+
+    QDBusMessage response = QDBusInterface("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance", "com.deepin.daemon.Appearance").call("GetScaleFactor");
+
+    if (response.type() != QDBusMessage::ReplyMessage) {
+        qDebug() << "GetScaleFactor method called failed!";
+        return;
+    }
+
+    double value = response.arguments().takeFirst().toDouble();
+    if (value <= 0)
+        return;
+
+    setCursorSize(value * DEFAULTCURSORSIZE);
 }
 
 DeepinWMFaker::~DeepinWMFaker()

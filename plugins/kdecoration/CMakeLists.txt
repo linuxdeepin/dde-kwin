@@ -4,6 +4,7 @@ add_definitions(-DTARGET_NAME=\\"${TARGET_NAME}\\")
 
 find_package(Qt5 CONFIG REQUIRED COMPONENTS Core)
 find_package(KF5CoreAddons REQUIRED)
+find_package(Qt5DBus REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KDecoration2 REQUIRED)
@@ -32,6 +33,7 @@ target_link_libraries(
     ${TARGET_NAME}
     PUBLIC
     Qt5::Core
+    Qt5::DBus
     PRIVATE
     KDecoration2::KDecoration
     KF5::CoreAddons

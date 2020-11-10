@@ -39,6 +39,7 @@
 #include <QDebug>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QtDBus>
 
 Q_DECLARE_METATYPE(QPainterPath)
 
@@ -75,6 +76,7 @@ void Chameleon::init()
     auto global_config = ChameleonConfig::instance();
     m_theme = new ChameleonWindowTheme(m_client, this);
 
+    m_font = qGuiApp->font();
     updateTheme();
 
     connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
@@ -102,7 +104,25 @@ void Chameleon::init()
     connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateTitleBarArea);
     connect(qGuiApp, &QGuiApplication::fontChanged, this, &Chameleon::updateTitleGeometry);
 
+    QDBusConnection::sessionBus().connect("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance",
+                                      "com.deepin.daemon.Appearance",
+                                      "Changed",this,
+                                      SLOT(updateFont(QString, QString)));
     m_initialized = true;
+}
+
+void Chameleon::updateFont(QString updateType,QString val)
+{
+    if (updateType == "standardfont") {
+        m_font.setFamily(val);
+        updateTitleGeometry();
+    } else if (updateType == "fontsize") {
+        double value = val.toDouble();
+        if (value <= 0)
+            return;
+        m_font.setPointSizeF(value);
+        updateTitleGeometry();
+    }
 }
 
 void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
@@ -113,6 +133,7 @@ void Chameleon::paint(QPainter *painter, const QRect &repaintArea)
         if (windowNeedRadius()) {
             painter->setClipPath(m_borderPath);
         }
+        painter->setFont(m_font);
 
         painter->fillRect(titleBar() & repaintArea, getBackgroundColor());
         painter->setPen(getTextColor());
@@ -338,7 +359,7 @@ void Chameleon::updateTitleGeometry()
 
     m_title = client().data()->caption();
     // 使用系统字体，不要使用 settings() 中的字体
-    const QFontMetricsF fontMetrics(qGuiApp->font());
+    const QFontMetricsF fontMetrics(m_font);
     int full_width = fontMetrics.width(m_title) * m_theme->windowPixelRatio();
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
