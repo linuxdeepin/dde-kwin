@@ -654,7 +654,7 @@ QObjectList KWinUtils::clientList()
 
 QObjectList KWinUtils::unmanagedList()
 {
-    if (!interface->findUnmanagedByFunction)
+    if (!interface->findUnmanagedByFunction || !workspace())
         return {};
 
     QObjectList list;
@@ -671,6 +671,9 @@ QObjectList KWinUtils::unmanagedList()
 
 QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
 {
+    if (!workspace())
+        return nullptr;
+
     if (predicate == Predicate::UnmanagedMatch) {
         if (!interface->findUnmanaged)
             return nullptr;
