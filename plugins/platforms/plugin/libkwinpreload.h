@@ -62,6 +62,15 @@ class RuleBook : public QObject
 };
 
 #endif // USE_DBUS_MENU
+
+enum class BuiltInEffect {
+    InValid,
+    Blur,
+};
+
+namespace BuiltInEffects {
+    bool supported(BuiltInEffect effect);
+}
 }
 
 #if !defined(KWIN_VERSION) || KWIN_VERSION <= KWIN_VERSION_CHECK(5, 8, 6, 0)

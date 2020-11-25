@@ -36,6 +36,7 @@
 #include <QStyleFactory>
 #include <QStyle>
 #include <QTimer>
+#include <QLibrary>
 
 // deepin dbus menu
 #define MenuDBusService "com.deepin.menu"
@@ -273,6 +274,19 @@ void RuleBook::save()
         // 集成原代码的部分逻辑
         m_updateTimer->stop();
     }
+}
+
+namespace BuiltInEffects {
+bool supported(BuiltInEffect effect) {
+    if (effect == BuiltInEffect::Blur) {
+        return false;
+    }
+
+    typedef bool (*ClientBuiltInEffect)(KWin::BuiltInEffect);
+    ClientBuiltInEffect clientBuildInEffect = (ClientBuiltInEffect)QLibrary::resolve("kwin", qApp->applicationVersion(), "_ZN4KWin14BuiltInEffects9supportedENS_13BuiltInEffectE");
+    Q_ASSERT(clientBuildInEffect);
+    return clientBuildInEffect ? clientBuildInEffect(effect) : false;
+}
 }
 
 #endif // USE_DBUS_MENU
