@@ -104,6 +104,20 @@ void Chameleon::init()
     connect(m_theme, &ChameleonWindowTheme::windowPixelRatioChanged, this, &Chameleon::updateTitleBarArea);
     connect(qGuiApp, &QGuiApplication::fontChanged, this, &Chameleon::updateTitleGeometry);
 
+    QDBusInterface app("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance", "com.deepin.daemon.Appearance", QDBusConnection::sessionBus());
+    QVariant familyNameReply = app.property("StandardFont");
+    QVariant fontSizeReply = app.property("FontSize");
+
+    if (!familyNameReply.isNull()
+            && !fontSizeReply.isNull()) {
+        QString str = familyNameReply.toString();
+        if (str.length() > 0)
+            m_font.setFamily(str);
+        int val=fontSizeReply.toInt();
+        if (val > 0)
+            m_font.setPointSize(val);
+    }
+
     QDBusConnection::sessionBus().connect("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance",
                                       "com.deepin.daemon.Appearance",
                                       "Changed",this,

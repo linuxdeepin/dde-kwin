@@ -331,23 +331,6 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
             SetDecorationDeepinTheme("dark");
         }
     }
-    initCursor();
-}
-void DeepinWMFaker::initCursor()
-{
-
-    QDBusMessage response = QDBusInterface("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance", "com.deepin.daemon.Appearance").call("GetScaleFactor");
-
-    if (response.type() != QDBusMessage::ReplyMessage) {
-        qDebug() << "GetScaleFactor method called failed!";
-        return;
-    }
-
-    double value = response.arguments().takeFirst().toDouble();
-    if (value <= 0)
-        return;
-
-    setCursorSize(value * DEFAULTCURSORSIZE);
 }
 
 DeepinWMFaker::~DeepinWMFaker()
