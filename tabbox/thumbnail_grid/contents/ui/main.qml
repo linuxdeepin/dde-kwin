@@ -135,6 +135,11 @@ KWin.Switcher {
                 anchors.fill: parent
                 hoverEnabled: true
                 onPositionChanged: dialogMainItem.mouseEnabled = true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: "Ma_tabbox_mouseDetector"
+                Accessible.description: "tabbox_mouseDetector"
+                Accessible.onPressAction: pressed()
             }
 
             Rectangle {
@@ -161,6 +166,10 @@ KWin.Switcher {
 
                         Behavior on x { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
                         Behavior on y { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
+
+                        Accessible.role: Accessible.Indicator
+                        Accessible.name: "Rect_tabbox_Indicator_"+itemsView.currentIndex
+                        Accessible.description: "tabbox_Indicator_currentIndex_currentWindowId"
                     }
                 }
 
@@ -184,6 +193,10 @@ KWin.Switcher {
                             anchors.fill: parent
                             wId: modelWId
                         }
+
+                        Accessible.role: Accessible.Graphic
+                        Accessible.name: "Rect_tabbox_desktopImage_" + modelWId
+                        Accessible.description: "tabbox_desktopImage_desktopImageId"
                     }
 
                 }
@@ -215,6 +228,11 @@ KWin.Switcher {
                             color: "#32000000"
                             source: iconItem
                         }
+
+                        Accessible.role: Accessible.Graphic
+                        Accessible.name: !isCloseable && (modelIndex+1) == itemsView.count ?
+                                             "Rect_tabbox_desktopImage_" + modelWId : "Rect_tabbox_windowImage_" + modelWId
+                        Accessible.description: "tabbox_windowImage_windowImageId"
                     }
                 }
 
@@ -255,6 +273,12 @@ KWin.Switcher {
                             onClicked: {
                                 parent.select()
                             }
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: !closeable && (index+1) == itemsView.count ?
+                                                 "Ma_tabbox_desktopItem_" + windowId : "Ma_tabbox_windowItem_" + windowId
+                            Accessible.description: "tabbox_window/desktopItem_winId"
+                            Accessible.onPressAction: pressed()
                         }
 
                         function select() {

@@ -736,6 +736,11 @@ Rectangle {
                                     border.color: "lightgray";
                                     border.width: 0;
                                     color: "transparent";
+
+                                    Accessible.role: Accessible.Indicator
+                                    Accessible.name: "Rect_winThumb_Indicator_" + multitaskingModel.currentWindowThumbnail
+                                    Accessible.description: "Indicator_currentWindowThumbnail"
+                                    Accessible.focused: backgroundrect.border.width > 0 ? true : false
                                 }
 
                             }
