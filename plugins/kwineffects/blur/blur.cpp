@@ -60,7 +60,9 @@ BlurEffect::BlurEffect(QObject *, const QVariantList &)
         KWaylandServer::Display *display = effects->waylandDisplay();
         if (display) {
             m_blurManager = display->createBlurManager(this);
+#if defined(KWIN_VERSION) && KWIN_VERSION <= KWIN_VERSION_CHECK(5, 18, 90, 0)
             m_blurManager->create();
+#endif
         }
     } else {
         net_wm_blur_region = 0;
