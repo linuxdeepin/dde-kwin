@@ -29,6 +29,45 @@
 #define KWIN_VERSION KWIN_VERSION_CHECK(KWIN_VERSION_MAJ, KWIN_VERSION_MIN, KWIN_VERSION_PAT, KWIN_VERSION_BUI)
 #endif
 
+namespace KWin {
+// 光标管理
+class Cursor : public QObject
+{
+    Q_OBJECT
+public:
+#if defined(KWIN_VERSION) && KWIN_VERSION <= KWIN_VERSION_CHECK(5, 18, 4, 0)
+    static Cursor *s_self;
+#endif
+};
+}
+
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 18, 5, 0)
+class Cursors : public QObject
+{
+public:
+    static Cursors *s_self;
+};
+#endif
+
+class CursorProxy : public QObject {
+    Q_OBJECT
+public:
+    static CursorProxy* Instance() {
+        static CursorProxy proxy;
+        return &proxy;
+    }
+
+Q_SIGNALS:
+    void themeChanged();
+
+public Q_SLOTS:
+    void setCursor(KWin::Cursor* cursor);
+
+private:
+    CursorProxy(QObject* parent = nullptr);
+    KWin::Cursor* m_currentCursor;
+};
+
 class KWinUtilsPrivate;
 class Q_DECL_EXPORT KWinUtils : public QObject
 {
@@ -116,6 +155,12 @@ public:
         static void setWindowDesktop(QObject *window, int desktop);
 
         static void performWindowOperation(QObject* window, const QString &opName, bool restricted = false);
+    };
+
+    struct Cursor {
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 18, 5, 0)
+        static void setCurrentCursor(KWin::Cursor* cursor);
+#endif
     };
 
     static quint32 internAtom(const QByteArray &name, bool only_if_exists);
