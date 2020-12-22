@@ -542,84 +542,15 @@ Rectangle {
                 }
             }
 
-            Rectangle {
+            PlusButton {
                 id: plus
-                enabled: visible
-                color: "#33ffffff"
+                x: (screenWidth > screenHeight) ? screenWidth * 1789/1920 : screenWidth * 904/1080
+                y: (screenWidth > screenHeight) ? screenHeight * 62/1080 : screenHeight * 134/1920
 
-                x: screenWidth - 2*plus.width;
-                y: desktopThumbnailItemHeight/8 + desktopThumbnailItemHeight/2 - plus.height/2;
+                width: (screenWidth > screenHeight) ? screenWidth * 72/1920 : screenHeight * 72/1920
+                height: plus.width
+            }
 
-                width: (screenWidth - (desktopThumbnailItemWidth*3 + view.spacing*2))/8;
-                height: plus.width;
-                radius: width > 120 ? 30: 15
-
-                Image {
-                    z: 1
-                    id: background
-                    //source: backgroundManager.defaultNewDesktopURI
-                    anchors.fill: parent
-                    visible: false //disable now
-
-                    opacity: 0.0
-                    Behavior on opacity {
-                        PropertyAnimation { duration: 200; easing.type: Easing.InOutCubic }
-                    }
-
-                    layer.enabled: true
-                    layer.effect: OpacityMask {
-                        maskSource: Rectangle {
-                            x: background.x
-                            y: background.y
-                            width: background.width
-                            height: background.height
-                            radius: 6
-                        }
-                    }
-                }
-
-                Canvas {
-                    z: 2
-                    anchors.fill: parent
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        var plus_size = 20.0
-                        ctx.lineWidth = 2
-                        ctx.strokeStyle = "rgba(255, 255, 255, 1.0)";
-
-                        ctx.beginPath();
-                        ctx.moveTo((width - plus_size)/2, height/2);
-                        ctx.lineTo((width + plus_size)/2, height/2);
-
-                        ctx.moveTo(width/2, (height - plus_size)/2);
-                        ctx.lineTo(width/2, (height + plus_size)/2);
-                        ctx.stroke();
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    //hoverEnabled: true
-
-                    Accessible.role: Accessible.Button
-                    Accessible.name: "Ma_plusBtn"
-                    Accessible.description: "plus Button"
-                    Accessible.onPressAction: pressed()
-
-                    onClicked: {
-                        multitaskingModel.append();
-                        multitaskingModel.setCurrentIndex(multitaskingModel.rowCount() - 1);
-                    }
-                    onEntered: {
-                        //backgroundManager.shuffleDefaultBackgroundURI()
-                        background.opacity = 0.6
-                    }
-
-                    onExited: {
-                        background.opacity = 0.0
-                    }
-                }
-            } //~ plus button
             DropArea {
                 anchors.right:wholeDesktopThumbnailView.right;
                 width: screenWidth-view.x-view.width;

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/qml">
         <file>thumbmanager.qml</file>
+        <file>PlusButton.qml</file>
     </qresource>
     <qresource prefix="/icons">
         <file>data/bottomleft.svg</file>
