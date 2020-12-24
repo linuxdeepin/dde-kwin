@@ -164,8 +164,8 @@ Rectangle {
                 }
             }
 
-            property int desktopThumbnailItemWidth: screenWidth/7;
-            property int desktopThumbnailItemHeight: screenHeight/6;
+            property int desktopThumbnailItemWidth: (screenWidth > screenHeight) ? screenWidth * 240/1920 : screenWidth * 135/1080
+            property int desktopThumbnailItemHeight: (screenWidth > screenHeight) ? screenHeight * 135/1080 : screenHeight * 240/1920
             id:wholeDesktopThumbnailView
             width: screenWidth;
             height: parent.height;
@@ -183,13 +183,13 @@ Rectangle {
             }
             ListView {
                 id: view
-                y:desktopThumbnailItemHeight/8;
+                y: (screenWidth > screenHeight) ? screenHeight * 30/1080 : screenHeight * 50/1920;
                 width: 0;
-                height: parent.height;
+                height: desktopThumbnailItemHeight;
                 orientation: ListView.Horizontal;
                 model: multitaskingModel
                 interactive : false;
-                clip: true;
+                spacing: (screenWidth > screenHeight) ? screenWidth * 60/1920 : screenWidth * 110/1080
 
                 delegate: Rectangle {
 
@@ -209,14 +209,14 @@ Rectangle {
                         color: "transparent"
 
                         radius: 10
-                        width: thumbDelegate.width
-                        height: thumbDelegate.height
+                        width: desktopThumbnailItemWidth
+                        height: desktopThumbnailItemHeight
 
                         DesktopThumbnail {
                             id : smalldesktopThumbnail
                             desktop: index + 1;
-                            width: parent.width - closeBtn.width*(3/4)
-                            height: parent.height - closeBtn.height*(3/4)
+                            width: parent.width
+                            height: parent.height
                             anchors.centerIn: parent
                             radius: 10
                             monitor: screenname
@@ -244,8 +244,8 @@ Rectangle {
 
                         Rectangle {
                             id: closeBtn;
-                            x: thumbDelegate.width - closeBtn.width
-                            y: 0
+                            x: thumbDelegate.width - closeBtnIcon.width/2
+                            y: -closeBtnIcon.width/2
                             z: 100
                             width: closeBtnIcon.width
                             height: closeBtnIcon.height
@@ -268,9 +268,16 @@ Rectangle {
                             }
                             MouseArea {
                                 anchors.fill: parent;
+                                hoverEnabled: true;
+
+                                onExited: {
+                                    closeBtn.visible = false;
+                                }
+
                                 onClicked: {
                                     multitaskingModel.remove(index);
                                 }
+
                                 Accessible.role: Accessible.Button
                                 Accessible.name: "Ma_deskThumb_closeBtn_"+(index+1)+"_"+currentScreen
                                 Accessible.description: "desktopThumbnail_closeButton_desktop_screen"
@@ -318,7 +325,9 @@ Rectangle {
                             }
 
                             onExited: {
-                                closeBtn.visible = false;
+                                if (!closeBtn.contains(closeBtn.mapFromItem(desktopThumbMouseArea,mouseX,mouseY)))　{
+                                   　closeBtn.visible = false;
+                                }
                             }
                         }
                         property bool pendingDragRemove: false
