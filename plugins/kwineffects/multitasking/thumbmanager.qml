@@ -185,7 +185,7 @@ Rectangle {
                 id: view
                 y:desktopThumbnailItemHeight/8;
                 width: 0;
-                height: parent.height;
+                height: desktopThumbnailItemHeight;
                 orientation: ListView.Horizontal;
                 model: multitaskingModel
                 interactive : false;
