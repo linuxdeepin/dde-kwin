@@ -9,7 +9,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+<<<<<<< HEAD
         <location filename="../thumbmanager.qml" line="558"/>
+=======
+>>>>>>> fix: There is no popup notify when there is no window in the workspace
         <source>No windows</source>
         <translation type="unfinished"></translation>
     </message>

@@ -4,7 +4,14 @@
 <context>
     <name>thumbmanager</name>
     <message>
+<<<<<<< HEAD
         <location filename="../thumbmanager.qml" line="470"/>
+=======
+        <source>No windows</source>
+        <translation>无可用的窗口</translation>
+    </message>
+    <message>
+>>>>>>> fix: There is no popup notify when there is no window in the workspace
         <source>Drag upwards to remove</source>
         <translation>向上拖拽清除</translation>
     </message>
