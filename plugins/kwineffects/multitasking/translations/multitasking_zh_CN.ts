@@ -4,6 +4,10 @@
 <context>
     <name>thumbmanager</name>
     <message>
+        <source>No windows</source>
+        <translation>无可用的窗口</translation>
+    </message>
+    <message>
         <source>Drag upwards to remove</source>
         <translation>向上拖拽删除</translation>
     </message>

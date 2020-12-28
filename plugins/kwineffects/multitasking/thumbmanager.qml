@@ -636,6 +636,39 @@ Rectangle {
             }
             //window thumbnail
 
+            Rectangle {
+                id: tipsFrame
+                visible: false
+                color: Qt.rgba(247, 247, 247, 0.6)
+                x: (screenWidth - tipsFrame.width)/2
+                y: (screenHeight - tipsFrame.height)/2
+                width: (screenWidth > screenHeight) ? screenWidth * 86/1920 : screenWidth * 86/1080
+                height: (screenWidth > screenHeight) ? screenHeight * 24/1080 : screenHeight * 24/1920
+                radius: (screenWidth > screenHeight) ? screenHeight * 8/1080 : screenHeight * 8/1920
+                border.width: 1
+                border.color: Qt.rgba(0, 0, 0, 0.05)
+
+                Text {
+                    anchors.centerIn: parent
+                    width: (screenWidth > screenHeight) ? screenWidth * 72/1920 : screenWidth * 72/1080
+                    height: (screenWidth > screenHeight) ? screenHeight * 17/1080 : screenHeight * 17/1920
+                    text: qsTr("No windows")
+                    font.family: "SourceHanSansSC"
+                    font.pixelSize: (screenWidth > screenHeight) ? screenWidth * 12/1920 : screenWidth * 12/1080
+                }
+
+            }
+
+            DropShadow {
+                visible: windowThumbnail.count == 0 ? true : false
+                anchors.fill: tipsFrame
+                verticalOffset: 6
+                radius: 20
+                samples: 1 + radius * 2
+                color: Qt.rgba(0,0,0,0.2)
+                source: tipsFrame
+            }
+
             function setGridviewData() {
                if (multitaskingModel.getDesktopClientCount(currentScreen,multitaskingModel.currentIndex()+1) !== 0) {
 
@@ -664,6 +697,7 @@ Rectangle {
                 }
                 grid.update();
             }
+
             Rectangle{
                 id: bigWindowThrumbContainer
                 x: 0
