@@ -7,5 +7,9 @@
         <source>Drag upwards to remove</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>No windows</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>
