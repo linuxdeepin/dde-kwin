@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DEEPINVER_FILENAME=/etc/deepin-version
+OSVER_FILENAME=/etc/os-version
 KWINRC_FILENAME=/etc/xdg/kwinrc
 KWINRCTMP_FILENAME=~/.config/kwinrc
 
@@ -18,7 +19,7 @@ iniShieldDevicdId=(JM7200)
 iniValue=
 
 
-function ReadINIfile()  
+function ReadINIfile()
 {   
      iniFile=$1
      section=$2
@@ -84,19 +85,25 @@ function writeInifile()
     if [ "$?" = "0" ];then
         sectionNum=$(sed -n -e "/\[${section}\]/=" ${iniFile})
 
-	echo "section num  "+$sectionNum
-        sed -i "${sectionNum},/^\[.*\]/s/\(${option}.\?=\).*/\1 ${value}/g" ${iniFile}
+        echo "section num  "+$sectionNum
+        sed -i "${sectionNum},/^\[.*\]/s/\(${option}.\?=\).*/\1${value}/g" ${iniFile}
         echo "[success] update [$iniFile][$section][$option][$value]"
     else
-        sed -i "/^\[${section}\]/a\\${option} = ${value}" ${iniFile}
+        sed -i "/^\[${section}\]/a\\${option}=${value}" ${iniFile}
         echo "[success] add [$iniFile][$section][$option][$value]"
     fi
 }
 
 
 
-
-   ReadINIfile  $DEEPINVER_FILENAME "Release" "Type" 
+if [ ! -f "$OSVER_FILENAME" ] && [ ! -f "$DEEPINVER_FILENAME" ];then
+    echo "[error:] $DEEPINVER_FILENAME and $OSVER_FILENAME not exist"
+    exit
+elif [ ! -f "$OSVER_FILENAME" ]; then
+    ReadINIfile  $DEEPINVER_FILENAME "Release" "Type" 
+else
+    ReadINIfile  $OSVER_FILENAME "Version" "ProductType" 
+fi
 #echo $iniValue
 #echo $DEEPINVER
 
