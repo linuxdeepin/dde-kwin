@@ -45,12 +45,19 @@ install_files(
     org.kde.kwin.KWinUtils.xml
 )
 
+qt5_add_dbus_interface(
+    wm_infterface_SRCS
+    ../../../deepin-wm-dbus/com.deepin.wm.xml.in
+    wm_interface
+)
+
 # for xcb platform
 add_library(
     ${TARGET_NAME} MODULE
     main.cpp
     libkwinpreload.cpp
     ${plugin_SRCS}
+    ${wm_infterface_SRCS}
 )
 
 target_compile_definitions(
@@ -76,6 +83,7 @@ add_library(
     main_wayland.cpp
     libkwinpreload.cpp
     ${plugin_SRCS}
+    ${wm_infterface_SRCS}
 )
 
 target_compile_definitions(

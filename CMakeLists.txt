@@ -98,5 +98,7 @@ if (${KWIN_VERSION} STRLESS ${DDE_KWIN_SUPPORTED_VERSION} OR  ${KWIN_VERSION} ST
     add_subdirectory(scripts)
     add_subdirectory(deepin-wm-dbus)
     add_subdirectory(tabbox)
-    add_subdirectory(tests)
+    if (BUILD_TESTING)
+        add_subdirectory(tests)
+    endif()
 endif()
