@@ -41,7 +41,9 @@
 #include <QQuickWindow>
 #include <QDBusConnection>
 
-#include "libkwinpreload.h"
+//#include "libkwinpreload.h"
+
+#include "wm_interface.h"
 
 using namespace DWaylandServer;
 QT_BEGIN_NAMESPACE
@@ -260,8 +262,27 @@ public slots:
 
     void updateCursorSize() {
         bool ok = false;
-        int cursorSize = QDBusInterface("com.deepin.wm", "/com/deepin/wm").property("cursorSize").toInt(&ok);
+        int cursorSize = 0;
+        //qdbus默认会使用25s超时机制，这个机制在某些实时性要求较高的场景并不太适用。
+        //设置超时时间为200ms，超时尝试最大5次，综合下来能够达到即不会阻塞太长时间，重试也能增强逻辑的兼容性。
+        int retry = 5;
+        int timeout = 200;
+        
+        ComDeepinWmInterface wm_interface("com.deepin.wm",
+                                          "/com/deepin/wm",
+                                          QDBusConnection::sessionBus(), this);
 
+        //设置超时时间,超时后，进行重试
+        wm_interface.setTimeout(timeout);
+        while(retry--) {
+            cursorSize = wm_interface.cursorSize();
+            if (!wm_interface.lastError().isValid()) {
+                // 读取数据成功
+                ok = true;
+                break;
+            }
+        }
+        
         // 应该跟随dpi缩放设置光标大小
         if (!ok || cursorSize <= 0) {
             if (QScreen *s = QGuiApplication::primaryScreen()) {
@@ -349,7 +370,7 @@ public slots:
                 feralShellSurface << surface;
             }
 
-            connect(surface, &DShellSurface::surfaceDestroyed, [surface, this]() {
+            /*connect(surface, &DShellSurface::surfaceDestroyed, [surface, this]() {
                 qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "DShellSurface surfaceDestroyed:" << surface;
                 bool inList = false;
                 auto itor = feralShellSurface.begin();
@@ -373,7 +394,7 @@ public slots:
                     }
                     surface->deleteLater();
                 }
-            });
+            });*/
 
             connect(surface, &DShellSurface::propertyChanged, [surface,this](const QString &name, const QVariant &value) {
                 if (surface && !name.isNull() && !value.isNull()) {
@@ -390,9 +411,9 @@ public slots:
 
         shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
         connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
-        connect(surface, &DShellSurface::activationRequested, [shell_client, this]() {
+        /*connect(surface, &DShellSurface::activationRequested, [shell_client, this]() {
             kwinUtils()->activateClient(shell_client);
-        });
+        });*/
         updateSurfaceInfos(surface, shell_client);
         return true;
     }
