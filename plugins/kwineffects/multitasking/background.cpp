@@ -5,6 +5,7 @@
 #include <QtDBus>
 #include <QGSettings>
 #include <QScreen>
+#include <QX11Info>
 
 #define DBUS_APPEARANCE_SERVICE "com.deepin.daemon.Appearance"
 #define DBUS_APPEARANCE_OBJ "/com/deepin/daemon/Appearance"
@@ -34,6 +35,9 @@ BackgroundManager& BackgroundManager::instance()
 BackgroundManager::BackgroundManager()
     :QObject()
 {
+    m_wm_interface.reset(new ComDeepinWmInterface("com.deepin.wm",
+                                                  "/com/deepin/wm",
+                                                  QDBusConnection::sessionBus(), this));
     m_defaultNewDesktopURI = QLatin1String(fallback_background_name);
     onGsettingsDDEAppearanceChanged(GsettingsBackgroundUri);
 
@@ -67,8 +71,10 @@ QPixmap BackgroundManager::getBackground(int workspace, QString screenName, cons
         workspace = 1;
     }
 
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-    QDBusReply<QString> reply = wm.call( "GetWorkspaceBackgroundForMonitor", workspace, screenName);
+    QDBusPendingReply<QString> reply = m_wm_interface->GetWorkspaceBackgroundForMonitor(workspace, screenName);
+    if (reply.isError()) {
+        uri = "";
+    }
     if (!reply.value().isEmpty()) {
         uri = reply.value();
     }
@@ -116,17 +122,24 @@ void BackgroundManager::desktopAboutToRemoved(int d)
     for(int i = 0; i < m_screenNamelst.count(); i++) {
         QString monitorName = m_screenNamelst.at(i);
 
-        for(int i = d; i < m_desktopCount; i++) {
-            QString backgrounduri;
-            QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", i + 1, monitorName);
-            if(!getReply.value().isEmpty()) {
-                backgrounduri = getReply.value();
-            } else {
-                backgrounduri = QLatin1String(fallback_background_name);
+        // X11 platform
+        if (QX11Info::isPlatformX11()) {
+            for(int i = d; i < m_desktopCount; i++) {
+                QString backgrounduri;
+                QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", i + 1, monitorName);
+                if(!getReply.value().isEmpty()) {
+                    backgrounduri = getReply.value();
+                } else {
+                    backgrounduri = QLatin1String(fallback_background_name);
+                }
+                wm.call( "SetWorkspaceBackgroundForMonitor", i, monitorName, backgrounduri);
             }
-            wm.call( "SetWorkspaceBackgroundForMonitor", i, monitorName, backgrounduri);
+        } else {
+            for(int i = d; i <  m_desktopCount; i++) {
+                QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(i + 1, monitorName);
+                QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(i, monitorName, getReply.value());
+            }
         }
-
     }
 }
 
@@ -136,44 +149,71 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
 
     for(int i = 0; i < m_screenNamelst.count(); i++) {
         QString monitorName = m_screenNamelst.at(i);
-
-        QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", from, monitorName);
         QString strFromUri;
-        if(!getReply.value().isEmpty()) {
-            strFromUri = getReply.value();
+        // X11 platform
+        if (QX11Info::isPlatformX11()) {
+            QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", from, monitorName);
+            if(!getReply.value().isEmpty()) {
+                strFromUri = getReply.value();
+            } else {
+                strFromUri = QLatin1String(fallback_background_name);
+            }
         } else {
-            strFromUri = QLatin1String(fallback_background_name);
+            QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(from, monitorName);
+            strFromUri = getReply.value();
         }
 
         if (from < to) {
             for(int j = from - 1; j < to; j++) {
                 int desktopIndex = j + 1; //desktop index
                 if ( desktopIndex == to) {
-                    wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
-                } else {
-                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex + 1, monitorName);
-                    QString backgroundUri;
-                    if(!getReply.value().isEmpty()) {
-                        backgroundUri = getReply.value();
+                    // X11 platform
+                    if (QX11Info::isPlatformX11()) {
+                        wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
                     } else {
-                        backgroundUri = QLatin1String(fallback_background_name);
+                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, strFromUri);
                     }
-                    wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, backgroundUri);
+                } else {
+                    // X11 platform
+                    if (QX11Info::isPlatformX11()) {
+                        QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex + 1, monitorName);
+                        QString backgroundUri;
+                        if(!getReply.value().isEmpty()) {
+                            backgroundUri = getReply.value();
+                        } else {
+                            backgroundUri = QLatin1String(fallback_background_name);
+                        }
+                        wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, backgroundUri);
+                    } else {
+                        QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex + 1, monitorName);
+                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, getReply.value());
+                    }
                 }
             }
         } else {
             for (int j = from; j > to - 1; j--) {
                 if (j == to) {
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
-                } else {
-                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", j - 1, monitorName);
-                    QString backgroundUri;
-                    if(!getReply.value().isEmpty()) {
-                        backgroundUri = getReply.value();
+                    // X11 platform
+                    if (QX11Info::isPlatformX11()) {
+                        QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
                     } else {
-                        backgroundUri = QLatin1String(fallback_background_name);
+                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(to, monitorName, strFromUri);
                     }
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, backgroundUri);
+                } else {
+                    // X11 platform
+                    if (QX11Info::isPlatformX11()) {
+                        QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", j - 1, monitorName);
+                        QString backgroundUri;
+                        if(!getReply.value().isEmpty()) {
+                            backgroundUri = getReply.value();
+                        } else {
+                            backgroundUri = QLatin1String(fallback_background_name);
+                        }
+                        QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, backgroundUri);
+                    } else {
+                        QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(j - 1, monitorName);
+                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(j, monitorName, getReply.value());
+                    }
                 }
             }
         }
@@ -242,15 +282,22 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
 
         for (int i = 0; i < m_desktopCount; i++) {
             int desktopIndex = i + 1;
-            QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex, monitorName);
             QString backgroundUri;
-            if(!getReply.value().isEmpty()) {
-                backgroundUri = getReply.value();
+            // X11 platform
+            if (QX11Info::isPlatformX11()) {
+                QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex, monitorName);
+                if(!getReply.value().isEmpty()) {
+                    backgroundUri = getReply.value();
+                } else {
+                    backgroundUri = QLatin1String(fallback_background_name);
+                }
+                backgroundUriList.append(backgroundUri);
+                lastBackgroundUri = backgroundUri;
             } else {
-                backgroundUri = QLatin1String(fallback_background_name);
+                QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex, monitorName);
+                backgroundUri.append(getReply.value());
+                lastBackgroundUri = getReply.value();
             }
-            backgroundUriList.append(backgroundUri);
-            lastBackgroundUri = backgroundUri;
         }
 
         // When user only upgrade dde-kwin, the previous defaultbackground maybe still stay in ~/.config/deepinwmrc.
@@ -279,7 +326,12 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
         } else {
             backgroundIndex -= 1;
         }
-        wm.call( "SetWorkspaceBackgroundForMonitor", workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+        // X11 platform
+        if (QX11Info::isPlatformX11()) {
+            wm.call( "SetWorkspaceBackgroundForMonitor", workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+        } else {
+            QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+        }
     }
 }
 

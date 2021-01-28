@@ -26,6 +26,8 @@
 #include <QObject>
 #include <QPixmap>
 
+#include "wm_interface.h"
+
 class BackgroundManager: public QObject
 {
     Q_OBJECT
@@ -71,6 +73,7 @@ private:
     QHash<QString, QPair<QSize, QPixmap>> m_bigCachedPixmaps;
 
     QList<QMap<QString,QVariant>> m_monitorInfoLst;
+    QScopedPointer<ComDeepinWmInterface> m_wm_interface;
 
     explicit BackgroundManager();
 
