@@ -2,6 +2,7 @@
     <qresource prefix="/qml">
         <file>thumbmanager.qml</file>
         <file>PlusButton.qml</file>
+        <file>DesktopBackgroundImage.qml</file>
     </qresource>
     <qresource prefix="/icons">
         <file>data/bottomleft.svg</file>

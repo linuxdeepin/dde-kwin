@@ -305,11 +305,16 @@ QPixmap BackgroundManager::getBackgroundPixmap(int workSpace, QString screenName
 
     if (m_bigCachedPixmaps.contains(backgroundUri  + strBackgroundPath)) {
         auto& p = m_bigCachedPixmaps[backgroundUri + strBackgroundPath];
-        if (p.first != size) {
+        if (p.first.width() == size.width() && p.first.height() == size.height())
+            return p.second;
+        // for clipping, we should guarantee CachedPixmaps is bigger than current monitor
+        if (p.first.width() > size.width() && p.first.height() > size.height()) {
             p.first = size;
             p.second = p.second.scaled(size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+            p.second = p.second.copy(QRect(static_cast<int>((p.second.width() - size.width()) / 2.0),
+                                           static_cast<int>((p.second.height() - size.height()) / 2.0), size.width(), size.height()));
+            return p.second;
         }
-        return p.second;
     }
 
     QPixmap pixmap;

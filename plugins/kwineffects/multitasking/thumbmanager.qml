@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.2
 import QtQuick.Window 2.0
-import com.deepin.kwin 1.0
 import QtGraphicalEffects 1.0
 import org.kde.plasma 2.0 as PlasmaCore
 import org.kde.kwin 2.0 as KWin
@@ -145,21 +144,26 @@ Rectangle {
                 id: mostBigbackgroundRect
                 width: screenWidth;
                 height: screenHeight;
-                Image {
-                    id: backgroundImage;
-                    source: "image://BackgroundImageProvider/" + (currentIndex+1 + "/" + screenname);
-                    cache : false
+
+                DesktopBackgroundImage {
+                    id: bigDesktopBackgroundImage
+
+                    anchors.fill: parent
+                    desktopIndex: view.currentIndex + 1
+                    rounded: false
+                    desktopScreenName: screenname
+                    visible: false
                 }
+
                 FastBlur {
-                    anchors.fill: backgroundImage
-                    source: backgroundImage
+                    anchors.fill: mostBigbackgroundRect
+                    source: bigDesktopBackgroundImage
                     radius: 70
                 }
                 Connections {
                     target: root
                     onQmlUpdateBackground: {
-                        backgroundImage.source = "";
-                        backgroundImage.source = "image://BackgroundImageProvider/" + (multitaskingModel.currentIndex()+1 + "/" + screenname);
+                        view.currentIndex = multitaskingModel.currentIndex()
                     }
                 }
             }
@@ -202,7 +206,8 @@ Rectangle {
 
                     Rectangle {
                         id: desktopThumbnail;
-                        property int desktop: smalldesktopThumbnail.desktop;
+
+                        property int desktop: index + 1
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         property var originParent: view
@@ -212,33 +217,26 @@ Rectangle {
                         width: desktopThumbnailItemWidth
                         height: desktopThumbnailItemHeight
 
-                        DesktopThumbnail {
-                            id : smalldesktopThumbnail
-                            desktop: index + 1;
-                            width: parent.width
-                            height: parent.height
-                            anchors.centerIn: parent
-                            radius: 10
-                            monitor: screenname
+                        DesktopBackgroundImage {
+                            id: smallDesktopBackgroundImage
 
-                            Rectangle {
-                                id:winThumrect;
-                                width: parent.width;
-                                height: parent.height;
-                                border.color: "lightskyblue";
-                                border.width: 0;
-                                color: "transparent";
-                                radius: 10;
-                            }
-                            Component.onCompleted: {
-                                smalldesktopThumbnail.getDesktopThumbnailBackground(desktop,monitor,width,height);
-                            }
-                            Connections {
-                                target: root
-                                onQmlUpdateDesktopThumBackground: {
-                                    smalldesktopThumbnail.getDesktopThumbnailBackground(smalldesktopThumbnail.desktop,smalldesktopThumbnail.monitor,smalldesktopThumbnail.width,smalldesktopThumbnail.height);
-                                }
-                            }
+                            anchors.fill: parent
+                            desktopIndex: index + 1
+                            rounded: true
+                            imageRadius: desktopThumbnail.radius
+                            desktopScreenName: screenname
+
+                            // TODO: the mouse area above this image should be round corners too
+                        }
+
+                        Rectangle {
+                            id:winThumrect;
+                            width: parent.width;
+                            height: parent.height;
+                            border.color: "lightskyblue";
+                            border.width: 0;
+                            color: "transparent";
+                            radius: 10;
                         }
 
 
@@ -299,6 +297,7 @@ Rectangle {
 
                             onClicked: {
                                 multitaskingModel.setCurrentIndex(index);
+                                view.currentIndex = index
                             }
 
                             drag.target: desktopThumbnail;

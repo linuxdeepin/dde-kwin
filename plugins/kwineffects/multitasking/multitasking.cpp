@@ -1300,7 +1300,6 @@ void MultitaskingEffect::setActive(bool active)
             QSurfaceFormat fmt = m_multitaskingView->format();
             fmt.setAlphaBufferSize(8);
             m_multitaskingView->setFormat(fmt);
-            qmlRegisterType<DesktopThumbnail>("com.deepin.kwin", 1, 0, "DesktopThumbnail");
             qmlRegisterType<Plasma::WindowThumbnail>("org.kde.plasma", 2, 0, "WindowThumbnail");
             m_multitaskingView->rootContext()->setContextProperty("manager", m_thumbManager);
             m_multitaskingView->rootContext()->setContextProperty("backgroundManager", &BackgroundManager::instance());
@@ -1327,9 +1326,9 @@ void MultitaskingEffect::setActive(bool active)
 
         m_multitaskingModel->setCurrentIndex(effects->currentDesktop() - 1);
         m_thumbManager->setGeometry(effects->virtualScreenGeometry());
+        m_multitaskingModel->load(desktopCount);
         m_multitaskingView->setSource(QUrl("qrc:/qml/thumbmanager.qml"));
         m_multitaskingView->setGeometry(effects->virtualScreenGeometry());
-        m_multitaskingModel->load(desktopCount);
         m_hasKeyboardGrab = effects->grabKeyboard(this);
         effects->startMouseInterception(this, Qt::PointingHandCursor);
 
@@ -1341,7 +1340,6 @@ void MultitaskingEffect::setActive(bool active)
         connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
         connect(root, SIGNAL(qmlRemoveWindowThumbnail(int, int, QVariant)), this, SLOT(removeEffectWindow(int, int, QVariant)));
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
-        connect(this, SIGNAL(updateDesktopThumBackground()), root, SIGNAL(qmlUpdateDesktopThumBackground()));
         connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), root, SIGNAL(qmlUpdateBackground()));
         connect(m_multitaskingModel, SIGNAL(updateQmlBackground()), root, SIGNAL(qmlUpdateBackground()));
 
