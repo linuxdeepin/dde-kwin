@@ -86,10 +86,17 @@ set_source_files_properties(${TS}
 
 qt5_create_translation(QM ${SRCS} ${TS})
 
+qt5_add_dbus_interface(
+    wm_infterface_SRCS
+    ../../../deepin-wm-dbus/com.deepin.wm.xml.in
+    wm_interface
+)
+
 add_library(
     ${PLUGIN_NAME} MODULE
     ${SRCS}
     ${QM}
+    ${wm_infterface_SRCS}
     data.qrc
 )
 

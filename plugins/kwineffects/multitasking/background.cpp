@@ -33,6 +33,9 @@ BackgroundManager& BackgroundManager::instance()
 BackgroundManager::BackgroundManager()
     :QObject()
 {
+    m_wm_interface.reset(new ComDeepinWmInterface("com.deepin.wm",
+                                                  "/com/deepin/wm",
+                                                  QDBusConnection::sessionBus(), this));
     m_defaultNewDesktopURI = QLatin1String(fallback_background_name);
     onGsettingsDDEAppearanceChanged(GsettingsBackgroundUri);
 
@@ -66,8 +69,10 @@ QPixmap BackgroundManager::getBackground(int workspace, QString screenName, cons
         workspace = 1;
     }
 
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-    QDBusReply<QString> reply = wm.call( "GetWorkspaceBackgroundForMonitor", workspace, screenName);
+    QDBusPendingReply<QString> reply = m_wm_interface->GetWorkspaceBackgroundForMonitor(workspace, screenName);
+    if (reply.isError()) {
+        uri = "";
+    }
     if (!reply.value().isEmpty()) {
         uri = reply.value();
     }
@@ -110,46 +115,41 @@ void BackgroundManager::onGsettingsDDEAppearanceChanged(const QString &key)
 
 void BackgroundManager::desktopAboutToRemoved(int d)
 {
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-
     for(int i = 0; i < m_screenNamelst.count(); i++) {
         QString monitorName = m_screenNamelst.at(i);
 
         for(int i = d; i <  m_desktopCount; i++) {
-            QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", i + 1, monitorName);
-            QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", i, monitorName, getReply.value());
+            QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(i + 1, monitorName);
+            QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(i, monitorName, getReply.value());
         }
-
     }
 }
 
 void BackgroundManager::desktopSwitchedPosition(int to, int from)
 {
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-
     for(int i = 0; i < m_screenNamelst.count(); i++) {
         QString monitorName = m_screenNamelst.at(i);
 
-        QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", from, monitorName);
+        QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(from, monitorName);
         QString strFromUri = getReply.value();
 
         if(from < to) {
             for(int j = from - 1; j < to; j++) {
                 int desktopIndex = j + 1; //desktop index
                 if( desktopIndex == to) {
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
+                    QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, strFromUri);
                 }else {
-                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex + 1, monitorName);
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, getReply.value());
+                    QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex + 1, monitorName);
+                    QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, getReply.value());
                 }
             }
         }else {
             for(int j = from; j > to - 1; j--) {
                 if(j == to) {
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
+                    QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(to, monitorName, strFromUri);
                 }else {
-                    QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", j - 1, monitorName);
-                    QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, getReply.value());
+                    QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(j - 1, monitorName);
+                    QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(j, monitorName, getReply.value());
                 }
             }
         }
@@ -214,8 +214,6 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
         }
     }
 
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-
     for(int i = 0; i < m_screenNamelst.count(); i++) {
 
         QString monitorName = m_screenNamelst.at(i);
@@ -223,7 +221,7 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
 
         for(int i = 0; i < m_desktopCount; i++) {
             int desktopIndex = i + 1;
-            QDBusReply<QString> getReply = wm.call( "GetWorkspaceBackgroundForMonitor", desktopIndex, monitorName);
+            QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex, monitorName);
             backgroundUri.append(getReply.value());
             lastBackgroundUri = getReply.value();
         }
@@ -245,6 +243,6 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
         }else {
             backgroundIndex -= 1;
         }
-        QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
     }
 }
