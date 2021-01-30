@@ -47,7 +47,7 @@ install_files(
 
 qt5_add_dbus_interface(
     wm_infterface_SRCS
-    ../../../deepin-wm-dbus/com.deepin.wm.xml.in
+    ${PROJECT_SOURCE_DIR}/deepin-wm-dbus/com.deepin.wm.xml.in
     wm_interface
 )
 
