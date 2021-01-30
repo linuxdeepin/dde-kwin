@@ -74,8 +74,7 @@ QPixmap BackgroundManager::getBackground(int workspace, QString screenName, cons
     QDBusPendingReply<QString> reply = m_wm_interface->GetWorkspaceBackgroundForMonitor(workspace, screenName);
     if (reply.isError()) {
         uri = "";
-    }
-    if (!reply.value().isEmpty()) {
+    } else if (!reply.value().isEmpty()) {
         uri = reply.value();
     }
 
@@ -137,7 +136,12 @@ void BackgroundManager::desktopAboutToRemoved(int d)
         } else {
             for(int i = d; i <  m_desktopCount; i++) {
                 QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(i + 1, monitorName);
-                QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(i, monitorName, getReply.value());
+                getReply.waitForFinished();
+                if (getReply.isError()) {
+                    continue;
+                }
+                QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(i, monitorName, getReply.value());
+                setReply.waitForFinished();
             }
         }
     }
@@ -160,6 +164,10 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
             }
         } else {
             QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(from, monitorName);
+            getReply.waitForFinished();
+            if (getReply.isError()) {
+                continue;
+            }
             strFromUri = getReply.value();
         }
 
@@ -171,7 +179,8 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
                     if (QX11Info::isPlatformX11()) {
                         wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, strFromUri);
                     } else {
-                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, strFromUri);
+                        QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, strFromUri);
+                        setReply.waitForFinished();
                     }
                 } else {
                     // X11 platform
@@ -186,7 +195,12 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
                         wm.call( "SetWorkspaceBackgroundForMonitor", desktopIndex, monitorName, backgroundUri);
                     } else {
                         QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex + 1, monitorName);
-                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, getReply.value());
+                        getReply.waitForFinished();
+                        if (getReply.isError()) {
+                            continue;
+                        }
+                        QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(desktopIndex, monitorName, getReply.value());
+                        setReply.waitForFinished();
                     }
                 }
             }
@@ -197,7 +211,8 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
                     if (QX11Info::isPlatformX11()) {
                         QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", to, monitorName, strFromUri);
                     } else {
-                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(to, monitorName, strFromUri);
+                        QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(to, monitorName, strFromUri);
+                        setReply.waitForFinished();
                     }
                 } else {
                     // X11 platform
@@ -212,7 +227,12 @@ void BackgroundManager::desktopSwitchedPosition(int to, int from)
                         QDBusReply<QString> setReply = wm.call( "SetWorkspaceBackgroundForMonitor", j, monitorName, backgroundUri);
                     } else {
                         QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(j - 1, monitorName);
-                        QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(j, monitorName, getReply.value());
+                        getReply.waitForFinished();
+                        if (getReply.isError()) {
+                            continue;
+                        }
+                        QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(j, monitorName, getReply.value());
+                        setReply.waitForFinished();
                     }
                 }
             }
@@ -295,6 +315,10 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
                 lastBackgroundUri = backgroundUri;
             } else {
                 QDBusPendingReply<QString> getReply = m_wm_interface->GetWorkspaceBackgroundForMonitor(desktopIndex, monitorName);
+                getReply.waitForFinished();
+                if (getReply.isError()) {
+                    continue;
+                }
                 backgroundUri.append(getReply.value());
                 lastBackgroundUri = getReply.value();
             }
@@ -330,7 +354,8 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
         if (QX11Info::isPlatformX11()) {
             wm.call( "SetWorkspaceBackgroundForMonitor", workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
         } else {
-            QDBusPendingReply<QString> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+            QDBusPendingReply<> setReply = m_wm_interface->SetWorkspaceBackgroundForMonitor(workspaceIndex, monitorName, backgroundAllLst.at(backgroundIndex));
+            setReply.waitForFinished();
         }
     }
 }
