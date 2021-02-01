@@ -14,7 +14,7 @@
 #define DBUS_DEEPIN_WM_OBJ "/com/deepin/wm"
 #define DBUS_DEEPIN_WM_INTF "com.deepin.wm"
 
-const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
+const char fallback_background_name[] = "file:///usr/share/wallpapers/deepin/desktop.jpg";
 
 Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gs_dde_appearance, ("com.deepin.dde.appearance"))
 
