@@ -38,8 +38,8 @@ BackgroundManager::BackgroundManager()
                                                   QDBusConnection::sessionBus(), this));
     //qdbus默认会使用25s超时机制，这个机制在某些实时性要求较高的场景并不太适用。
     //当前dde桌面启动时，如果qdbus因为某种原因出现异常，会导致整个kwin阻塞
-    //在目前未找到根因的情况下，暂时先通过缩短超时时间为1s来规避因为qdbus阻塞整个kwin的问题
-    int timeout = 1;
+    //在目前未找到根因的情况下，暂时先通过缩短超时时间为1000ms来规避因为qdbus阻塞整个kwin的问题
+    int timeout = 1000;
     m_wm_interface->setTimeout(timeout);
 
     m_defaultNewDesktopURI = QLatin1String(fallback_background_name);
