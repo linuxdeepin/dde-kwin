@@ -244,9 +244,18 @@ int MultitaskingModel::count() const
 
 void MultitaskingModel::move(int from, int to) 
 {
+    assert(from != to);
     m_desktopThumbnailItemList.move(from, to);
     emit switchDesktop(to+1, from+1);
-    emit updateQmlBackground();
+
+    if(from == m_currentIndex) {
+        setCurrentIndex(to);
+        return;
+    }
+    if(to <= m_currentIndex && m_currentIndex < from)
+        setCurrentIndex(m_currentIndex + 1);
+    if(from < m_currentIndex && m_currentIndex <= to)
+        setCurrentIndex(m_currentIndex - 1);
 }
 
 void MultitaskingModel::setCurrentSelectIndex(int index)

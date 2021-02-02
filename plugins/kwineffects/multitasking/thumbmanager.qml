@@ -149,7 +149,7 @@ Rectangle {
                     id: bigDesktopBackgroundImage
 
                     anchors.fill: parent
-                    desktopIndex: view.currentIndex + 1
+                    desktopIndex: multitaskingModel.currentDeskIndex + 1
                     rounded: false
                     desktopScreenName: screenname
                     visible: false
@@ -159,12 +159,6 @@ Rectangle {
                     anchors.fill: mostBigbackgroundRect
                     source: bigDesktopBackgroundImage
                     radius: 70
-                }
-                Connections {
-                    target: root
-                    onQmlUpdateBackground: {
-                        view.currentIndex = multitaskingModel.currentIndex()
-                    }
                 }
             }
 
@@ -539,7 +533,6 @@ Rectangle {
                     setGridviewData();
                     bigWindowThrumbContainer.curdesktop=multitaskingModel.currentIndex()+1 //zhd add
                 }
-
 
                 Connections {
                     target: multitaskingModel;
