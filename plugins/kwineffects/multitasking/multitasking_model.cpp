@@ -245,9 +245,19 @@ int MultitaskingModel::count() const
 void MultitaskingModel::move(int from, int to) 
 {
     assert(from != to);
-    m_desktopThumbnailItemList.move(from, to);
-    emit switchDesktop(to+1, from+1);
 
+    // The best way is to save pixmap in m_desktopThumbnailItemList
+    // and move pixmap in m_desktopThumbnailItemList in the middle of
+    // beginMoveRows() and endMoveRows();
+    // but let's refactor step by step
+    int dest = to;
+    if( to > from && to <= rowCount(QModelIndex()) - 1)
+        dest += 1;
+    if(!beginMoveRows(QModelIndex(), from, from, QModelIndex(), dest))
+        return;
+    endMoveRows();
+
+    emit switchDesktop(to+1, from+1);
     if(from == m_currentIndex) {
         setCurrentIndex(to);
         return;

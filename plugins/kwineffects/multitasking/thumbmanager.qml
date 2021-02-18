@@ -221,6 +221,13 @@ Rectangle {
                             desktopScreenName: screenname
 
                             // TODO: the mouse area above this image should be round corners too
+
+                            Component.onCompleted: {
+                                // this line is to break binding. As no binding, smallDesktopBackgroundImage
+                                // won't refresh which will cause dbus-call after dragging.
+                                // decreasing dbus-call will decrease time consuming.
+                                desktopIndex = index + 1
+                            }
                         }
 
                         Rectangle {

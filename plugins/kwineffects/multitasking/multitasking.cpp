@@ -1161,7 +1161,6 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
 
     effects->addRepaintFull();
     refreshWindows();
-    emit forceResetDesktopModel();
 }
 
 void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId) 
