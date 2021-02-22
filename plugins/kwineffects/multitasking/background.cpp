@@ -15,6 +15,7 @@
 #define DBUS_DEEPIN_WM_INTF "com.deepin.wm"
 
 const char fallback_background_name[] = "file:///usr/share/wallpapers/deepin/desktop.jpg";
+const char previous_default_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
 Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gs_dde_appearance, ("com.deepin.dde.appearance"))
 
@@ -251,6 +252,15 @@ void BackgroundManager::changeWorkSpaceBackground(int workspaceIndex)
             backgroundUriList.append(backgroundUri);
             lastBackgroundUri = backgroundUri;
         }
+
+        // When user only upgrade dde-kwin, the previous defaultbackground maybe still stay in ~/.config/deepinwmrc.
+        // So we remove default background from all background.
+        QString oldVerisonDefaultBackground(previous_default_background_name);
+        QString defaultBackground(fallback_background_name);
+        if (backgroundUriList.contains(oldVerisonDefaultBackground)) {
+            backgroundAllLst.removeAll(defaultBackground);
+        }
+
         backgroundUriList = backgroundUriList.toSet().toList();
 
         for (int i = 0; i < backgroundUriList.count(); i++) {
