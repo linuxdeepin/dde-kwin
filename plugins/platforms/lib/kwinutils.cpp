@@ -141,13 +141,6 @@ public:
     static Compositor *s_compositor;
 };
 
-// 光标管理
-class Cursor : public QObject
-{
-public:
-    static Cursor *s_self;
-};
-
 class AbstractClient : public QObject {};
 class Options {
 public:
@@ -162,6 +155,25 @@ public:
     static Extensions *s_self;
 };
 }
+}
+
+CursorProxy::CursorProxy(QObject *parent)
+    : QObject(parent)
+    , m_currentCursor(nullptr)
+{
+#if defined(KWIN_VERSION) && KWIN_VERSION <= KWIN_VERSION_CHECK(5, 18, 4, 0)
+    setCursor(KWin::Cursor::s_self);
+#endif
+}
+
+void CursorProxy::setCursor(KWin::Cursor *cursor)
+{
+    if (m_currentCursor) {
+        disconnect(cursor, SIGNAL(themeChanged()), this, SIGNAL(themeChanged()));
+    }
+
+    m_currentCursor = cursor;
+    connect(cursor, SIGNAL(themeChanged()), this, SIGNAL(themeChanged()));
 }
 
 static inline bool isPlatformX11()
@@ -606,7 +618,7 @@ QObject *KWinUtils::tabBox()
 
 QObject *KWinUtils::cursor()
 {
-    return KWin::Cursor::s_self;
+    return CursorProxy::Instance();
 }
 
 QObject *KWinUtils::virtualDesktop()
@@ -1362,5 +1374,18 @@ void KWinUtils::Window::performWindowOperation(QObject *window, const QString &o
     KWin::Options::WindowOperation op = interface->optionsWindowOperation(opName, restricted);
     QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::AbstractClient*, c), Q_ARG(KWin::Options::WindowOperation, op));
 }
+
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 18, 5, 0)
+void KWinUtils::Cursor::setCurrentCursor(KWin::Cursor *cursor)
+{
+    CursorProxy::Instance()->setCursor(cursor);
+    typedef void (*Cursors)(KWin::Cursor*);
+    const char * symbol = "_ZN4KWin7Cursors16setCurrentCursorEPNS_6CursorE";
+    Cursors cursors = (Cursors)QLibrary::resolve("kwin.so", qApp->applicationVersion(), symbol);
+    if (cursors) {
+        cursors(cursor);
+    }
+}
+#endif
 
 #include "moc_kwinutils.cpp"

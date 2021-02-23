@@ -276,6 +276,12 @@ void RuleBook::save()
     }
 }
 
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 18, 5, 0)
+void Cursors::setCurrentCursor(Cursor* cursor) {
+    return KWinUtils::Cursor::setCurrentCursor(cursor);
+}
+#endif
+
 namespace BuiltInEffects {
 bool supported(BuiltInEffect effect) {
     if (effect == BuiltInEffect::Blur) {
