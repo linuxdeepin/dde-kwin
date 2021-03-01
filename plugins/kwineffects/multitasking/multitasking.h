@@ -283,6 +283,7 @@ Q_SIGNALS:
     void modeChanged();
     void forceResetDesktopModel();
     void updateDesktopThumBackground();
+    void forceResetWindowThumbnailModel();
 
 public Q_SLOTS:
     void setActive(bool active);

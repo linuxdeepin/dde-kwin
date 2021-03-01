@@ -27,6 +27,7 @@ Rectangle {
     signal qmlUpdateDesktopThumBackground();
     signal qmlUpdateBackground();
     signal qmlRequestGetBackground(int desktop, int monitor,int width,int height);
+    signal qmlForceResetWindowThumbnailModel()
 
     Component {
         id: windowThumbnailView;
@@ -125,6 +126,13 @@ Rectangle {
                         //console.log(" model is changed !!!!!!!!!!")
                     }
                 }
+                Connections {
+                    target: root
+                    onQmlForceResetWindowThumbnailModel: {
+                        resetWindowThumbnailModel()
+                    }
+                }
+
                 Connections {
                     target: root
                     onQmlForceResetDesktopModel: {

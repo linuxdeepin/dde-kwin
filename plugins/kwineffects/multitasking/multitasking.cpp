@@ -1161,6 +1161,7 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
 
     effects->addRepaintFull();
     refreshWindows();
+    emit forceResetWindowThumbnailModel();
 }
 
 void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId) 
@@ -1341,6 +1342,8 @@ void MultitaskingEffect::setActive(bool active)
         connect(this, SIGNAL(forceResetDesktopModel()), root, SIGNAL(qmlForceResetDesktopModel()));
         connect(m_multitaskingModel, SIGNAL(currentDesktopChanged(int)), root, SIGNAL(qmlUpdateBackground()));
         connect(m_multitaskingModel, SIGNAL(updateQmlBackground()), root, SIGNAL(qmlUpdateBackground()));
+
+        connect(this, SIGNAL(forceResetWindowThumbnailModel()), root, SIGNAL(qmlForceResetWindowThumbnailModel()));
 
         EffectWindow* active_window = effects->activeWindow();
         if (active_window && !active_window->isSpecialWindow()) {
