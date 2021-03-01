@@ -164,8 +164,8 @@ KWin.Switcher {
                         x: itemsView.currentItem ? itemsView.currentItem.x : 0
                         y: itemsView.currentItem ? itemsView.currentItem.y : 0
 
-                        Behavior on x { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
-                        Behavior on y { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 200 } }
+                        Behavior on x { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 80 } }
+                        Behavior on y { SmoothedAnimation { easing.type: Easing.InOutCubic; duration: 80 } }
 
                         Accessible.role: Accessible.Indicator
                         Accessible.name: "Rect_tabbox_Indicator_"+itemsView.currentIndex
