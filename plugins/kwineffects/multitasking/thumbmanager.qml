@@ -109,11 +109,6 @@ Rectangle {
                                     z: 100;
 
                                 }
-                                // AnchorChanges {
-                                //     target: winAvatar;
-                                //     anchors.horizontalCenter: undefined
-                                //     anchors.verticalCenter: undefined
-                                // }
                             }
                         }
                         //zhd add end
@@ -388,45 +383,6 @@ Rectangle {
                             property int closeBtnWidth:closeBtn.width
                             property int closeBtnHeight:closeBtn.height
                         }
-
-//                        Rectangle {
-//                            id: closeBtn;
-////                            anchors.right: parent.right;
-//                            x: parent.width - (parent.width - parent.width*0.85)/2 - closeBtnIcon.width/2
-//                            y: (parent.height - parent.height*0.85)/2 - closeBtnIcon.height/2
-//                            color: "transparent";
-//                            property int desktop: desktopThumbnail.desktop;
-//                            visible: false;
-
-//                            Image {
-//                                id: closeBtnIcon;
-//                                source: "qrc:///icons/data/close_normal.svg"
-//                            }
-
-//                            MouseArea {
-//                                anchors.fill: closeBtn;
-//                                onClicked: {
-//                                    multitaskingModel.remove(index);
-//                                }
-//                            }
-
-//                            Connections {
-//                                target: view;
-//                                onCountChanged: {
-//                                    closeBtn.visible = false;
-//                                }
-//                            }
-//                        }
-
-//                        Rectangle {
-//                            id:winThumrect;
-//                            width: parent.width;
-//                            height: parent.height;
-//                            border.color: "lightskyblue";
-//                            border.width: 0;
-//                            color: "transparent";
-//                            radius: 10;
-//                        }
                     }
 
                     DropArea {
@@ -709,7 +665,6 @@ Rectangle {
                     columns : multitaskingModel.getCalculateColumnsCount(currentScreen,multitaskingModel.currentIndex()+1);
                     Repeater {
                         id: windowThumbnail;
-                        //model: multitaskingModel.windows(currentScreen)
 
                         Rectangle {
                             id:windowThumbnailitem
@@ -751,15 +706,6 @@ Rectangle {
                                 }
 
                             }
-
-//                            Rectangle {
-//                                id:backgroundrect;
-//                                width: parent.width;
-//                                height: parent.height;
-//                                border.color: "lightgray";
-//                                border.width: 0;
-//                                color: "transparent";
-//                            }
                           
                             MouseArea {
                                 id:windowThumbnailitemMousearea
@@ -805,12 +751,6 @@ Rectangle {
                                     }
                                 }
                               
-                                //  excute on released
-                                // onClicked: {
-                                //     multitaskingModel.setCurrentSelectIndex(modelData);
-                                //     multitaskingModel.windowSelected( modelData );
-
-                                // }
                                 onExited: {
                                      closeClientBtn.visible = false;
                                      stickedBtn.visible = false;
@@ -925,19 +865,7 @@ Rectangle {
                                     PropertyChanges {
                                         target: windowThumbnailitem;
                                         z: 100;
-                                    }
-                                    // PropertyChanges{
-                                    //     target:windowThumbnailitemMousearea
-                                    //     width:120
-                                    //     height:80
-                                    // }
-                                    // AnchorChanges{
-                                    //     target: windowThumbnailitem;
-
-                                    //     Layout.fillWidth: false
-                                    //     Layout.fillHeight:false
-                                    // }
-                                   
+                                    }                                  
                                 }]
                             }
                             Rectangle {
@@ -945,7 +873,7 @@ Rectangle {
                                 visible:false;
                                 x: parent.width - (parent.width - parent.width*0.85)/2 - closeClientBtnIcon.width/2
                                 y: (parent.height - parent.height*0.85)/2 - closeClientBtnIcon.height/2
-//                                anchors.right: parent.right;
+
                                 width: closeClientBtnIcon.width;
                                 height: closeClientBtnIcon.height;
                                 color: "transparent";
@@ -969,7 +897,7 @@ Rectangle {
                                 id: stickedBtn;
                                 x: (parent.width - parent.width*0.85)/2 - stickedBtn.width/2
                                 y: (parent.height - parent.height*0.85)/2 - stickedBtn.height/2
-//                                anchors.left: parent.left;
+
                                 width: stickedBtnIcon.width;
                                 height: stickedBtnIcon.height;
                                 color: "transparent";
@@ -1017,7 +945,7 @@ Rectangle {
 
                             Rectangle {
                                 id: clientIcon;
-//                                color: "red"
+
                                 x:(plasmaCoreWindowThumbnail.width/2 -  clientIconImage.width/2)/0.85;
                                 y: (parent.height - clientIconImage.height/2) - ( parent.height - plasmaCoreWindowThumbnail.height )/2
                                 width: clientIconImage.width;
