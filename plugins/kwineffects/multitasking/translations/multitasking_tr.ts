@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="zh_CN">
+<TS version="2.1" language="tr">
 <context>
     <name>thumbmanager</name>
     <message>
         <location filename="../thumbmanager.qml" line="470"/>
         <source>Drag upwards to remove</source>
-        <translation>向上拖拽清除</translation>
+        <translation>Kaldırmak için yukarı sürükleyin</translation>
     </message>
     <message>
         <location filename="../thumbmanager.qml" line="558"/>
         <source>No windows</source>
-        <translation>无打开的窗口</translation>
+        <translation>Pencere yok</translation>
     </message>
 </context>
 </TS>
