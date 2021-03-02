@@ -653,6 +653,7 @@ Rectangle {
                     width: (screenWidth > screenHeight) ? screenWidth * 72/1920 : screenWidth * 72/1080
                     height: (screenWidth > screenHeight) ? screenHeight * 17/1080 : screenHeight * 17/1920
                     text: qsTr("No windows")
+                    horizontalAlignment: Text.AlignHCenter
                     font.family: "SourceHanSansSC"
                     font.pixelSize: (screenWidth > screenHeight) ? screenWidth * 12/1920 : screenWidth * 12/1080
                 }
