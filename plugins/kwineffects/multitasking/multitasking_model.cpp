@@ -288,7 +288,7 @@ QPair<int,int> MultitaskingModel::getScreenDesktopByWinID(int winid)
 {
     QPair<int,int> scrnDesk;
     EffectWindow *ew = effects->findWindow(winid);
-    scrnDesk.first = ew->screen();
+    scrnDesk.first = effects->screenNumber(ew->pos());
     const int desktopCount = effects->numberOfDesktops();
     if (ew->isOnAllDesktops()) {
         scrnDesk.second = m_currentIndex+1;
@@ -352,6 +352,7 @@ int MultitaskingModel::getNextWindowID()
     int desk = sd.second;
 
     int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+    assert(winindex >= 0);
     if (winindex == m_windows[scrn][desk].size() - 1) // at the end of current screen win list
     {
         if (scrn == effects->numScreens() - 1) // at the last screen
@@ -380,6 +381,8 @@ int MultitaskingModel::getPrevWindowID()
     int desk = sd.second;
 
     int winindex = m_windows[scrn][desk].indexOf(m_nCurrentSelectIndex);
+
+    assert(winindex >= 0);
     
     if (winindex == 0) // at the first of current screen win list
     {
