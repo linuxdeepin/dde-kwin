@@ -583,20 +583,21 @@ int MultitaskingModel::getPrevSametypeWindowID()
     }
 
     int winClassIndex = windowsClass[scrn][desk].indexOf(m_nCurrentSelectIndex);
-    if (winClassIndex == windowsClass[scrn][desk].size() - 1) // at the end of current screen win list
+
+    if (winClassIndex == 0) // at the first of current screen win list
     {
-        if (scrn == effects->numScreens() - 1) // at the last screen
+        if (scrn == 0) // at the first screen
         {
-            if (windowsClass[0][desk].size() == 0) { // if first screen has no winthumb
-                return windowsClass[scrn][desk].first().toInt();
+            if (windowsClass[numScreens()-1][desk].size() == 0) { // if end screen has no winthumb
+                return windowsClass[scrn][desk].last().toInt();
             } else {
-                return windowsClass[0][desk].first().toInt();
+                return windowsClass[numScreens()-1][desk].last().toInt();
             }
         } else {
-            if (windowsClass[scrn+1][desk].size() == 0) { // if next screen has no winthumb
-                return windowsClass[scrn][desk].first().toInt();
+            if (windowsClass[scrn-1][desk].size() == 0) { // if previous screen has no winthumb
+                return windowsClass[scrn][desk].last().toInt();
             } else {
-                return windowsClass[scrn+1][desk].first().toInt();
+                return windowsClass[scrn-1][desk].last().toInt();
             }
         }
     } else {
