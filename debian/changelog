@@ -1,3 +1,13 @@
+dde-kwin (5.3.5-1) unstable; urgency=medium
+
+  * Task:
+    + 61378 Add translation file.
+  * Bug fix:
+    + 65167 Shortcut "alt+shift+~" crash in multitasking.
+    + 64912 Multitasking crash due to window position.
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 09 Mar 2021 17:44:12 +0800
+
 dde-kwin (0.0.1-1) unstable; urgency=medium
 
   * Initial release
