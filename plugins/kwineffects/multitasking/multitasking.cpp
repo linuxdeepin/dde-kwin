@@ -883,15 +883,19 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
 
             case Qt::Key_Equal:
                 if (e->modifiers() == Qt::AltModifier) {
+                    int originNum = m_multitaskingModel->count();
                     m_multitaskingModel->append();
-                    m_multitaskingModel->setCurrentIndex(m_multitaskingModel->count() - 1);
+                    if( originNum < m_multitaskingModel->count() )
+                        m_multitaskingModel->setCurrentIndex(m_multitaskingModel->count() - 1);
                 }
                 break;
 
             case Qt::Key_Plus:
                 if (e->modifiers() == (Qt::AltModifier|Qt::KeypadModifier)) {
+                    int originNum = m_multitaskingModel->count();
                     m_multitaskingModel->append();
-                    m_multitaskingModel->setCurrentIndex(m_multitaskingModel->count() - 1);
+                    if( originNum < m_multitaskingModel->count() )
+                        m_multitaskingModel->setCurrentIndex(m_multitaskingModel->count() - 1);
                 }
                 break;
 
