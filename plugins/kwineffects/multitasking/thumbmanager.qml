@@ -451,7 +451,7 @@ Rectangle {
                             if (drag.keys[0] === 'workspaceThumb') {
                                 var diff = workspaceThumbDrop.parent.y - drag.source.y
                        //         log('------ ' + workspaceThumbDrop.parent.y + ',' + drag.source.y + ', ' + diff + ', ' + drag.source.height/2)
-                                if (diff > 0 && diff > drag.source.height/3) {
+                                if (diff > 0 && diff > drag.source.height/3 && workspaceThumbDrop.designated === drag.source.desktop) {
                                     hint.visible = true
                                 } else {
                                     hint.visible = false
