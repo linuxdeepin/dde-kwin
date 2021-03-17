@@ -1,3 +1,10 @@
+dde-kwin (5.3.7-1.1) unstable; urgency=medium
+
+  * Bug fix:
+  + Conflicts that occur when translating files.
+
+ -- Lei Su <sulei@uniontech.com>  Wed, 17 Mar 2021 17:35:56 +0800
+
 dde-kwin (5.3.6-1.1) unstable; urgency=medium
 
   * Bug fix:
