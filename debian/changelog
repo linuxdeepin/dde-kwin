@@ -1,3 +1,14 @@
+dde-kwin (5.3.6-1.1) unstable; urgency=medium
+
+  * Bug fix:
+    + 31415 add numpad to global shortcut.
+    + 66325 Current workspace changed even didn't add new workspace.
+    + 66627 Delete hint show when a workspace thumbnail drag to other one.
+    + 58520 There is no popup notify when there is no window in the workspace.
+    + 61749 when JM Display card, we close window effect. 
+
+ -- Lei Su <sulei@uniontech.com>  Wed, 17 Mar 2021 16:09:18 +0800
+
 dde-kwin (5.3.5-1) unstable; urgency=medium
 
   * Task:
