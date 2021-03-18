@@ -191,6 +191,7 @@ Rectangle {
                 model: multitaskingModel
                 interactive : false;
                 spacing: (screenWidth > screenHeight) ? screenWidth * 60/1920 : screenWidth * 110/1080
+                signal closeBtnHide()
 
                 delegate: Rectangle {
 
@@ -252,7 +253,6 @@ Rectangle {
                             width: closeBtnIcon.width
                             height: closeBtnIcon.height
                             color: "transparent";
-
                             property int desktop: desktopThumbnail.desktop;
                             visible: false;
 
@@ -265,6 +265,10 @@ Rectangle {
                             Connections {
                                 target: view;
                                 onCountChanged: {
+                                    closeBtn.visible = false;
+                                }
+
+                                onCloseBtnHide: {
                                     closeBtn.visible = false;
                                 }
                             }
@@ -293,6 +297,9 @@ Rectangle {
                             id: desktopThumbMouseArea
                             anchors.fill: parent;
                             hoverEnabled: true;
+                            property var mouseRecordX
+                            property var mouseRecordY
+                            property bool touchToExit : false
 
                             Accessible.role: Accessible.Button
                             Accessible.name: "Ma_deskThumb_"+(index+1)+"_"+currentScreen
@@ -322,15 +329,27 @@ Rectangle {
                             }
 
                             onEntered: {
+                                view.closeBtnHide();
                                 if (multitaskingModel.rowCount() !== 1) {
                                     closeBtn.visible = true;
                                 }
                             }
 
                             onExited: {
-                                if (!closeBtn.contains(closeBtn.mapFromItem(desktopThumbMouseArea,mouseX,mouseY)))　{
-                                   　closeBtn.visible = false;
+                                if (!closeBtn.contains(closeBtn.mapFromItem(desktopThumbMouseArea,mouseX,mouseY)) && touchToExit == false) {
+                                   　closeBtn.visible = false
+                                } else if (touchToExit == true) {
+                                     touchToExit = false
                                 }
+                            }
+
+                            onPositionChanged: {
+                                 if (mouseRecordX === mouse.x && mouseRecordY === mouse.y) {
+                                     touchToExit = true; //说明此时是触控点击
+                                  } else {
+                                     mouseRecordX = mouse.x
+                                     mouseRecordY = mouse.y
+                                  }
                             }
                         }
                         property bool pendingDragRemove: false
