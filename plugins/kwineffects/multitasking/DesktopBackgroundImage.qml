@@ -21,4 +21,9 @@ Image {
             radius: img.rounded ? imageRadius : 0
         }
     }
+
+    function reloadImage() {
+        img.sourceSize.width--
+        img.sourceSize.width++
+    }
 }

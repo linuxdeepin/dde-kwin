@@ -522,6 +522,9 @@ Rectangle {
                     plus.visible = count < 4;
                     setGridviewData();
                     bigWindowThrumbContainer.curdesktop=multitaskingModel.currentIndex()+1 //zhd add
+                    if( view.currentIndex === 0 ) {
+                        bigDesktopBackgroundImage.reloadImage()
+                    }
                 }
 
                 Connections {
