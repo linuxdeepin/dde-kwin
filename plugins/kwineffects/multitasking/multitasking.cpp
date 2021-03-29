@@ -561,7 +561,7 @@ void MultitaskingEffect::reconfigure(ReconfigureFlags)
 }
 
 // Screen painting
-void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, int time)
+void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, TimeArgType time)
 {
     //EffectWindow of m_multitaskingView changes every time when
     //multitaskingView show, we need to set EffectWindow before paintwindow
@@ -595,7 +595,7 @@ void MultitaskingEffect::postPaintScreen()
 
 
 // Window painting
-void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &data, int time)
+void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &data, TimeArgType time)
 {
     if (m_multitaskingView && multitaskingViewEffectWindow() 
         && w == multitaskingViewEffectWindow()) {
