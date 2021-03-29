@@ -94,6 +94,8 @@ add_library(
     data.qrc
 )
 
+include_directories(../../platforms/lib)
+
 target_link_libraries(
     ${PLUGIN_NAME}
     PUBLIC

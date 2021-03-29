@@ -35,6 +35,7 @@
 #include <kwineffects.h>
 #include <KF5/KWindowSystem/KWindowSystem>
 
+#include "kwinutils.h"
 #include "background.h"
 #include "constants.h"
 
@@ -255,7 +256,7 @@ public:
     virtual void reconfigure(ReconfigureFlags) override;
 
     // Screen painting
-    virtual void prePaintScreen(ScreenPrePaintData &data, int time) override;
+    virtual void prePaintScreen(ScreenPrePaintData &data, TimeArgType time) override;
 #if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
     virtual void paintScreen(int mask, const QRegion &region, ScreenPaintData &data) override;
 #else
@@ -264,7 +265,7 @@ public:
     virtual void postPaintScreen() override;
 
     // Window painting
-    virtual void prePaintWindow(EffectWindow *w, WindowPrePaintData &data, int time) override;
+    virtual void prePaintWindow(EffectWindow *w, WindowPrePaintData &data, TimeArgType time) override;
     virtual void paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data) override;
 
     // User interaction
@@ -325,7 +326,7 @@ public Q_SLOTS:
     void updateDesktopWindows();
     void updateDesktopWindows(int desktop);
 
-    // added when refactor 
+    // added when refactor
     void refreshWindows();
 
 private slots:
@@ -340,9 +341,9 @@ private slots:
     void remanageAll();
 
     void desktopRemoved(int d);
-    //zhd add start 
+    //zhd add start
     void OnWindowLocateChanged(int screen, int desktop, int winId);
-    //zhd add end 
+    //zhd add end
 
     void windowSelectSlot( QVariant winid );
     void removeEffectWindow(int screen, int desktop, QVariant winid);
@@ -468,4 +469,3 @@ private:
 
 
 #endif /* ifndef _DEEPIN_MULTITASKING_H */
-

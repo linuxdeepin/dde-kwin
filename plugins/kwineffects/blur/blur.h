@@ -21,6 +21,8 @@
 #ifndef BLUR_H
 #define BLUR_H
 
+#include "kwinutils.h"
+
 #include <kwineffects.h>
 #include <kwinglplatform.h>
 #include <kwinglutils.h>
@@ -63,8 +65,8 @@ public:
     static bool enabledByDefault();
 
     void reconfigure(ReconfigureFlags flags) override;
-    void prePaintScreen(ScreenPrePaintData &data, int time) override;
-    void prePaintWindow(EffectWindow* w, WindowPrePaintData& data, int time) override;
+    void prePaintScreen(ScreenPrePaintData &data, TimeArgType time) override;
+    void prePaintWindow(EffectWindow* w, WindowPrePaintData& data, TimeArgType time) override;
     void paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data) override;
 #if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
     void paintEffectFrame(EffectFrame *frame, const QRegion &region, double opacity, double frameOpacity) override;
@@ -156,4 +158,3 @@ bool BlurEffect::provides(Effect::Feature feature)
 }
 
 #endif
-

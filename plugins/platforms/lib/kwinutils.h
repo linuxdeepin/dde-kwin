@@ -29,6 +29,12 @@
 #define KWIN_VERSION KWIN_VERSION_CHECK(KWIN_VERSION_MAJ, KWIN_VERSION_MIN, KWIN_VERSION_PAT, KWIN_VERSION_BUI)
 #endif
 
+#if defined(KWIN_VERSION) && KWIN_VERSION < KWIN_VERSION_CHECK(5, 21, 3, 0)
+typedef int TimeArgType;
+#else
+typedef std::chrono::milliseconds TimeArgType;
+#endif
+
 class KWinUtilsPrivate;
 class Q_DECL_EXPORT KWinUtils : public QObject
 {
