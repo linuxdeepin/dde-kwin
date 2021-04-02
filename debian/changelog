@@ -1,3 +1,10 @@
+dde-kwin (5.3.8-1) UNRELEASED; urgency=medium
+
+  * Bug fix:
+    + 60642 fix: Click "X" with fingers to turn off insensitivity.
+
+ -- Lei Su <sulei@uniontech.com>  Fri, 02 Apr 2021 17:11:55 +0800
+
 dde-kwin (5.3.7-1.1) unstable; urgency=medium
 
   * Bug fix:
