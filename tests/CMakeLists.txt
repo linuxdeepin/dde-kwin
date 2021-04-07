@@ -49,6 +49,7 @@ target_link_libraries(
     kwineffects
 )
 
+include_directories(../plugins/platforms/lib)
 
 add_test(NAME dde-test COMMAND ${PROJECT_NAME_TEST})
 add_custom_target(test
