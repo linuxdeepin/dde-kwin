@@ -865,7 +865,7 @@ void WindowThumbnail::stopRedirecting()
 
 bool WindowThumbnail::startRedirecting()
 {
-    if (!m_xcb || !m_composite || !window() || !window()->isVisible() || window()->winId() == m_winId || !isEnabled() || !isVisible()) {
+    if (!m_xcb || !m_composite || !window() || window()->winId() == m_winId) {
         return false;
     }
 #if HAVE_XCB_COMPOSITE
