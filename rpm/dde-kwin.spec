@@ -69,6 +69,7 @@ Requires:       qt5-qtx11extras-devel%{?_isa}
 Requires:       gsettings-qt-devel%{?_isa}
 Requires:       dtkcore-devel%{?_isa}
 Requires:       kf5-kglobalaccel-devel%{?_isa}
+Requires:       deepin-desktop-server
 
 
 %description devel
@@ -89,11 +90,11 @@ export PATH=%{_qt5_bindir}:$PATH
 %install
 %make_install INSTALL_ROOT=%{buildroot}
 chmod 755 %{buildroot}%{_bindir}/kwin_no_scale
-install debian/dde-kwin.postinst  %{buildroot}%{_datadir}/kwin/scripts/
+install rpm/dde-kwin.postinst  %{buildroot}%{_datadir}/kwin/scripts/
 chmod 755 %{buildroot}%{_datadir}/kwin/scripts/dde-kwin.postinst
- 
+
 %post
-bash -x %{_datadir}/kwin/scripts/dde-kwin.postinst
+bash -x %{_datadir}/kwin/scripts/dde-kwin.postinst ||:
 
 %ldconfig_scriptlets
 
