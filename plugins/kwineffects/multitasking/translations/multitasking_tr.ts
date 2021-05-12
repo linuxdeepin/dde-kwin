@@ -4,12 +4,10 @@
 <context>
     <name>thumbmanager</name>
     <message>
-        <location filename="../thumbmanager.qml" line="470"/>
         <source>Drag upwards to remove</source>
         <translation>Kaldırmak için yukarı sürükleyin</translation>
     </message>
     <message>
-        <location filename="../thumbmanager.qml" line="558"/>
         <source>No windows</source>
         <translation>Pencere yok</translation>
     </message>

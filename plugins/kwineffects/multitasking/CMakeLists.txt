@@ -85,7 +85,7 @@ file(GLOB TS LIST_DIRECTORIES false translations/${PLUGIN_NAME}*.ts)
 set_source_files_properties(${TS}
     PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/translations)
 
-qt5_create_translation(QM ${SRCS} ${TS})
+qt5_create_translation(QM ${SRCS} ${TS} OPTIONS -locations none)
 
 add_library(
     ${PLUGIN_NAME} MODULE
