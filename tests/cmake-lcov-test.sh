@@ -1,35 +1,26 @@
 #!/bin/bash
-workspace=$1
-
-cd $workspace
-
 export DISPLAY=:0.0
+utdir=build-ut
+rm -r $utdir
+rm -r ../$utdir
+mkdir ../$utdir
+cd ../$utdir
 
-dpkg-buildpackage -b -d -uc -us
+cmake -DCMAKE_SAFETYTEST_ARG="CMAKE_SAFETYTEST_ARG_ON" ..
+make -j4
 
-project_path=$(cd `dirname $0`; pwd)
-#获取工程名
-project_name="${project_path##*/}"
-echo $project_name
+./tests/dde-kwin_test 
 
-#获取打包生成文件夹路径
-pathname=$(find . -name obj*)
+workdir=$(cd ../$(dirname $0)/$utdir; pwd)
 
-echo $pathname
+mkdir -p report
 
-cd $pathname
+lcov -d $workdir -c -o ./report/coverage.info
 
-make test
+lcov --extract ./report/coverage.info '*/multitasking/*' -o ./report/coverage.info
 
-cd ./tests
+lcov --remove ./report/coverage.info '*/autotests/*' -o ./report/coverage.info
 
-mkdir -p coverage
-
-lcov -d ../ -c -o ./coverage/coverage.info
-
-lcov --remove ./coverage/coverage.info '*/tests/*' '*/autotests/*'  -o ./coverage/coverage.info
-
-mkdir ../report
-genhtml -o ../report ./coverage/coverage.info
+genhtml -o ./report ./report/coverage.info
 
 exit 0

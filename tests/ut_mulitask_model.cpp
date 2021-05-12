@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <QtTest>
 #include "../plugins/kwineffects/multitasking/multitasking_model.h"
+#if defined(CMAKE_SAFETYTEST_ARG_ON)
+#include <sanitizer/asan_interface.h>
+#endif
 
 class ut_test : public QObject
 {
@@ -34,6 +37,9 @@ void ut_test::test()
 {
     MultitaskingModel model;
     model.load(1);
+#if defined(CMAKE_SAFETYTEST_ARG_ON)
+    __sanitizer_set_report_path("asan.log");
+#endif
 }
 
 QTEST_MAIN(ut_test)
