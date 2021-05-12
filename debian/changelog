@@ -1,3 +1,9 @@
+dde-kwin (5.3.11-1) unstable; urgency=medium
+
+  * add memory test.
+
+ -- Lei Su <sulei@uniontech.com>  Wed, 12 May 2021 20:14:13 +0800
+
 dde-kwin (5.3.10-1) unstable; urgency=medium
   * Bug fix:
     + 72368 fix: Compositing is able to enable in Euler.
