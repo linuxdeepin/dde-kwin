@@ -1,3 +1,11 @@
+dde-kwin (5.2.3-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 70513 【桌面社区版】键入”super+s“进入任务视图界面，界面显示异常
+    + 69821 【桌面社区版V20.2】【多任务视图】多任务视图缩略图显示的全都是图标
+
+ -- Lei Su <sulei@uniontech.com>  Fri, 14 May 2021 09:57:51 +0800
+
 dde-kwin (0.0.1-1) unstable; urgency=medium
 
   * Initial release
