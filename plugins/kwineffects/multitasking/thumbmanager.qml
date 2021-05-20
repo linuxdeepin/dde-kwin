@@ -200,7 +200,7 @@ Rectangle {
                     height: desktopThumbnailItemHeight;
                     color: "transparent"
 
-                    property bool isDesktopHightlighted: index === multitaskingModel.currentDeskIndex
+                    property bool isCurrentDesktop: index === multitaskingModel.currentDeskIndex
 
                     Rectangle {
                         id: desktopThumbnail;
@@ -235,13 +235,14 @@ Rectangle {
                         }
 
                         Rectangle {
-                            id:winThumrect;
-                            width: parent.width;
-                            height: parent.height;
-                            border.color: "lightskyblue";
-                            border.width: 0;
-                            color: "transparent";
-                            radius: 10;
+                            id: desktopThumbnailHighLighter
+                            width: parent.width
+                            height: parent.height
+                            border.color: "lightskyblue"
+                            border.width: 3
+                            color: "transparent"
+                            radius: 10
+                            visible: isCurrentDesktop
                         }
 
 
@@ -375,14 +376,6 @@ Rectangle {
                                     target: desktopThumbnail;
                                     anchors.horizontalCenter: undefined
                                     anchors.verticalCenter: undefined
-                                }
-                            },
-                            State {
-                                name: "isDesktopHightlighted"
-                                when: isDesktopHightlighted
-                                PropertyChanges {
-                                    target: winThumrect
-                                    border.width: 3;
                                 }
                             }]
 
