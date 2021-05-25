@@ -861,6 +861,12 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                         case Qt::Key_Dollar:  target_desktop = 4; break;
                         default: break;
                     }
+                    if (target_desktop > m_multitaskingModel->count()
+                    ||  m_multitaskingModel->currentSelectIndex() == -1
+                    ||  m_multitaskingModel->currentSelectIndex() == 0)
+                    {
+                        return;
+                    }
                     m_multitaskingModel->setCurrentIndex(target_desktop-1);
                     qCDebug(BLUR_CAT) << "----------- super+shift+"<<target_desktop;
 
