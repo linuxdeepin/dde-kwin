@@ -812,11 +812,17 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 } else if (e->modifiers() == Qt::NoModifier) {
                     selectPrevWindow();
                 }
+                if (e->modifiers() == (Qt::ShiftModifier|Qt::MetaModifier|Qt::KeypadModifier)) {
+                    moveWindowThumbnail2Desktop(4);
+                }
                 break;
 
             case Qt::Key_Down:
                 if (e->modifiers() == Qt::NoModifier) {
                     selectNextWindowVert(1);
+                }
+                if (e->modifiers() == (Qt::ShiftModifier|Qt::MetaModifier|Qt::KeypadModifier)) {
+                    moveWindowThumbnail2Desktop(2);
                 }
                 break;
             case Qt::Key_Up:
@@ -833,8 +839,15 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                 if (e->modifiers() == Qt::NoModifier) {
                     selectLastWindow();
                 }
+                if (e->modifiers() == (Qt::ShiftModifier|Qt::MetaModifier|Qt::KeypadModifier)) {
+                    moveWindowThumbnail2Desktop(1);
+                }
                 break;
-
+            case Qt::Key_PageDown:
+                if (e->modifiers() == (Qt::ShiftModifier|Qt::MetaModifier|Qt::KeypadModifier)) {
+                    moveWindowThumbnail2Desktop(3);
+                }
+                break;
             case Qt::Key_1:
             case Qt::Key_2:
             case Qt::Key_3:
@@ -862,29 +875,7 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
                         case Qt::Key_Dollar:  target_desktop = 4; break;
                         default: break;
                     }
-                    if (target_desktop > m_multitaskingModel->count()
-                    ||  m_multitaskingModel->currentSelectIndex() == -1
-                    ||  m_multitaskingModel->currentSelectIndex() == 0)
-                    {
-                        return;
-                    }
-                    m_multitaskingModel->setCurrentIndex(target_desktop-1);
-                    qCDebug(BLUR_CAT) << "----------- super+shift+"<<target_desktop;
-
-                    if( m_multitaskingModel->currentSelectIndex() == 0 )
-                    {
-                        if( !m_pEffectWindow->isDesktop() )
-                        {
-                            auto winId = findWId(m_pEffectWindow);
-                            m_multitaskingModel->setCurrentSelectIndex( (int)winId );
-                        }
-                    }
-                    QVariant  winId  = m_multitaskingModel->currentSelectIndex();
-                    EffectWindow *ew = effects->findWindow(winId.toULongLong());
-                    if(ew)
-                    {
-                        moveWindow2Desktop( ew->screen(),target_desktop ,m_multitaskingModel->currentSelectIndex());
-                    }
+                    moveWindowThumbnail2Desktop(target_desktop);
                 }
                 break;
 
@@ -1574,4 +1565,20 @@ void MultitaskingEffect::removeEffectWindow(int screen, int desktop, QVariant wi
     }
     auto* ew = effects->findWindow(winid.toULongLong());
     ew->closeWindow();
+}
+
+void MultitaskingEffect::moveWindowThumbnail2Desktop(int desktop)
+{
+    if (desktop > m_multitaskingModel->count()
+    ||  m_multitaskingModel->currentSelectIndex() == -1
+    ||  m_multitaskingModel->currentSelectIndex() == 0) {
+        return;
+    }
+    m_multitaskingModel->setCurrentIndex(desktop-1);
+    qCDebug(BLUR_CAT) << "----------- super+shift+"<<desktop;
+    QVariant  winId  = m_multitaskingModel->currentSelectIndex();
+    EffectWindow *ew = effects->findWindow(winId.toULongLong());
+    if (ew) {
+        moveWindow2Desktop(ew->screen(), desktop, m_multitaskingModel->currentSelectIndex());
+    }
 }

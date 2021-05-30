@@ -319,6 +319,7 @@ public Q_SLOTS:
     void moveWindow2Desktop(int screen, int desktop, QVariant winId);
     void moveEffectWindow2Desktop(KWin::EffectWindow* ew, int desktop);
     void switchTwoDesktop(int to, int from);
+    void moveWindowThumbnail2Desktop(int desktop);
 
     WId findWId(EffectWindow* ew);
 
