@@ -1,3 +1,14 @@
+dde-kwin (5.3.13-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 68673, 67845 Shortcut Super+Shift+number works in a wrong way
+    + 66630 Delete first workspace bigbackground didn't refresh
+    + 69809 Highlighter disappear when dragging desktop thumbnail
+    + 78218 Crashing when open multitasking view
+    + 68672 Shortcut meta+shift+padnumber didn't work
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 31 May 2021 14:54:00 +0800
+
 dde-kwin (5.3.12-1) unstable; urgency=medium
 
   * Bug fix:
