@@ -33,7 +33,7 @@
 
 using namespace KWin;
 
-#if QT_HAS_INCLUDE(<KWaylandServer/blur_interface.h>)
+#ifdef KWaylandServerPath
 namespace KWaylandServer {
 class BlurManagerInterface;
 }

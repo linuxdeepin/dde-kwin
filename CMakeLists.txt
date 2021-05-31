@@ -15,6 +15,17 @@ add_definitions(
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
 )
 
+#when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
+find_path(
+    KWaylandServerPath
+    blur_interface.h
+    /usr/include/KWaylandServer
+    /usr/local/include/KWaylandServer
+    )
+if(KWaylandServerPath)
+    add_definitions(-DKWaylandServerPath)
+endif()
+
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "mips64")
     set(CMAKE_CXX_FLAGS "-O3 -ftree-vectorize -march=loongson3a -mhard-float -mno-micromips -mno-mips16 -flax-vector-conversions  -mloongson-ext2 -mloongson-mmi -Wl,--as-needed,-O1 -fno-stack-protector")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-z,norelro")
