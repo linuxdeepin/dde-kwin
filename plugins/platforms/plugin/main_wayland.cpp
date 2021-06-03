@@ -370,32 +370,6 @@ public slots:
                 feralShellSurface << surface;
             }
 
-            connect(surface, &DShellSurface::surfaceDestroyed, [surface, this]() {
-                qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "DShellSurface surfaceDestroyed:" << surface;
-                bool inList = false;
-                auto itor = feralShellSurface.begin();
-                while (itor != feralShellSurface.end()) {
-                    if ( *itor == surface ) {
-                        itor = feralShellSurface.erase(itor);
-                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove DShellSurface from list:" << surface;
-                        surface->deleteLater();
-                        inList = true;
-                        break;
-                    }
-                    ++itor;
-                }
-                if (!inList) {
-                    wl_resource * wr = surface->surfaceResource();
-                    if (wr) {
-                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove resource from shell client:" << wr;
-                        kwinUtils()->delWindowProperty(wr);
-                    } else {
-                        qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
-                    }
-                    surface->deleteLater();
-                }
-            });
-
             connect(surface, &DShellSurface::propertyChanged, [surface,this](const QString &name, const QVariant &value) {
                 if (surface && !name.isNull() && !value.isNull()) {
                     wl_resource * wr = surface->surfaceResource();
@@ -411,9 +385,6 @@ public slots:
 
         shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
         connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
-        connect(surface, &DShellSurface::activationRequested, [shell_client, this]() {
-            kwinUtils()->activateClient(shell_client);
-        });
         updateSurfaceInfos(surface, shell_client);
         return true;
     }
