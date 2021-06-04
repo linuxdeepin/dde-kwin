@@ -1,4 +1,11 @@
-dde-kwin (5.3.14-1) UNRELEASED; urgency=medium
+dde-kwin (5.3.15-1) unstable; urgency=medium
+
+  * unit test
+    + fix: repair the error by cppcheck
+
+ -- Lei Su <sulei@uniontech.com>  Fri, 04 Jun 2021 17:32:40 +0800
+
+dde-kwin (5.3.14-1) unstable; urgency=medium
 
   * unit test
 
