@@ -338,7 +338,7 @@ Rectangle {
 
                             onExited: {
                                 if (!closeBtn.contains(closeBtn.mapFromItem(desktopThumbMouseArea,mouseX,mouseY)) && touchToExit == false) {
-                                   　closeBtn.visible = false
+                                     closeBtn.visible = false
                                 } else if (touchToExit == true) {
                                      touchToExit = false
                                 }
