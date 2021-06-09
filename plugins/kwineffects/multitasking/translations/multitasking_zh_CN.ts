@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="zh_CN">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="zh_CN" version="2.1">
 <context>
     <name>thumbmanager</name>
     <message>
@@ -9,7 +7,7 @@
     </message>
     <message>
         <source>No windows</source>
-        <translation>无打开的窗口</translation>
+        <translation>无窗口</translation>
     </message>
 </context>
 </TS>

@@ -9,7 +9,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation type="unfinished"/>
+        <translation>غیر بیشینه</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
@@ -19,37 +19,37 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="117"/>
         <source>Move</source>
-        <translation type="unfinished"/>
+        <translation>حرکت</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
         <source>Resize</source>
-        <translation type="unfinished"/>
+        <translation>تغییر اندازه</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation type="unfinished"/>
+        <translation>همیشه روی صفحه</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation type="unfinished"/>
+        <translation>همیشه در فضای کار قابل مشاهده باشد</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation type="unfinished"/>
+        <translation>حرکت به فضای کاری چپ</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation type="unfinished"/>
+        <translation>حرکت به فضای کاری راست</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>
         <source>Close</source>
-        <translation type="unfinished"/>
+        <translation>بستن</translation>
     </message>
 </context>
 </TS>

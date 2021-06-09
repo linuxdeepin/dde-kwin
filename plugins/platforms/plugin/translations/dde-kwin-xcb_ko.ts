@@ -29,22 +29,22 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>항상 위에</translation>
+        <translation>항상 위에 위치</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>항상 보여는 작업 공간</translation>
+        <translation>항상 보이는 작업공간에 위치</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>작업 공간 왼쪽으로 이동</translation>
+        <translation>작업공간 왼쪽으로 이동</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>작업 공간 오른쪽으로 이동</translation>
+        <translation>작업공간 오른쪽으로 이동</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>

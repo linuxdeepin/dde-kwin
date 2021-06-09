@@ -29,7 +29,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Sempre in alto</translation>
+        <translation>Sempre in primo piano</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>

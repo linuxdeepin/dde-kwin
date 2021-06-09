@@ -19,7 +19,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="117"/>
         <source>Move</source>
-        <translation>Zhvendose</translation>
+        <translation>Lëvize</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
@@ -29,7 +29,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Përherë Sipër</translation>
+        <translation>Përherë Në Krye</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>

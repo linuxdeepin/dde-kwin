@@ -4,8 +4,14 @@ minimum_perc = 80
 mode = developer
 
 [dde-kwin.dde-kwin-xcb]
-file_filter = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb_<lang>.ts
-source_file = plugins/kwin-xcb/plugin/translations/dde-kwin-xcb.ts
+file_filter = plugins/platforms/plugin/translations/dde-kwin-xcb_<lang>.ts
+source_file = plugins/platforms/plugin/translations/dde-kwin-xcb.ts
+source_lang = en
+type = QT
+
+[dde-kwin.multitasking]
+file_filter = plugins/kwineffects/multitasking/translations/multitasking_<lang>.ts
+source_file = plugins/kwineffects/multitasking/translations/multitasking.ts
 source_lang = en
 type = QT
 

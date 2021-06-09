@@ -29,22 +29,22 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Sempre no Topo</translation>
+        <translation>Sempre no topo</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Sempre no espaço de trabalho visível</translation>
+        <translation>Sempre na área de trabalho visível</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Mover para Área de trabalho à esquerda</translation>
+        <translation>Mover para área de trabalho à esquerda</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Mover para Área de trabalho à direita</translation>
+        <translation>Mover para área de trabalho à direita</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>

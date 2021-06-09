@@ -4,52 +4,52 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="111"/>
         <source>Minimize</source>
-        <translation>Минимизирай</translation>
+        <translation>Минимизиране</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>Смали</translation>
+        <translation>Демаксимизиране</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
         <source>Maximize</source>
-        <translation>Максимизирай</translation>
+        <translation>Максимизиране</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="117"/>
         <source>Move</source>
-        <translation>Премести</translation>
+        <translation>Преместване</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
         <source>Resize</source>
-        <translation>Промени Размера</translation>
+        <translation>Преоразмеряване</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Винаги Отгоре</translation>
+        <translation>Винаги отгоре</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Винаги на Видимото Работно Пространство</translation>
+        <translation>Винаги на Видимото Работно място</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Премести на Ляво Работно Пространство </translation>
+        <translation>Премести на Лявото Работно място </translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Премести на Дясно Работно Пространство </translation>
+        <translation>Премести на Дясното Работно място </translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>
         <source>Close</source>
-        <translation>Затвори</translation>
+        <translation>Затваряне</translation>
     </message>
 </context>
 </TS>

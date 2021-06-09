@@ -29,12 +29,12 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Her Zaman Üstte</translation>
+        <translation>Sürekli Üstte</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Her Zaman Çalışma Alanında Görün</translation>
+        <translation>Sürekli Çalışma Alanında Görün</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>

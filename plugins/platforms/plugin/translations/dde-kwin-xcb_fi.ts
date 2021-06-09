@@ -9,7 +9,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>Älä suurenna</translation>
+        <translation>Paluu</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
@@ -24,27 +24,27 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
         <source>Resize</source>
-        <translation>Kokoa</translation>
+        <translation>Koko</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Aina ylin</translation>
+        <translation>Aina päällä</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Aina näkyvissä olevassa työtilassa</translation>
+        <translation>Aina näkyvässä työtilassa</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Siirry työtilaan vasemmalle</translation>
+        <translation>Siirry vasemmalle työtilaan</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Siirry työtilaan oikealle</translation>
+        <translation>Siirry oikealle työtilaan</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>

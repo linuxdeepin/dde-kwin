@@ -4,7 +4,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="111"/>
         <source>Minimize</source>
-        <translation type="unfinished"/>
+        <translation>Kis méret</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
@@ -34,22 +34,22 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Mindig látható legyen a munkaterületen</translation>
+        <translation>Mindig legyen látható a munkaterületen</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation type="unfinished"/>
+        <translation>Áthelyezés a munkaterület bal oldalára</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation type="unfinished"/>
+        <translation>Áthelyezés a munkaterület jobb oldalára</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>
         <source>Close</source>
-        <translation>Bezár</translation>
+        <translation>Bezárás</translation>
     </message>
 </context>
 </TS>

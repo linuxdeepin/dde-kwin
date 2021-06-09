@@ -9,7 +9,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation type="unfinished"/>
+        <translation>kembali ukuran semula</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>

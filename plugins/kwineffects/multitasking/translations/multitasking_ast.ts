@@ -1,15 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="ast">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="ast" version="2.1">
 <context>
     <name>thumbmanager</name>
     <message>
         <source>Drag upwards to remove</source>
-        <translation type="unfinished"></translation>
+        <translation>Arrastra p&apos;arriba pa quitar</translation>
     </message>
     <message>
         <source>No windows</source>
-        <translation type="unfinished"></translation>
+        <translation>Nun hai miniatures</translation>
     </message>
 </context>
 </TS>

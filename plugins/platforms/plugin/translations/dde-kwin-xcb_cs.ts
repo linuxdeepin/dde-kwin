@@ -4,22 +4,22 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="111"/>
         <source>Minimize</source>
-        <translation>Zmenšit</translation>
+        <translation>Minimalizovat</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>Zrušit zvětšení</translation>
+        <translation>Zrušit maximalizaci</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
         <source>Maximize</source>
-        <translation>Zvětšit</translation>
+        <translation>Maximalizovat</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="117"/>
         <source>Move</source>
-        <translation>Posunout</translation>
+        <translation>Přesunout</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
@@ -34,17 +34,17 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
         <source>Always on Visible Workspace</source>
-        <translation>Vždy na viditelné pracovní ploše</translation>
+        <translation>Vždy na právě zobrazované pracovní ploše</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Posunout na pracovní plochu vlevo</translation>
+        <translation>Přesunout na pracovní plochu vlevo</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Posunout na pracovní plochu vpravo</translation>
+        <translation>Přesunout na pracovní plochu vpravo</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>

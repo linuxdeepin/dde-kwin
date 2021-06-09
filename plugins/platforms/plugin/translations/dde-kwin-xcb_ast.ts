@@ -29,7 +29,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>Siempres no cimero</translation>
+        <translation>Siempres enriba</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
@@ -39,12 +39,12 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>Mover a la estraya de trabayu esquierda</translation>
+        <translation>Mover a la estaya de trabayu esquierda</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>Mover a la estaya de trabayu drecha</translation>
+        <translation>Mover a la estaya de trabayu derecha</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>

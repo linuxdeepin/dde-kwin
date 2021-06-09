@@ -24,7 +24,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="119"/>
         <source>Resize</source>
-        <translation>تغير الحجم</translation>
+        <translation>تغيير الحجم</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>

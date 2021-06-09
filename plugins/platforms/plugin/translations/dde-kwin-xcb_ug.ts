@@ -4,17 +4,17 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="111"/>
         <source>Minimize</source>
-        <translation>كىچىكلىتىلگەن ھالەت</translation>
+        <translation>كىچىكلىتىش</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="114"/>
         <source>Unmaximize</source>
-        <translation>ئەڭ چوڭ ھالەت</translation>
+        <translation>ئەسلىگە كەلتۈرۈش</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="115"/>
         <source>Maximize</source>
-        <translation>چوڭلىتىلغان ھالەت</translation>
+        <translation>چوڭايتىش</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="117"/>
@@ -29,7 +29,7 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="121"/>
         <source>Always on Top</source>
-        <translation>دائىم ئەڭ ئۈستى تەرەپتە تۇرۇش</translation>
+        <translation>دائىم ئەڭ ئۈستى تەرەپتە تۇرسۇن</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="123"/>
@@ -39,17 +39,17 @@
     <message>
         <location filename="../libkwinpreload.cpp" line="125"/>
         <source>Move to Workspace Left</source>
-        <translation>سولغا سۈرۈپ خىزمەت رايونىغا يۆتكەش</translation>
+        <translation>سولدىكى خىزمەت رايونىغا يۆتكەش</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="127"/>
         <source>Move to Workspace Right</source>
-        <translation>ئوڭغا سۈرۈپ خىزمەت رايونىغا يۆتكەش</translation>
+        <translation>ئوڭدىكى خىزمەت رايونىغا يۆتكەش</translation>
     </message>
     <message>
         <location filename="../libkwinpreload.cpp" line="129"/>
         <source>Close</source>
-        <translation>ئېتىش</translation>
+        <translation>تاقاش</translation>
     </message>
 </context>
 </TS>

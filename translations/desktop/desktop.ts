@@ -1,3 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1"><context><name>desktop</name><message><location filename="Desktop Entry]GenericName" line="0"/><location filename="Desktop Entry]Name" line="0"/><source>Multitasking View</source><translation type="unfinished"/></message><message><location filename="Desktop Entry]Comment" line="0"/><source>View all open windows and workspaces</source><translation type="unfinished"/></message></context></TS>
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="en" version="2.1"><context><name>desktop</name><message><location filename="Desktop Entry]GenericName" line="0"/><location filename="Desktop Entry]Name" line="0"/><source>Multitasking View</source><translation>Multitasking View</translation></message><message><location filename="Desktop Entry]Comment" line="0"/><source>View all open windows and workspaces</source><translation>View all open windows and workspaces</translation></message></context></TS>

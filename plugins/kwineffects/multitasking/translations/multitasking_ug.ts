@@ -1,15 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="ug">
+<?xml version="1.0" ?><!DOCTYPE TS><TS language="ug" version="2.1">
 <context>
     <name>thumbmanager</name>
     <message>
         <source>Drag upwards to remove</source>
-        <translation type="unfinished"></translation>
+        <translation>ئۈستىگە سىيرىپ تازىلاش</translation>
     </message>
     <message>
         <source>No windows</source>
-        <translation type="unfinished"></translation>
+        <translation>كۆزنەك يوق</translation>
     </message>
 </context>
 </TS>
