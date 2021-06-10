@@ -9,7 +9,7 @@ cd ../$utdir
 cmake -DCMAKE_SAFETYTEST_ARG="CMAKE_SAFETYTEST_ARG_ON" ..
 make -j4
 
-./tests/dde-kwin_test 
+./tests/dde-kwin_test -o ut-report.txt
 
 workdir=$(cd ../$(dirname $0)/$utdir; pwd)
 
