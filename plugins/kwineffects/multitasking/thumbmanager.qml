@@ -576,6 +576,10 @@ Rectangle {
                     font.pixelSize: (screenWidth > screenHeight) ? screenWidth * 12/1920 : screenWidth * 12/1080
                 }
 
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: "Rect_noWindow"
+                Accessible.description: "no_window_label-"+visible
+
             }
 
             DropShadow {
