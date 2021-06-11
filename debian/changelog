@@ -1,3 +1,10 @@
+dde-kwin (5.3.16-1) unstable; urgency=medium
+
+  * unit test
+    + output test result to ut-report.txt
+
+ -- Lei Su <sulei@uniontech.com>  Fri, 11 Jun 2021 11:38:18 +0800
+
 dde-kwin (5.3.15-1) unstable; urgency=medium
 
   * unit test
