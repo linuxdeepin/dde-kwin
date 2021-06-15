@@ -25,6 +25,10 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define GsettingsZoneLeftUp "leftUp"
 #endif // DISABLE_DEEPIN_WM
 
+#define DBUS_APPEARANCE_SERVICE "com.deepin.daemon.Appearance"
+#define DBUS_APPEARANCE_OBJ "/com/deepin/daemon/Appearance"
+#define DBUS_APPEARANCE_INTF "com.deepin.daemon.Appearance"
+
 #define DeepinWMConfigName "deepinwmrc"
 #define DeepinWMGeneralGroupName "General"
 #define DeepinWMWorkspaceBackgroundGroupName "WorkspaceBackground"
@@ -45,11 +49,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
 const char defaultFirstBackgroundUri[] = "file:///usr/share/wallpapers/deepin/desktop.jpg";
-#ifdef __mips__
-    const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.bmp";
-#else
-    const char defaultSecondBackgroundUri[] = "file:///usr/share/wallpapers/deepin/francesco-ungaro-1fzbUyzsHV8-unsplash.jpg";
-#endif
+const char defaultSecondBackgroundUri[] = "francesco-ungaro-1fzbUyzsHV8-unsplash";
 
 using org::kde::KWin;
 
@@ -310,7 +310,24 @@ QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QS
             }
         } else {
             if (!QFileInfo(uri.path()).isFile()) {
-                uri = defaultSecondBackgroundUri;
+                QDBusInterface remoteApp(DBUS_APPEARANCE_SERVICE, DBUS_APPEARANCE_OBJ, DBUS_APPEARANCE_INTF);
+                QDBusReply<QString> reply = remoteApp.call( "List", "background");
+
+                QJsonDocument json = QJsonDocument::fromJson(reply.value().toUtf8());
+                QJsonArray arr = json.array();
+                if (!arr.isEmpty()) {
+                    auto p = arr.constBegin();
+                    while (p != arr.constEnd()) {
+                        auto o = p->toObject();
+                        if (!o.value("Id").isUndefined() && !o.value("Deletable").toBool()) {
+                            if(o.value("Id").toString().contains(defaultSecondBackgroundUri)) {
+                                uri = o.value("Id").toString();
+                                break;
+                            }
+                        }
+                        ++p;
+                    }
+                }
             }
         }
         const QString &workSpaceBackgroundUri = uri.toString();
