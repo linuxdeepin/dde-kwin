@@ -479,34 +479,53 @@ Rectangle {
                             color: "transparent"
 
                             Text {
+                                id: deleteText
                                 text: qsTr("Drag upwards to remove")
                                 anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.horizontalCenterOffset: deleteIcon.width
                                 y: parent.height * 0.572
-
                                 font.family: "Helvetica"
                                 font.pointSize: 14
                                 color: Qt.rgba(1, 1, 1, 0.5)
                             }
 
+                            Image {
+                                id: deleteIcon
+                                anchors.right: deleteText.left
+                                anchors.rightMargin: 10
+                                anchors.verticalCenter: deleteText.verticalCenter
+                                width: 18
+                                height: 18
+                                source: "qrc:///icons/deleteIcon.svg"
+                            }
+
                             Canvas {
                                 anchors.fill: parent
                                 onPaint: {
-                                    var ctx = getContext("2d");
-                                    ctx.lineWidth = 0.5;
-                                    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-
-                                    var POSITION_PERCENT = 0.449;
-                                    var LINE_START = 0.060;
-
-                                    ctx.beginPath();
-                                    ctx.moveTo(width * LINE_START, height * POSITION_PERCENT);
-                                    ctx.lineTo(width * (1.0 - 2.0 * LINE_START), height * POSITION_PERCENT);
-                                    ctx.stroke();
+                                    var ctx = getContext("2d")
+                                    ctx.lineWidth = 0.5
+                                    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"
+                                    var POSITION_PERCENT = 0.449
+                                    var LINE_START = 0.060
+                                    ctx.beginPath()
+                                    var lineStartPoint = width * LINE_START
+                                    var lineEndPoint = height * POSITION_PERCENT
+                                    ctx.moveTo(lineStartPoint, lineEndPoint)
+                                    var lineDotWidth = width / 31
+                                    var lineSumWidth = 0
+                                    while (lineSumWidth < width) {
+                                        lineStartPoint += lineDotWidth
+                                        lineSumWidth += lineDotWidth
+                                        ctx.lineTo(lineStartPoint, lineEndPoint)
+                                        lineStartPoint += lineDotWidth
+                                        lineSumWidth += lineDotWidth
+                                        ctx.moveTo(lineStartPoint, lineEndPoint)
+                                    }
+                                    ctx.stroke()
                                 }
                             }
                         }
                     }
-//                }
                 }
                 //center
                 onCountChanged: {

@@ -12,7 +12,7 @@
         <file>data/close.png</file>
         <file>data/close_press.svg</file>
         <file>data/deepin-toggle-desktop.svg</file>
-        <file>data/path.svg</file>
+        <file alias="deleteIcon.svg">data/path.svg</file>
         <file>data/sticked_hover.svg</file>
         <file>data/sticked_normal.svg</file>
         <file>data/sticked_press.svg</file>

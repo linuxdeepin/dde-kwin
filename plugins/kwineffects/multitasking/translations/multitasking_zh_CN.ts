@@ -3,7 +3,7 @@
     <name>thumbmanager</name>
     <message>
         <source>Drag upwards to remove</source>
-        <translation>向上拖拽清除</translation>
+        <translation>向上拖拽删除</translation>
     </message>
     <message>
         <source>No windows</source>
