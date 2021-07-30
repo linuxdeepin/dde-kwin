@@ -43,6 +43,29 @@ KWin.Switcher {
         width: dialogMainItem.width
         height: dialogMainItem.height
 
+        //延时刷新定时器,用于wayland平台下,用户alt+tab 和 alt+ ~ 切换时候
+        //导致tabBox 被截断的问题,详情:https://pms.uniontech.com/zentao/bug-view-84001.html
+        Timer {
+            id: updateTimer
+            interval:1
+            triggeredOnStart: false
+            onTriggered: {
+               //重新调整窗口的宽高为内容的宽高,确保窗口能再次刷新
+               dialog.width  = dialogMainItem.width
+               dialog.height = dialogMainItem.height
+            }
+        }
+
+        function dealyUpdate() {
+            //若定时器已经生效,则停止计时器
+            if (updateTimer.running) {
+                updateTimer.stop();
+            }
+
+            //重新启动
+            updateTimer.start()
+        }
+
         Rectangle {
             id: dialogMainItem
 
@@ -69,7 +92,7 @@ KWin.Switcher {
             property bool composited: true
 
             readonly property int maxWidth: tabBox.screenGeometry.width - constants.popupPadding * 2
-            property int maxHeight: tabBox.screenGeometry.height * 0.7 
+            property int maxHeight: tabBox.screenGeometry.height * 0.7
 
             property real screenFactor: tabBox.screenGeometry.width / tabBox.screenGeometry.height
             property int maxGridColumnsByWidth: Math.floor(maxWidth / itemsView.cellWidth)
@@ -106,7 +129,7 @@ KWin.Switcher {
                 }
 
                 if (item_need_scale) {
-                    item_width = maxWidth / max_items_each_row 
+                    item_width = maxWidth / max_items_each_row
                 }
 
                 gridColumns = Math.min(max_items_each_row, count);
@@ -119,12 +142,14 @@ KWin.Switcher {
                 itemsView.thumbnailWidth = item_width;
                 itemsView.thumbnailHeight = item_width;
 
-                //console.log('------------------ optimalHeight: ' + optimalHeight + 
+                dialog.dealyUpdate(); //当列数发生变化的时候,延时刷新
+
+                //console.log('------------------ optimalHeight: ' + optimalHeight +
                     //', optimalWidth: ' + optimalWidth +
                     //', max_items_each_row: ' + max_items_each_row +
                     //', gridColumns: ' + gridColumns +
                     //', item width: ' + item_width + ', count: ' + count +
-                    //', need scale: ' + item_need_scale + 
+                    //', need scale: ' + item_need_scale +
                     //', maxWidth: ' + maxWidth);
             }
 
@@ -247,8 +272,8 @@ KWin.Switcher {
                     property int thumbnailWidth: constants.minItemBox
                     property int thumbnailHeight: constants.minItemBox
 
-                    cellWidth: thumbnailWidth 
-                    cellHeight: thumbnailHeight 
+                    cellWidth: thumbnailWidth
+                    cellHeight: thumbnailHeight
 
                     highlight: highlight
                     highlightFollowsCurrentItem: false
@@ -312,9 +337,16 @@ KWin.Switcher {
 
                     Connections {
                         target: tabBox
-                        onCurrentIndexChanged: {
+
+                        //qml新版本这种写法已经废弃
+                        /*onCurrentIndexChanged: {
                             itemsView.currentIndex = tabBox.currentIndex
+                        }*/
+
+                        function onCurrentIndexChanged(i) {
+                             itemsView.currentIndex = i
                         }
+
                     }
 
                     // keyNavigationEnabled: true // Requires: Qt 5.7 and QtQuick 2.? (2.7 didn't work).
