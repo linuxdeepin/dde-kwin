@@ -1,3 +1,12 @@
+dde-kwin (5.3.18-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 63174 optimize work thumbnail
+    + 66832 in sw_64 platform, the second background be white in multitasking
+    + 82889 add Tibetan and Uighur translation for 'No windows' and 'Drag upwards to remove'
+
+ -- Xu Yongrui <xuyongrui@uniontech.com>  Wed, 04 Aug 2021 14:51:37 +0800
+
 dde-kwin (5.3.16-1) unstable; urgency=medium
 
   * unit test
