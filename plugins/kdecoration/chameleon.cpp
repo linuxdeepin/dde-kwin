@@ -425,6 +425,10 @@ void Chameleon::updateConfig()
 
     updateMouseInputAreaMargins();
     updateTitleBarArea();
+    // 解决关闭应用更新shadow闪屏的问题(bug87758)
+    if ((c == sender()) && !active) {
+        return;
+    }
     updateShadow();
     update();
 }
