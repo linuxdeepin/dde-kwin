@@ -706,9 +706,10 @@ bool DeepinWMFaker::SetAccel(const QString &data)
     bool result = true;
 
     const QJsonObject &jsonObj = jsonDoc.object();
-    const QString &kId = AllDeepinWMKWinAccelsMap.value(jsonObj.value("Id").toString());
+    QString kId = AllDeepinWMKWinAccelsMap.value(jsonObj.value("Id").toString());
     if (kId.isEmpty()) {
-        return false;
+        kId = jsonObj.value("Id").toString();
+        qDebug() << "Info: add a new shortcut for kId:"<<kId;
     }
     QAction *action = accelAction(kId);
     if (!action) {
