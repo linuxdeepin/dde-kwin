@@ -1,3 +1,10 @@
+dde-kwin (5.3.19-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 87758 fix: After S3 wakes up, the screen flashes when opening the file and then closing it
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 30 Aug 2021 10:51:20 +0800
+
 dde-kwin (5.3.18-1) unstable; urgency=medium
 
   * Bug fix:
