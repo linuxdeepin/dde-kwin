@@ -20,7 +20,7 @@
 
 #include "blurshader.h"
 
-#include <kwineffects.h>
+#include "kwineffects.h"
 #include <kwinglplatform.h>
 #include <kwinglutils.h>
 

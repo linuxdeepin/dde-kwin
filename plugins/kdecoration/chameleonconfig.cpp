@@ -28,7 +28,7 @@
 #include "kwinutils.h"
 #endif
 
-#include <kwineffects.h>
+#include "kwineffects.h"
 
 #include <KConfig>
 #include <KConfigGroup>

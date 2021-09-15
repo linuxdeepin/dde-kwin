@@ -23,7 +23,7 @@
 
 #include <QObject>
 
-#include <kwineffects.h>
+#include "kwineffects.h"
 
 // 标记窗口当前是否正在使用变色龙窗口标题栏主题
 #define _DEEPIN_CHAMELEON "_DEEPIN_CHAMELEON_THEME"
