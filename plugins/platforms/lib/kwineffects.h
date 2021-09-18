@@ -941,9 +941,9 @@ public:
      **/
     virtual void unregisterTouchBorder(ElectricBorder border, QAction *action) = 0;
 
-    virtual void setSplitWindow(KWin::EffectWindow* c, int mode) = 0;
     virtual bool checkWindowAllowToSplit(KWin::EffectWindow *c) = 0;
     virtual QString getActiveColor() = 0;
+    virtual void setSplitWindow(KWin::EffectWindow* c, int mode, bool isShowPreview = false) = 0;
 
     // functions that allow controlling windows/desktop
     virtual void activateWindow(KWin::EffectWindow* c) = 0;
