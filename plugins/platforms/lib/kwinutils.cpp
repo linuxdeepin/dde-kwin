@@ -1368,4 +1368,11 @@ void KWinUtils::Window::performWindowOperation(QObject *window, const QString &o
     QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::AbstractClient*, c), Q_ARG(KWin::Options::WindowOperation, op));
 }
 
+void KWinUtils::Window::setQuikTileMode(QObject *window, int m, bool isShowReview)
+{
+    KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(window);
+
+    QMetaObject::invokeMethod(workspace(), "slotSetClientSplit", Q_ARG(KWin::AbstractClient*, c), Q_ARG(int, m), Q_ARG(bool, isShowReview));
+}
+
 #include "moc_kwinutils.cpp"
