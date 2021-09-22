@@ -10,6 +10,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5DBus REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(DtkGui REQUIRED)
+find_package(X11 REQUIRED)
 
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})

@@ -8,6 +8,7 @@ find_package(KF5WindowSystem REQUIRED)
 find_package(KF5GlobalAccel REQUIRED)
 find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(X11 REQUIRED)
 
 option(DISABLE_DEEPIN_WM "disable compatibility with deepin-wm" OFF)
 
