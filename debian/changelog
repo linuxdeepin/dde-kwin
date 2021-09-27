@@ -107,6 +107,13 @@ dde-kwin (5.3.5-1) unstable; urgency=medium
 
  -- Lei Su <sulei@uniontech.com>  Tue, 09 Mar 2021 17:44:12 +0800
 
+dde-kwin (5.15.1000.3-1) unstable; urgency=medium
+
+  * update for klu/pgv master branch
+  * To automate the packaging with correct versions
+
+ -- wugang <wugang@uniontech.com>  Tue, 28 Sep 2021 09:45:38 -0300
+
 dde-kwin (0.0.1-1) unstable; urgency=medium
 
   * Initial release
