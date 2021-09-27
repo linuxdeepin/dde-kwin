@@ -20,8 +20,6 @@
  */
 #include "kwinutils.h"
 
-#include <KWayland/Server/surface_interface.h>
-
 #include <QLibrary>
 #include <QGuiApplication>
 #include <QDebug>
@@ -155,18 +153,6 @@ public:
 };
 class Unmanaged;
 
-// wayland server对象
-class WaylandServer : public QObject
-{
-public:
-    __attribute__((weak)) static WaylandServer *s_self;
-};
-
-class ShellClient : public QObject
-{
-
-};
-
 namespace Xcb {
 class Extensions
 {
@@ -297,8 +283,6 @@ class KWinInterface
     typedef int (*ClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ActivateClient)(void*, void*, bool force);
-    typedef void (*SetWinProperty)(void *, void *, const QString &, const QVariant &);
-    typedef void (*DelWinProperty)(void *, void *);
     typedef void (*ClientUpdateCursor)(void *);
     typedef void (*ClientSetDepth)(void*, int);
     typedef void (*ClientCheckNoBorder)(void*);
@@ -311,7 +295,6 @@ class KWinInterface
     typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
     typedef void (*CompositorToggle)(void *, KWin::Compositor::SuspendReason);
     typedef int (*ClientWindowType)(const void*, bool, int);
-    typedef QObject* (*WaylandServerFindClient)(const void *, void *);
 
 public:
     KWinInterface()
@@ -319,8 +302,6 @@ public:
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
-        setWinProperty = (SetWinProperty)KWinUtils::resolve("_ZN4KWin9Workspace17setWindowPropertyEP11wl_resourceRK7QStringRK8QVariant");
-        delWinProperty = (DelWinProperty)KWinUtils::resolve("_ZN4KWin9Workspace17delWindowPropertyEP11wl_resource");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
         clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
         clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
@@ -341,15 +322,12 @@ public:
             compositorResume = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor6resumeENS0_13SuspendReasonE");
         }
         clientWindowType = (ClientWindowType)KWinUtils::resolve("_ZNK4KWin6Client10windowTypeEbi");
-        waylandServerFindClient = (WaylandServerFindClient)KWinUtils::resolve("_ZNK4KWin13WaylandServer10findClientEPN8KWayland6Server16SurfaceInterfaceE");
     }
 
     ClientWindowType clientWindowType;
     ClientMaximizeMode clientMaximizeMode;
     ClientMaximize clientMaximize;
     ActivateClient activateClient;
-    SetWinProperty setWinProperty;
-    DelWinProperty delWinProperty;
     ClientUpdateCursor clientUpdateCursor;
     ClientSetDepth clientSetDepth;
     ClientCheckNoBorder clientCheckNoBorder;
@@ -362,7 +340,6 @@ public:
     XcbExtensionsShapeNotifyEvent xcbExtensionsShapeNotifyEvent;
     CompositorToggle compositorSuspend;
     CompositorToggle compositorResume;
-    WaylandServerFindClient waylandServerFindClient;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -453,16 +430,6 @@ public:
         updateWMSupported();
     }
 
-    void _d_onShellClientAdded(KWin::ShellClient *client) {
-        shellClientList << client;
-        Q_EMIT q->shellClientAdded(client);
-    }
-
-    void _d_onShellClientRemoved(KWin::ShellClient *client) {
-        shellClientList.removeAll(client);
-        Q_EMIT q->shellClientRemoved(client);
-    }
-
     bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override {
         Q_UNUSED(eventType)
         Q_UNUSED(result)
@@ -524,9 +491,6 @@ public:
     bool initialized = false;
     bool filterInstalled = false;
     bool monitorRootWindowProperty = false;
-
-    // for wayland
-    QList<QObject*> shellClientList;
 };
 
 KWinUtils::KWinUtils(QObject *parent)
@@ -640,19 +604,6 @@ QObject *KWinUtils::virtualDesktop()
     return findObjectByClassName("KWin::VirtualDesktopManager", workspace()->children());
 }
 
-QObject *KWinUtils::waylandServer()
-{
-    return KWin::WaylandServer::s_self;
-}
-
-QObject *KWinUtils::waylandDisplay()
-{
-    if (!waylandServer())
-        return nullptr;
-
-    return findObjectByClassName("KWayland::Server::Display", waylandServer()->children());
-}
-
 namespace KWin {
 class Client : public QObject
 {
@@ -718,21 +669,6 @@ QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
         return nullptr;
 
     return interface->findClient(workspace(), predicate, window);
-}
-
-QObject *KWinUtils::findShellClient(wl_resource *resource) const
-{
-    for (QObject *client : d->shellClientList) {
-        auto surface = qvariant_cast<KWayland::Server::SurfaceInterface*>(client->property("surface"));
-
-        if (!surface)
-            continue;
-
-        if (surface->resource() == resource)
-            return client;
-    }
-
-    return nullptr;
 }
 
 void KWinUtils::clientUpdateCursor(QObject *client)
@@ -1012,24 +948,6 @@ QVariant KWinUtils::isFullMaximized(const QObject *window) const
     return Window::isFullMaximized(window);
 }
 
-void KWinUtils::setWindowProperty(wl_resource *surface,const QString &name, const QVariant &value) {
-    if (interface->setWinProperty) {
-        KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
-        if (ws) {
-            interface->setWinProperty(ws, surface, name, value);
-        }
-    }
-}
-
-void KWinUtils::delWindowProperty(wl_resource *surface) {
-    if (interface->delWinProperty) {
-        KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
-        if (ws) {
-            interface->delWinProperty(ws,surface);
-        }
-    }
-}
-
 void KWinUtils::activateClient(QObject *window)
 {
     if (interface->activateClient) {
@@ -1114,21 +1032,6 @@ bool KWinUtils::buildNativeSettings(QObject *baseObject, quint32 windowID)
 bool KWinUtils::isInitialized() const
 {
     return d->initialized;
-}
-
-bool KWinUtils::initForWayland() const
-{
-    auto server = waylandServer();
-
-    if (!server)
-        return false;
-
-    connect(server, SIGNAL(shellClientAdded(KWin::ShellClient*)),
-            this, SLOT(_d_onShellClientAdded(KWin::ShellClient*)));
-    connect(server, SIGNAL(shellClientRemoved(KWin::ShellClient*)),
-            this, SLOT(_d_onShellClientRemoved(KWin::ShellClient*)));
-
-    return true;
 }
 
 void KWinUtils::WalkThroughWindows()

@@ -29,7 +29,6 @@
 #define KWIN_VERSION KWIN_VERSION_CHECK(KWIN_VERSION_MAJ, KWIN_VERSION_MIN, KWIN_VERSION_PAT, KWIN_VERSION_BUI)
 #endif
 
-struct wl_resource;
 class KWinUtilsPrivate;
 class Q_DECL_EXPORT KWinUtils : public QObject
 {
@@ -68,20 +67,15 @@ public:
     static QObject *tabBox();
     static QObject *cursor();
     static QObject *virtualDesktop();
-    static QObject *waylandServer();
-    static QObject *waylandDisplay();
 
     static QObjectList clientList();
     static QObjectList unmanagedList();
     static QObject *findClient(Predicate predicate, quint32 window);
-    QObject *findShellClient(struct ::wl_resource *resource) const;
     static void clientUpdateCursor(QObject *client);
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
     static void clientCheckNoBorder(QObject *client);
     static void activateClient(QObject *window);
-    static void setWindowProperty(wl_resource *surface, const QString &name, const QVariant &value);
-    static void delWindowProperty(wl_resource *surface);
     static QFunctionPointer resolve(const char *symbol);
 
     static qulonglong getWindowId(const QObject *client, bool *ok = nullptr);
@@ -149,7 +143,6 @@ public:
     Q_INVOKABLE bool buildNativeSettings(QObject *baseObject, quint32 windowID);
 
     bool isInitialized() const;
-    bool initForWayland() const;
 
 public Q_SLOTS:
     void WalkThroughWindows();
@@ -168,10 +161,6 @@ Q_SIGNALS:
     void windowPropertyChanged(quint32 windowId, quint32 property_atom);
     void windowShapeChanged(quint32 windowId);
 
-    // for wayland
-    void shellClientAdded(QObject *client);
-    void shellClientRemoved(QObject *client);
-
 protected:
     explicit KWinUtils(QObject *parent = nullptr);
 
@@ -182,8 +171,6 @@ private:
 
     friend class Mischievous;
     Q_PRIVATE_SLOT(d, void _d_onPropertyChanged(long))
-    Q_PRIVATE_SLOT(d, void _d_onShellClientAdded(KWin::ShellClient*))
-    Q_PRIVATE_SLOT(d, void _d_onShellClientRemoved(KWin::ShellClient*))
 };
 
 #endif // KWINUTILS_H
