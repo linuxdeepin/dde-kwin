@@ -23,10 +23,6 @@
 #include "kwinutils.h"
 #include "kwinutilsadaptor.h"
 
-#include <dshellsurface.h>
-
-#include <KWayland/Server/display.h>
-
 #include <qpa/qplatformintegrationplugin.h>
 #include <qpa/qplatformintegrationfactory_p.h>
 #include <qpa/qplatformintegration.h>
@@ -45,7 +41,6 @@
 
 #include "wm_interface.h"
 
-using namespace DWaylandServer;
 QT_BEGIN_NAMESPACE
 
 #define KWinUtilsDbusService "org.kde.KWin"
@@ -238,16 +233,6 @@ public slots:
             }
         }
 
-        // 初始化wayland相关的内容
-        if (kwinUtils()->initForWayland()) {
-            auto display = qobject_cast<KWayland::Server::Display*>(kwinUtils()->waylandDisplay());
-            auto dde_shell_manager = new DShellSurfaceManager(display->operator wl_display *());
-            display->setProperty("_d_dwayland_dde_shell_manager", QVariant::fromValue(dde_shell_manager));
-            // 管理dde shell surface窗口
-            connect(dde_shell_manager, &DShellSurfaceManager::surfaceCreated, this, &Mischievous::onDDEShellSurfaceCreated);
-            connect(kwinUtils(), &KWinUtils::shellClientAdded, this, &Mischievous::onShellClientAdded);
-        }
-
         // 通知程序初始化完成
         kwinUtils()->setInitialized();
     }
@@ -308,133 +293,9 @@ public slots:
         }
     }
 
-    void onShellClientAdded(QObject *client)
-    {
-        Q_UNUSED(client)
-        if (feralShellSurface.size() > 3) {
-            // 不应该存在这么多未匹配的对象，除非findShellClient函数失效了
-            qWarning() << "Warning: Plase check KWinUtils::findShellClient";
-            return;
-        }
-
-        auto itor = feralShellSurface.begin();
-        while (itor != feralShellSurface.end()) {
-            if (onDDEShellSurfaceCreated(*itor)) {
-                itor = feralShellSurface.erase(itor);
-            } else {
-                ++itor;
-            }
-        }
-    }
-
-    static void updateSurfaceInfos(DShellSurface *surface, const QObject *client)
-    {
-        // 为其更关联窗口的geometry属性，此属性包含窗口边框信息
-        const QRect &geometry = client->property("geometry").toRect();
-
-        if (!geometry.isValid())
-            return;
-
-        // 使用rect是因为其容易和QVariant转换
-        const QPoint client_pos = client->property("clientPos").toPoint();
-        const QSize client_size = client->property("clientSize").toSize();
-        QRect frameMargins(client_pos, QPoint(0, 0));
-
-        if (client_size.isValid()) {
-            frameMargins.setRight(geometry.width() - client_size.width() - client_pos.x());
-            frameMargins.setBottom(geometry.height() - client_size.height() - client_pos.y());
-        }
-
-        surface->setProperty("frameMargins", frameMargins);
-        surface->setGeometry(geometry);
-    }
-
-    bool onDDEShellSurfaceCreated(DShellSurface *surface)
-    {
-        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "onDDEShellSurfaceCreated:" << surface;
-        if (!surface) {
-            qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "surface is null";
-            return false;
-        }
-
-        wl_resource * wr = surface->surfaceResource();
-        if (!wr) {
-            qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
-            return false;
-        }
-
-        auto shell_client = kwinUtils()->findShellClient(wr);
-        if (!shell_client) {
-            if (!feralShellSurface.contains(surface)) {
-                qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "add DShellSurface to list:" << surface;
-                feralShellSurface << surface;
-            }
-
-            /*connect(surface, &DShellSurface::surfaceDestroyed, [surface, this]() {
-                qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "DShellSurface surfaceDestroyed:" << surface;
-                bool inList = false;
-                auto itor = feralShellSurface.begin();
-                while (itor != feralShellSurface.end()) {
-                    if ( *itor == surface ) {
-                        itor = feralShellSurface.erase(itor);
-                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove DShellSurface from list:" << surface;
-                        surface->deleteLater();
-                        inList = true;
-                        break;
-                    }
-                    ++itor;
-                }
-                if (!inList) {
-                    wl_resource * wr = surface->surfaceResource();
-                    if (wr) {
-                        qDebug() << __FILE__ << __FUNCTION__ << __LINE__ << "remove resource from shell client:" << wr;
-                        kwinUtils()->delWindowProperty(wr);
-                    } else {
-                        qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
-                    }
-                    surface->deleteLater();
-                }
-            });*/
-
-            connect(surface, &DShellSurface::propertyChanged, [surface,this](const QString &name, const QVariant &value) {
-                if (surface && !name.isNull() && !value.isNull()) {
-                    wl_resource * wr = surface->surfaceResource();
-                    if (wr) {
-                        kwinUtils()->setWindowProperty(wr, name, value);
-                    } else {
-                        qCritical() << __FILE__ << __FUNCTION__ << __LINE__ << "wl_resource is null";
-                    }
-                }
-            });
-            return false;
-        }
-
-        shell_client->setProperty("_d_dwayland_dde_shell_surface", QVariant::fromValue(surface));
-        connect(shell_client, SIGNAL(geometryChanged()), this, SLOT(onShellClientGeometryChanged()));
-        /*connect(surface, &DShellSurface::activationRequested, [shell_client, this]() {
-            kwinUtils()->activateClient(shell_client);
-        });*/
-        updateSurfaceInfos(surface, shell_client);
-        return true;
-    }
-
-    static inline DShellSurface *getShellSurface(const QObject *shellClient)
-    {
-        return qvariant_cast<DShellSurface*>(shellClient->property("_d_dwayland_dde_shell_surface"));
-    }
-
-    Q_INVOKABLE void onShellClientGeometryChanged()
-    {
-        QObject *shell_client = sender();
-        DShellSurface *surface = getShellSurface(shell_client);
-        updateSurfaceInfos(surface, shell_client);
-    }
-
 public:
     static Mischievous *self;
     QMap<QString, QObject*> moduleMap;
-    // 未能匹配到ShellClient的ShellSurface，需要等ShellClient创建后重新调用onDDEShellSurfaceCreated
-    QList<DShellSurface*> feralShellSurface;
 };
 
 Mischievous *Mischievous::self = nullptr;
