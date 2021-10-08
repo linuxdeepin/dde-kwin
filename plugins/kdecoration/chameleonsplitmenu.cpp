@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QPainter>
 #include <QBitmap>
+#include <QToolTip>
 
 
 ChameleonSplitMenu::ChameleonSplitMenu(QWidget *parent) : QWidget (parent)
@@ -93,9 +94,14 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
         }
         else if (event->type() == QEvent::Enter) {
             llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            QPoint pos = m_pos;
+            pos.setX(m_pos.x() - 70);
+            pos.setY(m_pos.y() + 38);
+            QToolTip::showText(pos, "将窗口拼贴到屏幕左侧");
         }
         else if (event->type() == QEvent::Leave) {
             llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            QToolTip::hideText();
         }
         return false;
     } else if (obj == clabel) {
@@ -107,9 +113,14 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
         }
         else if (event->type() == QEvent::Enter) {
             clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            QPoint pos = m_pos;
+            pos.setX(m_pos.x() - 20);
+            pos.setY(m_pos.y() + 38);
+            QToolTip::showText(pos, "将窗口拼贴到屏幕右侧");
         }
         else if (event->type() == QEvent::Leave) {
             clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            QToolTip::hideText();
         }
         return false;
     } else if (obj == rlabel) {
@@ -121,9 +132,14 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
         }
         else if (event->type() == QEvent::Enter) {
             rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            QPoint pos = m_pos;
+            pos.setX(m_pos.x() + 30);
+            pos.setY(m_pos.y() + 38);
+            QToolTip::showText(pos, "最大化");
         }
         else if (event->type() == QEvent::Leave) {
             rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            QToolTip::hideText();
         }
         return false;
     }
