@@ -429,16 +429,7 @@ void Chameleon::updateConfig()
     if ((c == sender()) && !active) {
         return;
     }
-    // 窗口边框特效-阴影
-    KConfig config("kwinrc", KConfig::CascadeConfig);
-    KConfigGroup group_shadow(&config, "Compositing");
-    if (group_shadow.hasKey("window_border_effect")) {
-        if (group_shadow.readEntry("window_border_effect") == "true") {
-            updateShadow();
-        }
-    } else {
-        updateShadow();
-    }
+    updateShadow();
     update();
 }
 
