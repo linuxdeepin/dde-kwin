@@ -217,12 +217,12 @@ void UserActionsMenu::handleClick(const QPoint& pos)
     }
 }
 
-void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
+void UserActionsMenu::show(const QRect &pos, AbstractClient *cl)
 {
 
-    _menuClient = cl.data();
+    _menuClient = cl;
 
-    if (cl.isNull())
+    if (!cl)
         return;
 
     if (isShown())
@@ -238,7 +238,7 @@ void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> 
     if (_globalWindowMenu.isNull()) {
         _globalWindowMenu = new QMenu;
 
-        for (const MenuItem &item : getMenuItemInfos(cl.data())) {
+        for (const MenuItem &item : getMenuItemInfos(cl)) {
             QAction *action = _globalWindowMenu->addAction(item.text);
 
             action->setProperty("id", item.id);

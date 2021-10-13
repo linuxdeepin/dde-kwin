@@ -43,7 +43,7 @@ class Q_DECL_EXPORT UserActionsMenu : public QObject {
     bool hasClient();
     bool isMenuClient(const AbstractClient *c) const;
 
-    void show(const QRect& pos, const QWeakPointer<AbstractClient> &cl);
+    void show(const QRect& pos, AbstractClient *cl);
     void close();
 };
 
