@@ -61,7 +61,7 @@ class RuleBook : public QObject
     // 否则会导致 /etc/xdg 中预设的窗口规则失效
     void save();
 };
-
+#endif
 #endif // USE_DBUS_MENU
 
 enum class BuiltInEffect {
