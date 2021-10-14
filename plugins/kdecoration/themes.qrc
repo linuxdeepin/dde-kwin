@@ -56,17 +56,5 @@
         <file>deepin/light/icons/unmaximize_press.svg</file>
         <file>deepin/light/titlebar.ini</file>
         <file>deepin/light/decoration.ini</file>
-        <file>deepin/dark/icons/left_split_hover.svg</file>
-        <file>deepin/dark/icons/left_split_normal.svg</file>
-        <file>deepin/dark/icons/max_split_hover.svg</file>
-        <file>deepin/dark/icons/max_split_normal.svg</file>
-        <file>deepin/dark/icons/right_split_hover.svg</file>
-        <file>deepin/dark/icons/right_split_normal.svg</file>
-        <file>deepin/light/icons/left_split_hover.svg</file>
-        <file>deepin/light/icons/left_split_normal.svg</file>
-        <file>deepin/light/icons/max_split_hover.svg</file>
-        <file>deepin/light/icons/max_split_normal.svg</file>
-        <file>deepin/light/icons/right_split_hover.svg</file>
-        <file>deepin/light/icons/right_split_normal.svg</file>
     </qresource>
 </RCC>
