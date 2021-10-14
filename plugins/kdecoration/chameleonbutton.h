@@ -22,27 +22,16 @@
 #define CHAMELEONBUTTON_H
 
 #include <KDecoration2/DecorationButton>
-#include "chameleonsplitmenu.h"
 
 class ChameleonButton : KDecoration2::DecorationButton
 {
 public:
     explicit ChameleonButton(KDecoration2::DecorationButtonType type, const QPointer<KDecoration2::Decoration> &decoration, QObject *parent = nullptr);
-    virtual ~ChameleonButton();
 
     static DecorationButton *create(KDecoration2::DecorationButtonType type, KDecoration2::Decoration *decoration, QObject *parent);
 
-    virtual void hoverEnterEvent(QHoverEvent *event) override;
-    virtual void hoverLeaveEvent(QHoverEvent *event) override;
-
 protected:
     void paint(QPainter *painter, const QRect &repaintRegion) override;
-
-    KDecoration2::DecorationButtonType m_type;
-
-    ChameleonSplitMenu *m_pSplitMenu = nullptr;
-
-    KWin::EffectWindow *effect = nullptr;
 };
 
 #endif // CHAMELEONBUTTON_H
