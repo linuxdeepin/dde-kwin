@@ -24,7 +24,6 @@
 #include <KDecoration2/DecoratedClient>
 #include <KDecoration2/Decoration>
 
-#include <QHoverEvent>
 #include <QPainter>
 #include <QDebug>
 #include <QX11Info>
@@ -33,8 +32,6 @@ ChameleonButton::ChameleonButton(KDecoration2::DecorationButtonType type, const 
     : KDecoration2::DecorationButton(type, decoration, parent)
 {
     auto c = decoration->client().data();
-
-    m_type = type;
 
     switch (type) {
     case KDecoration2::DecorationButtonType::Menu:
@@ -54,18 +51,6 @@ ChameleonButton::ChameleonButton(KDecoration2::DecorationButtonType type, const 
     default: // 隐藏不支持的按钮
         setVisible(false);
         break;
-    }
-
-    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
-        connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositorChanged(bool)));
-    }
-}
-
-ChameleonButton::~ChameleonButton()
-{
-    if (m_pSplitMenu) {
-        delete m_pSplitMenu;
-        m_pSplitMenu = nullptr;
     }
 }
 
@@ -130,50 +115,3 @@ void ChameleonButton::paint(QPainter *painter, const QRect &repaintRegion)
     painter->restore();
 }
 
-void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
-{
-    KDecoration2::DecorationButton::hoverEnterEvent(event);
-
-    if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
-        if (KWinUtils::instance()->isCompositing()) {
-            if (!m_pSplitMenu) {
-                m_pSplitMenu = new ChameleonSplitMenu();
-                Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
-                m_pSplitMenu->setEffect(decoration->client().data()->windowId());
-            }
-            if (m_pSplitMenu && !m_pSplitMenu->isShow()) {
-                if (!decoration()->client().data()->isMaximized()) {
-                    Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
-                    effect = decoration->effect();
-                    qreal x = effect->geometry().x();
-                    qreal y = effect->geometry().y();
-                    QPoint p(x + geometry().x(), y + geometry().height());
-                    m_pSplitMenu->Show(p);
-                }
-            }
-        }
-    }
-
-}
-
-void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
-{
-    KDecoration2::DecorationButton::hoverLeaveEvent(event);
-    if (m_pSplitMenu && m_type == KDecoration2::DecorationButtonType::Maximize) {
-        if (event->pos() != QPoint(-1, -1)) {
-            if (((geometry().left() > event->pos().x() || event->pos().x() > geometry().right())
-                    || (geometry().top() > event->pos().y() || event->pos().y() > geometry().bottom() + 77))
-                    && !m_pSplitMenu->getMenuSt()) {
-                m_pSplitMenu->Hide();
-            }
-        }
-    }
-
-}
-
-void ChameleonButton::onCompositorChanged(bool active)
-{
-    if (!active && m_pSplitMenu) {
-        m_pSplitMenu->Hide();
-    }
-}
