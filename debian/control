@@ -31,6 +31,7 @@ Build-Depends: debhelper (>=9),
  libdtkgui-dev,
  libxcb-composite0-dev,
  libxcb-damage0-dev,
+ libkwaylandserver-dev,
 Standards-Version: 3.9.8
 Homepage: https://github.com/linuxdeepin/dde-kwin
 
