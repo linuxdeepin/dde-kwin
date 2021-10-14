@@ -26,7 +26,7 @@
 #include <KDecoration2/Decoration>
 #include <KDecoration2/DecorationButtonGroup>
 
-#include "kwineffects.h"
+#include <kwineffects.h>
 
 #include <QVariant>
 #include <QDir>

@@ -32,7 +32,7 @@
 
 // 为了访问 KWinEffects 的保护成员变量
 #define protected public
-#include "kwineffects.h"
+#include <kwineffects.h>
 #undef protected
 
 #include <xcb/xcb.h>

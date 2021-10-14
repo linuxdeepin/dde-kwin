@@ -21,7 +21,7 @@
 #ifndef SCISSORWINDOW_H
 #define SCISSORWINDOW_H
 
-#include "kwineffects.h"
+#include <kwineffects.h>
 
 class ScissorWindow : public KWin::Effect
 {

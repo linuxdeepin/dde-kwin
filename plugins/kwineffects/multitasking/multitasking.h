@@ -32,7 +32,7 @@
 #include <QQuickWidget>
 #include <QWindow>
 #include <QTimeLine>
-#include "kwineffects.h"
+#include <kwineffects.h>
 #include <KF5/KWindowSystem/KWindowSystem>
 
 #include "kwinutils.h"
