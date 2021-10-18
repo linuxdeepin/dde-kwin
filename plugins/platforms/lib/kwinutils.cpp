@@ -142,10 +142,10 @@ public:
 };
 
 // 光标管理
-class Cursor : public QObject
+class Cursors : public QObject
 {
 public:
-    static Cursor *s_self;
+    static Cursors *s_self;
 };
 
 class AbstractClient : public QObject {};
@@ -606,7 +606,7 @@ QObject *KWinUtils::tabBox()
 
 QObject *KWinUtils::cursor()
 {
-    return KWin::Cursor::s_self;
+    return KWin::Cursors::s_self;
 }
 
 QObject *KWinUtils::virtualDesktop()
