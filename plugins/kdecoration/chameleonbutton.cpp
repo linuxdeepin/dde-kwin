@@ -27,6 +27,7 @@
 #include <QHoverEvent>
 #include <QPainter>
 #include <QDebug>
+#include <QX11Info>
 
 ChameleonButton::ChameleonButton(KDecoration2::DecorationButtonType type, const QPointer<KDecoration2::Decoration> &decoration, QObject *parent)
     : KDecoration2::DecorationButton(type, decoration, parent)
@@ -133,7 +134,7 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
 {
     KDecoration2::DecorationButton::hoverEnterEvent(event);
 
-    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
+    if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
         if (KWinUtils::instance()->isCompositing()) {
             if (!m_pSplitMenu) {
                 m_pSplitMenu = new ChameleonSplitMenu();
