@@ -610,7 +610,7 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
         w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
     }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDesktop() || isRelevantWithPresentWindows(w))) {
+    if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) || w->isMinimized()) {
         w->disablePainting(EffectWindow::PAINT_DISABLED);
         w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
     }
