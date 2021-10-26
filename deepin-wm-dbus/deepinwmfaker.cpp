@@ -1147,9 +1147,8 @@ QString DeepinWMFaker::getWorkspaceBackground(const int index) const
 void DeepinWMFaker::setWorkspaceBackground(const int index, const QString &uri)
 {
     m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString::number(index), uri);
-
+    m_deepinWMWorkspaceBackgroundGroup->sync();
     Q_EMIT WorkspaceBackgroundChanged(index, uri);
-
 }
 
 QString DeepinWMFaker::getWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName) const
@@ -1159,8 +1158,8 @@ QString DeepinWMFaker::getWorkspaceBackgroundForMonitor(const int index, const Q
 void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
 {
     m_deepinWMWorkspaceBackgroundGroup->writeEntry(QString("%1%2%3").arg(index).arg("@" ,strMonitorName), uri);
-    Q_EMIT WorkspaceBackgroundChangedForMonitor( index ,strMonitorName,uri );
     m_deepinWMConfig->sync();
+    Q_EMIT WorkspaceBackgroundChangedForMonitor( index ,strMonitorName,uri );
 
 #ifndef DISABLE_DEEPIN_WM
     _gsettings_dde_appearance->set(GsettingsBackgroundUri, uri);
