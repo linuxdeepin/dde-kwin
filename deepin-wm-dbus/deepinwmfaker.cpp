@@ -134,7 +134,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
 {
 #ifndef DISABLE_DEEPIN_WM
-    m_currentDesktop = m_windowSystem->currentDesktop();
+    m_currentDesktop = m_kwinConfig->group("Workspace").readEntry<int>("CurrentDesktop", 1);
 
     connect(m_windowSystem, &KWindowSystem::currentDesktopChanged, this, [this] (int to) {
         Q_EMIT WorkspaceSwitched(m_currentDesktop, to);
@@ -344,7 +344,7 @@ void DeepinWMFaker::SetWorkspaceBackgroundForMonitor(const int index, const QStr
 
 QString DeepinWMFaker::GetCurrentWorkspaceBackgroundForMonitor(const QString &strMonitorName)
 {
-    return GetWorkspaceBackgroundForMonitor( m_windowSystem->currentDesktop(), strMonitorName);
+    return GetWorkspaceBackgroundForMonitor(m_currentDesktop, strMonitorName);
 }
 void DeepinWMFaker::SetCurrentWorkspaceBackgroundForMonitor(const QString &uri, const QString &strMonitorName)
 {
