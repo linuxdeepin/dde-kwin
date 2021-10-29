@@ -115,6 +115,7 @@ public:
         static bool canClose(const QObject *window);
 
         static bool isKeepAbove(const QObject *window);
+        static bool isSplitscreen(const QObject *window);
         static void setKeepAbove(QObject *window, bool on);
         static bool isOnAllDesktops(const QObject *window);
         static void setOnAllDesktops(QObject *window, bool on);

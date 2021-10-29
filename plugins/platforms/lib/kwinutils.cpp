@@ -1317,6 +1317,11 @@ bool KWinUtils::Window::isKeepAbove(const QObject *window)
     return window && window->property("keepAbove").toBool();
 }
 
+bool KWinUtils::Window::isSplitscreen(const QObject *window)
+{
+    return window && window->property("isSplitscreen").toBool();
+}
+
 void KWinUtils::Window::setKeepAbove(QObject *window, bool on)
 {
     if (!window)

@@ -69,7 +69,7 @@ static QList<MenuItem> getMenuItemInfos(AbstractClient *cl)
         {"always-on-top", qApp->translate("WindowMenu", "Always on Top"),
          true, true, KWinUtils::Window::isKeepAbove(cl)},
         {"all-workspace", qApp->translate("WindowMenu", "Always on Visible Workspace"),
-         true, true, KWinUtils::Window::isOnAllDesktops(cl)},
+         !KWinUtils::Window::isSplitscreen(cl), true, KWinUtils::Window::isOnAllDesktops(cl)},
         {"move-left", qApp->translate("WindowMenu", "Move to Workspace Left"),
          KWinUtils::Window::windowDesktop(cl) > 1, false, false},
         {"move-right", qApp->translate("WindowMenu", "Move to Workspace Right"),
