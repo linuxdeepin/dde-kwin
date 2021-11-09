@@ -130,7 +130,7 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
 {
     KDecoration2::DecorationButton::hoverEnterEvent(event);
 
-    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
+    if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
         if (!m_pSplitMenu) {
             m_pSplitMenu = new ChameleonSplitMenu();
             Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
