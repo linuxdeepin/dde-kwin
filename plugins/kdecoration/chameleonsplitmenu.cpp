@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QPainter>
 #include <QBitmap>
+#include <QPainterPath>
 #include "kwinutils.h"
 
 
