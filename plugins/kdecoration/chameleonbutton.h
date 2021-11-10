@@ -26,6 +26,7 @@
 
 class ChameleonButton : KDecoration2::DecorationButton
 {
+    Q_OBJECT
 public:
     explicit ChameleonButton(KDecoration2::DecorationButtonType type, const QPointer<KDecoration2::Decoration> &decoration, QObject *parent = nullptr);
     virtual ~ChameleonButton();
@@ -34,6 +35,9 @@ public:
 
     virtual void hoverEnterEvent(QHoverEvent *event) override;
     virtual void hoverLeaveEvent(QHoverEvent *event) override;
+
+protected slots:
+    void onCompositorChanged(bool);
 
 protected:
     void paint(QPainter *painter, const QRect &repaintRegion) override;

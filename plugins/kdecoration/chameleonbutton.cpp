@@ -20,7 +20,7 @@
  */
 #include "chameleonbutton.h"
 #include "chameleon.h"
-
+#include "kwinutils.h"
 #include <KDecoration2/DecoratedClient>
 #include <KDecoration2/Decoration>
 
@@ -53,6 +53,10 @@ ChameleonButton::ChameleonButton(KDecoration2::DecorationButtonType type, const 
     default: // 隐藏不支持的按钮
         setVisible(false);
         break;
+    }
+
+    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
+        connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositorChanged(bool)));
     }
 }
 
@@ -130,18 +134,21 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
     KDecoration2::DecorationButton::hoverEnterEvent(event);
 
     if (m_type == KDecoration2::DecorationButtonType::Maximize) {
-        if (!m_pSplitMenu) {
-            m_pSplitMenu = new ChameleonSplitMenu();
-            Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
-            effect = decoration->effect();
-            m_pSplitMenu->setEffect(decoration->client().data()->windowId());
-        }
-        if (!m_pSplitMenu->isShow()) {
-            if (effect && !decoration()->client().data()->isMaximized()) {
-                qreal x = effect->geometry().x();
-                qreal y = effect->geometry().y();
-                QPoint p(x + geometry().x(), y + geometry().height());
-                m_pSplitMenu->Show(p);
+        if (KWinUtils::instance()->isCompositing()) {
+            if (!m_pSplitMenu) {
+                m_pSplitMenu = new ChameleonSplitMenu();
+                Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
+                m_pSplitMenu->setEffect(decoration->client().data()->windowId());
+            }
+            if (m_pSplitMenu && !m_pSplitMenu->isShow()) {
+                if (!decoration()->client().data()->isMaximized()) {
+                    Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
+                    effect = decoration->effect();
+                    qreal x = effect->geometry().x();
+                    qreal y = effect->geometry().y();
+                    QPoint p(x + geometry().x(), y + geometry().height());
+                    m_pSplitMenu->Show(p);
+                }
             }
         }
     }
@@ -161,4 +168,11 @@ void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
         }
     }
 
+}
+
+void ChameleonButton::onCompositorChanged(bool active)
+{
+    if (!active && m_pSplitMenu) {
+        m_pSplitMenu->Hide();
+    }
 }
