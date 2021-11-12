@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QBitmap>
 #include <QPainterPath>
+#include <QtMath>
+#include <QTimer>
 #include "kwinutils.h"
 
 
@@ -31,31 +33,39 @@ ChameleonSplitMenu::ChameleonSplitMenu(QWidget *parent) : QWidget (parent)
     llabel->installEventFilter(this);
     clabel->installEventFilter(this);
     rlabel->installEventFilter(this);
-    layout->setContentsMargins(2, 10, 2, 2);
+    layout->setContentsMargins(7, 14, 7, 2);
     setLayout(layout);
+
+    shadow = new QGraphicsDropShadowEffect(this);
+    shadow->setOffset(0, 0);
+    shadow->setColor(Qt::gray);
+    shadow->setBlurRadius(10);
+    this->setGraphicsEffect(shadow);
 }
 
 ChameleonSplitMenu::~ChameleonSplitMenu()
 {
-
+    if (tip_timer) {
+        delete tip_timer;
+        tip_timer = nullptr;
+    }
+    if (shadow) {
+        delete shadow;
+        shadow = nullptr;
+    }
 }
 
 void ChameleonSplitMenu::enterEvent(QEvent *e)
 {
     QWidget::enterEvent(e);
-    m_MenuSt = true;
-    if (!m_isShow) {
-        Show(m_pos);
-    }
+    stopTime();
 }
 
 void ChameleonSplitMenu::leaveEvent(QEvent *e)
 {
     QWidget::leaveEvent(e);
-    m_MenuSt = false;
-    if (m_isShow) {
-        Hide();
-    }
+    if (!m_MenuSt)
+        startTime();
 }
 
 void ChameleonSplitMenu::paintEvent(QPaintEvent *e)
@@ -63,25 +73,25 @@ void ChameleonSplitMenu::paintEvent(QPaintEvent *e)
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    QColor col_menu(255, 255, 255, 200);//(114, 164, 250, 200);
+    QColor col_menu(255, 255, 255, 255);
     painter.setBrush(QBrush(col_menu));
 
     QPainterPath painterPath;
-    painterPath.addRoundedRect(QRect(0, 10, width(), height() - 10), 17, 17);
+    painterPath.addRoundedRect(QRect(5, 20, width() - 10, height() - 30), 14, 14);
     painter.drawPath(painterPath);
 
-    int spot = (width() / 2) + 17;
-    QPointF points[3] = {
-        QPointF(spot, 0),
-        QPointF(spot + 8, 10),
-        QPointF(spot - 8, 10),
-    };
-
+    int spot = (width() / 2) + 12;
+    double w = M_PI / 25;
+    int fx = spot -20;
+    QPainterPath wave;
+    wave.moveTo(fx, 20);
+    for (int x = 0; x <= 50; x+=1) {
+        double waveY = (double)(9 * sin(w * x + fx)) + 11;
+        wave.lineTo(x + fx, waveY);
+    }
+    wave.lineTo(spot + 30, 20);
     painter.setBrush(QBrush(col_menu));
-    QPen pen;
-    pen.setColor(col_menu);
-    painter.setPen(pen);
-    painter.drawPolygon(points, 3);
+    painter.drawPath(wave);
 }
 
 bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
@@ -141,10 +151,12 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
 
 void ChameleonSplitMenu::Show(QPoint pos)
 {
+    if (m_isShow)
+        return;
     m_isShow = true;
     m_pos = pos;
-    pos.setX(m_pos.x() -70);
-    QRect rect(pos, QSize(148, 70));
+    pos.setX(m_pos.x() -75);
+    QRect rect(pos, QSize(158, 85));
     setGeometry(rect);
 
     show();
@@ -169,4 +181,26 @@ void ChameleonSplitMenu::setShowSt(bool flag)
 void ChameleonSplitMenu::setEffect(WId id)
 {
     m_client = KWinUtils::findClient(KWinUtils::Predicate::WindowMatch, id);
+}
+
+void ChameleonSplitMenu::startTime()
+{
+    if (!tip_timer) {
+        tip_timer = new QTimer();
+        tip_timer->setSingleShot(true);
+        connect(tip_timer, &QTimer::timeout, [this] {
+            Hide();
+        });
+        tip_timer->start(700);
+    } else {
+        tip_timer->start(700);
+    }
+}
+
+void ChameleonSplitMenu::stopTime()
+{
+    if (tip_timer) {
+
+        tip_timer->stop();
+    }
 }

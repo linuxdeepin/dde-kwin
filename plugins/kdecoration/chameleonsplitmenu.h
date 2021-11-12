@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <QLabel>
+#include <QGraphicsDropShadowEffect>
 
 enum class QuickTileFlag {
     None        = 0,
@@ -31,6 +32,9 @@ public:
     bool getMenuSt(){ return m_MenuSt;};
     void setEffect(WId id);
 
+    void startTime();
+    void stopTime();
+
     void enterEvent(QEvent *e) override;
     void leaveEvent(QEvent *e) override;
 
@@ -46,6 +50,9 @@ private:
     QLabel *rlabel;
 
     QObject *m_client = nullptr;
+    QTimer *tip_timer = nullptr;
+
+    QGraphicsDropShadowEffect *shadow = nullptr;
 };
 
 #endif

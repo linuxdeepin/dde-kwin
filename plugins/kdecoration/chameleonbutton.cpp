@@ -23,7 +23,7 @@
 #include "kwinutils.h"
 #include <KDecoration2/DecoratedClient>
 #include <KDecoration2/Decoration>
-
+#include <QTimer>
 #include <QHoverEvent>
 #include <QPainter>
 #include <QDebug>
@@ -67,6 +67,7 @@ ChameleonButton::~ChameleonButton()
         delete m_pSplitMenu;
         m_pSplitMenu = nullptr;
     }
+
 }
 
 KDecoration2::DecorationButton *ChameleonButton::create(KDecoration2::DecorationButtonType type, KDecoration2::Decoration *decoration, QObject *parent)
@@ -141,14 +142,17 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
                 Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
                 m_pSplitMenu->setEffect(decoration->client().data()->windowId());
             }
-            if (m_pSplitMenu && !m_pSplitMenu->isShow()) {
+            if (m_pSplitMenu) {
                 if (!decoration()->client().data()->isMaximized()) {
                     Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
                     effect = decoration->effect();
                     qreal x = effect->geometry().x();
                     qreal y = effect->geometry().y();
                     QPoint p(x + geometry().x(), y + geometry().height());
+                    m_pSplitMenu->setShowSt(true);
+                    m_pSplitMenu->stopTime();
                     m_pSplitMenu->Show(p);
+
                 }
             }
         }
@@ -160,15 +164,9 @@ void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
 {
     KDecoration2::DecorationButton::hoverLeaveEvent(event);
     if (m_pSplitMenu && m_type == KDecoration2::DecorationButtonType::Maximize) {
-        if (event->pos() != QPoint(-1, -1)) {
-            if (((geometry().left() > event->pos().x() || event->pos().x() > geometry().right())
-                    || (geometry().top() > event->pos().y() || event->pos().y() > geometry().bottom() + 77))
-                    && !m_pSplitMenu->getMenuSt()) {
-                m_pSplitMenu->Hide();
-            }
-        }
+        m_pSplitMenu->setShowSt(false);
+        m_pSplitMenu->startTime();
     }
-
 }
 
 void ChameleonButton::onCompositorChanged(bool active)
