@@ -338,15 +338,9 @@ KWin.Switcher {
                     Connections {
                         target: tabBox
 
-                        //qml新版本这种写法已经废弃
-                        /*onCurrentIndexChanged: {
+                        onCurrentIndexChanged: {
                             itemsView.currentIndex = tabBox.currentIndex
-                        }*/
-
-                        function onCurrentIndexChanged(i) {
-                             itemsView.currentIndex = i
                         }
-
                     }
 
                     // keyNavigationEnabled: true // Requires: Qt 5.7 and QtQuick 2.? (2.7 didn't work).
