@@ -1,3 +1,10 @@
+dde-kwin (5.4.14-1) unstable; urgency=medium
+
+  * Bug fix:
+    + Fix the problem that the switcher thumbnail cannot be switched caused by efb6b4cd7 submission.
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 15 Nov 2021 14:33:50 +0800
+
 dde-kwin (5.4.13-1) unstable; urgency=medium
 
   * feat: The 'wayland' branch joins the 'master' branch
