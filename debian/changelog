@@ -1,3 +1,10 @@
+dde-kwin (5.4.17-1) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: Alt + TAB module support for automated testing has been temporarily withdrawn
+
+ -- Lei Su <sulei@uniontech.com>  Sat, 20 Nov 2021 16:33:33 +0800
+
 dde-kwin (5.4.16-1) unstable; urgency=medium
 
   * Bug fix:
