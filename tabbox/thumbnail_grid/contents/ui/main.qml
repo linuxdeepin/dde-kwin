@@ -110,10 +110,6 @@ KWin.Switcher {
 
             clip: true
 
-            Accessible.role: Accessible.Window
-            Accessible.name: "tabbox_area"
-            Accessible.description: "alt + tab switcher area"
-
             function calculateColumnCount() {
                 var count = itemsView.count
                 var item_need_scale = false
