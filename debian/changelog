@@ -1,3 +1,10 @@
+dde-kwin (5.4.16-1) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: add security hardening for security testing
+
+ -- Lei Su <sulei@uniontech.com>  Sat, 20 Nov 2021 15:59:21 +0800
+
 dde-kwin (5.4.14-1) unstable; urgency=medium
 
   * Bug fix:
