@@ -143,7 +143,7 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
                 m_pSplitMenu->setEffect(decoration->client().data()->windowId());
             }
             if (m_pSplitMenu) {
-                if (!decoration()->client().data()->isMaximized()) {
+                //if (!decoration()->client().data()->isMaximized()) {
                     Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
                     effect = decoration->effect();
                     qreal x = effect->geometry().x();
@@ -152,8 +152,7 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
                     m_pSplitMenu->setShowSt(true);
                     m_pSplitMenu->stopTime();
                     m_pSplitMenu->Show(p);
-
-                }
+                //}
             }
         }
     }
