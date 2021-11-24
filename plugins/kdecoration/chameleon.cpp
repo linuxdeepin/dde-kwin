@@ -374,7 +374,8 @@ void Chameleon::updateTitleGeometry()
     m_title = client().data()->caption();
     // 使用系统字体，不要使用 settings() 中的字体
     const QFontMetricsF fontMetrics(m_font);
-    int full_width = fontMetrics.width(m_title) * m_theme->windowPixelRatio();
+    // 在计算标题长度的时候需要：1,考虑m_theme->windowPixelRatio() < 1.0情况; 2,需要向上取整，保证足够空间来绘制标题栏
+    int full_width = qCeil(fontMetrics.width(m_title) * qMax(m_theme->windowPixelRatio(),1.0));
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
         int buttons_width = m_leftButtons->geometry().width() 
@@ -382,9 +383,12 @@ void Chameleon::updateTitleGeometry()
 
         m_titleArea.setWidth(m_titleArea.width() - buttons_width);
         m_titleArea.moveLeft(m_leftButtons->geometry().right() + s->smallSpacing());
-
-        if (full_width < (m_titleArea.right() - titleBar().center().x()) * 2) {
-            m_titleArea.setWidth(full_width);
+        
+        //3，计算能让标题位于标题栏中间的完美宽度
+        int perfectWidth = (m_titleArea.right() - titleBar().center().x()) * 2;
+        if (full_width < perfectWidth) {
+            //4，当标题宽度小于完美宽度时，用完美宽度来保证标题绘制有足够空间
+            m_titleArea.setWidth(perfectWidth);
             m_titleArea.moveCenter(titleBar().center());
 
         } else if (full_width > m_titleArea.width()) {
