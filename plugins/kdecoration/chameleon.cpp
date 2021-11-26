@@ -40,7 +40,7 @@
 #include <QScreen>
 #include <QGuiApplication>
 #include <QtDBus>
-
+#include <QX11Info>
 Q_DECLARE_METATYPE(QPainterPath)
 
 Chameleon::Chameleon(QObject *parent, const QVariantList &args)
@@ -85,7 +85,11 @@ void Chameleon::init()
     connect(c, &KDecoration2::DecoratedClient::activeChanged, this, &Chameleon::updateConfig);
     connect(c, &KDecoration2::DecoratedClient::widthChanged, this, &Chameleon::onClientWidthChanged);
     connect(c, &KDecoration2::DecoratedClient::heightChanged, this, &Chameleon::onClientHeightChanged);
-    connect(c, &KDecoration2::DecoratedClient::maximizedChanged, this, &Chameleon::updateTitleBarArea, Qt::QueuedConnection);
+    if (QX11Info::isPlatformX11()) {
+        connect(c, &KDecoration2::DecoratedClient::maximizedChanged, this, &Chameleon::updateTitleBarArea);
+    } else {
+        connect(c, &KDecoration2::DecoratedClient::maximizedChanged, this, &Chameleon::updateTitleBarArea, Qt::QueuedConnection);
+    }
     connect(c, &KDecoration2::DecoratedClient::adjacentScreenEdgesChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::maximizedHorizontallyChanged, this, &Chameleon::updateBorderPath);
     connect(c, &KDecoration2::DecoratedClient::maximizedVerticallyChanged, this, &Chameleon::updateBorderPath);
