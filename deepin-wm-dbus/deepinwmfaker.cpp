@@ -59,7 +59,7 @@ const char fallback_background_name[] = "file:///usr/share/backgrounds/default_b
 using org::kde::KWin;
 
 // deepin-wm's accel as Key
-static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
+static QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "switch-to-workspace-1", "Switch to Desktop 1" },
     { "switch-to-workspace-2", "Switch to Desktop 2" },
     { "switch-to-workspace-3", "Switch to Desktop 3" },
@@ -108,6 +108,9 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "expose-all-windows", "ExposeAll" },
     { "expose-windows", "Expose" },
     { "preview-workspace", "ShowMultitasking" },
+};
+
+static const QMap<QString, QString> WaylandDeepinWMKWinAccelsMap {
     { "launcher" , "Launcher"},
     { "terminal" , "Terminal"},
     { "deepin-screen-recorder", "Screen Recorder"},
@@ -161,7 +164,7 @@ static const QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "copy",                   "Copy"},
     { "tools",                  "Tools"},
     { "audio-raise-volume",     "VolumeUp"},
-    { "close",                  "Close"},
+    { "media-close",            "Media Close"},
     { "www",                    "WWW"},
     { "home-page",              "HomePage"},
     { "sleep",                  "Sleep"},
@@ -242,7 +245,7 @@ static const QStringList NotConfigurationAction = {
     "Copy",
     "Tools",
     "VolumeUp",
-    "Close",
+    "Media Close",
     "WWW",
     "HomePage",
     "Sleep",
@@ -335,6 +338,15 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
             SetDecorationDeepinTheme("light");
         } else if (theme == "__aurorae__svg__deepin-dark") {
             SetDecorationDeepinTheme("dark");
+        }
+    }
+
+    auto e = QProcessEnvironment::systemEnvironment();
+    QString XDG_SESSION_TYPE = e.value(QStringLiteral("XDG_SESSION_TYPE"));
+
+    if (XDG_SESSION_TYPE != QLatin1String("x11")) {
+        for (auto iter = WaylandDeepinWMKWinAccelsMap.begin(); iter != WaylandDeepinWMKWinAccelsMap.end(); iter++) {
+            AllDeepinWMKWinAccelsMap.insert(iter.key(), iter.value());
         }
     }
 }
