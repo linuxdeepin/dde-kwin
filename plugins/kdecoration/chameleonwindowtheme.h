@@ -30,7 +30,7 @@ class ChameleonWindowTheme : public QObject
     Q_OBJECT
     Q_PROPERTY(qint64 validProperties READ validProperties WRITE setValidProperties NOTIFY validPropertiesChanged)
     Q_PROPERTY(QString theme READ theme NOTIFY themeChanged)
-    Q_PROPERTY(QPointF windowRadius READ windowRadius NOTIFY windowRadiusChanged)
+    Q_PROPERTY(QPointF windowRadius READ windowRadius WRITE setWindowRadius NOTIFY windowRadiusChanged)
     Q_PROPERTY(qreal borderWidth READ borderWidth NOTIFY borderWidthChanged)
     Q_PROPERTY(QColor borderColor READ borderColor NOTIFY borderColorChanged)
     Q_PROPERTY(qreal shadowRadius READ shadowRadius NOTIFY shadowRadiusChanged)
@@ -52,7 +52,7 @@ public:
         WindowPixelRatioProperty = 0x200
     };
     Q_DECLARE_FLAGS(PropertyFlags, PropertyFlag)
-    Q_FLAG(PropertyFlag)
+    Q_FLAG(PropertyFlags)
 
     explicit ChameleonWindowTheme(QObject *window, QObject *parent = nullptr);
 
@@ -61,6 +61,7 @@ public:
 
     QString theme() const;
     QPointF windowRadius() const;
+    void setWindowRadius(const QPointF value);
     qreal borderWidth() const;
     QColor borderColor() const;
     qreal shadowRadius() const;
@@ -92,6 +93,7 @@ private:
     QScreen *m_screen = nullptr;
     PropertyFlags m_validProperties;
     qreal m_windowPixelRatio = 1.0;
+    QPointF m_windowRadius = QPointF(0.0,0.0);
 };
 
 Q_DECLARE_METATYPE(QMarginsF)

@@ -26,6 +26,7 @@
 
 #include <QDebug>
 #include <QGuiApplication>
+#include <QX11Info>
 
 ChameleonWindowTheme::ChameleonWindowTheme(QObject *window, QObject *parent)
     : QObject(parent)
@@ -66,7 +67,14 @@ QString ChameleonWindowTheme::theme() const
 
 QPointF ChameleonWindowTheme::windowRadius() const
 {
+    if(!QX11Info::isPlatformX11()) {
+        return m_windowRadius;
+    }
     return ChameleonTheme::takePos(property("windowRadius"), QPointF(0.0, 0.0));
+}
+
+void ChameleonWindowTheme::setWindowRadius(const QPointF value) {
+    this->m_windowRadius = value;
 }
 
 qreal ChameleonWindowTheme::borderWidth() const
