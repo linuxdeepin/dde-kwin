@@ -1387,4 +1387,16 @@ void KWinUtils::Window::setQuikTileMode(QObject *window, int m, bool isShowRevie
     QMetaObject::invokeMethod(workspace(), "slotSetClientSplit", Q_ARG(KWin::AbstractClient*, c), Q_ARG(int, m), Q_ARG(bool, isShowReview));
 }
 
+QObject *KWinUtils::getDDEShellSurface(QObject * shellClient)
+{
+    if (!shellClient) {
+        return nullptr;
+    }
+
+    KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(shellClient);
+    QObject * dss = nullptr;
+    QMetaObject::invokeMethod(workspace(), "slotGetDdeShellSurface", Q_ARG(KWin::AbstractClient*, c), Q_ARG(QObject *& , dss));
+    return dss;
+}
+
 #include "moc_kwinutils.cpp"
