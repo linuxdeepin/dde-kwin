@@ -79,6 +79,31 @@ void Chameleon::init()
     m_font = qGuiApp->font();
     updateTheme();
 
+    if (!QX11Info::isPlatformX11() && m_client) {
+        m_ddeShellSurface = static_cast<KWayland::Server::DDEShellSurfaceInterface*>(KWinUtils::getDDEShellSurface(m_client));
+        if (m_ddeShellSurface) {
+            connect(m_ddeShellSurface, &KWayland::Server::DDEShellSurfaceInterface::noTitleBarPropertyRequested, this,
+                [this] (qint32 value) {
+                    if (value != m_noTitleBar) {
+                        m_noTitleBar = value;
+                        updateTitleBarArea();
+                    }
+                }
+            );
+            connect(m_ddeShellSurface, &KWayland::Server::DDEShellSurfaceInterface::windowRadiusPropertyRequested, this,
+                [this] (QPointF windowRadius) {
+                    m_theme->setValidProperties(ChameleonWindowTheme::WindowRadiusProperty);
+                    if (m_theme->propertyIsValid(ChameleonWindowTheme::WindowRadiusProperty)) {
+                        if (windowRadius != m_theme->windowRadius()) {
+                            m_theme->setProperty("windowRadius",windowRadius);
+                            updateBorderPath();
+                        }
+                    }
+                }
+            );
+        }
+    }
+
     connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
     connect(global_config, &ChameleonConfig::windowNoTitlebarPropertyChanged, this, &Chameleon::onNoTitlebarPropertyChanged);
     connect(settings().data(), &KDecoration2::DecorationSettings::alphaChannelSupportedChanged, this, &Chameleon::updateConfig);
@@ -364,7 +389,7 @@ void Chameleon::updateTitleGeometry()
     int full_width = fontMetrics.width(m_title) * m_theme->windowPixelRatio();
 
     if (m_config->titlebar.area == Qt::TopEdge || m_config->titlebar.area == Qt::BottomEdge) {
-        int buttons_width = m_leftButtons->geometry().width() 
+        int buttons_width = m_leftButtons->geometry().width()
             + m_rightButtons->geometry().width() + 2 * s->smallSpacing();
 
         m_titleArea.setWidth(m_titleArea.width() - buttons_width);
@@ -385,7 +410,7 @@ void Chameleon::updateTitleGeometry()
         }
 
     } else  {
-        int buttons_height = m_leftButtons->geometry().height() 
+        int buttons_height = m_leftButtons->geometry().height()
             + m_rightButtons->geometry().height() + 2 * s->smallSpacing();
 
         m_titleArea.setHeight(m_titleArea.height() - buttons_height);

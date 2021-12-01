@@ -77,6 +77,7 @@ public:
     static QObjectList clientList();
     static QObjectList unmanagedList();
     static QObject *findClient(Predicate predicate, quint32 window);
+    static QObject *getDDEShellSurface(QObject * shellClient);
     static void clientUpdateCursor(QObject *client);
     static void setClientDepth(QObject *client, int depth);
     static void defineWindowCursor(quint32 window, Qt::CursorShape cshape);
