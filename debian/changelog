@@ -1,3 +1,14 @@
+dde-kwin (5.4.18-1) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: adjust menu style
+    + fix: add a root accessible.name for alt + tab
+    + fix: Fix the problem that the maximized window cannot fill the screen
+    + fix: Some shortcuts are registered only in wayland mode.
+    + fix: Maximize split screen menu disappears
+
+ -- Lei Su <sulei@uniontech.com>  Fri, 03 Dec 2021 15:47:30 +0800
+
 dde-kwin (5.4.17-1) unstable; urgency=medium
 
   * Bug fix:
