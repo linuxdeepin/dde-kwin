@@ -1,6 +1,6 @@
 #!/bin/bash
 export DISPLAY=:0.0
-utdir=build-ut
+utdir=sanitizer
 rm -r $utdir
 rm -r ../$utdir
 mkdir ../$utdir
@@ -9,7 +9,7 @@ cd ../$utdir
 cmake -DCMAKE_SAFETYTEST_ARG="CMAKE_SAFETYTEST_ARG_ON" ..
 make -j4
 
-./tests/dde-kwin_test -o ut-report.txt
+./tests/dde-kwin_test -o asan.log
 
 workdir=$(cd ../$(dirname $0)/$utdir; pwd)
 
