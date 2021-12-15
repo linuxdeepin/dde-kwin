@@ -169,6 +169,57 @@ void ChameleonConfig::onUnmanagedAdded(KWin::Unmanaged *client)
     debugWindowStartupTime(c);
 }
 
+void ChameleonConfig::onShellClientAdded(KWin::ShellClient *client)
+{
+    QObject *c = reinterpret_cast<QObject*>(client);
+    connect(c, SIGNAL(windowRadiusChanged()), this, SLOT(updateWindowRadius()));
+    enforceWindowProperties(c);
+}
+
+void ChameleonConfig::updateWindowRadius()
+{
+    QObject *window = QObject::sender();
+    if (!window) {
+        return;
+    }
+
+    KWin::EffectWindow *effect = window->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
+    if (!effect) {
+        return;
+    }
+
+    const QVariant client_radius = window->property("windowRadius");
+    if (!client_radius.isValid()) {
+        return;
+    }
+    QPointF window_radius = client_radius.toPointF();
+    if (window_radius.isNull()) {
+        return;
+    }
+
+    const QVariant &effect_window_radius = effect->data(ChameleonConfig::WindowRadiusRole);
+    bool need_update = true;
+
+    if (effect_window_radius.isValid()) {
+        auto old_window_radius = effect_window_radius.toPointF();
+
+        if (old_window_radius == window_radius) {
+            need_update = false;
+        }
+    }
+
+    if (need_update) {
+        // 清理已缓存的旧的窗口mask材质
+        effect->setData(ChameleonConfig::WindowMaskTextureRole, QVariant());
+        // 设置新的窗口圆角
+        if (window_radius.isNull()) {
+            effect->setData(ChameleonConfig::WindowRadiusRole, QVariant());
+        } else {
+            effect->setData(ChameleonConfig::WindowRadiusRole, QVariant::fromValue(window_radius));
+        }
+    }
+}
+
 static bool canForceSetBorder(const QObject *window)
 {
     if (!window->property("managed").toBool())
@@ -514,7 +565,7 @@ void ChameleonConfig::updateClientWindowRadius(QObject *client)
         return;
     }
 
-    if (!client->property(DDE_FORCE_DECORATE).toBool()) {
+    if (QX11Info::isPlatformX11() && !client->property(DDE_FORCE_DECORATE).toBool()) {
         return;
     }
 
@@ -547,6 +598,14 @@ void ChameleonConfig::updateClientWindowRadius(QObject *client)
         // 如果窗口自定义了使用哪个主题
         if (auto config_group = ChameleonTheme::instance()->loadTheme(window_theme->theme())) {
             window_radius = config_group->unmanaged.decoration.windowRadius * window_theme->windowPixelRatio();
+        }
+    }
+
+    const QVariant client_radius = client->property("windowRadius");
+    if (client_radius.isValid()) {
+        QPointF radius = client_radius.toPointF();
+        if (!radius.isNull()) {
+            window_radius = radius;
         }
     }
 
@@ -852,6 +911,8 @@ void ChameleonConfig::init()
     connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);
     connect(KWinUtils::instance(), &KWinUtils::windowShapeChanged, this, &ChameleonConfig::onWindowShapeChanged);
 #endif
+
+    connect(KWinUtils::workspace(), SIGNAL(shellClientAdded(KWin::ShellClient*)), this, SLOT(onShellClientAdded(KWin::ShellClient*)));
 
     // 初始化链接客户端的信号
     for (QObject *c : KWinUtils::instance()->clientList()) {
