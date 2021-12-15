@@ -42,6 +42,7 @@ class Client;
 class Unmanaged;
 class EffectWindow;
 class Toplevel;
+class ShellClient;
 }
 
 class X11Shadow;
@@ -111,6 +112,9 @@ private slots:
     // 用于调试窗口启动速度
     void debugWindowStartupTime(QObject *toplevel);
     void onToplevelDamaged(KWin::Toplevel* toplevel, const QRect& damage);
+
+    void onShellClientAdded(KWin::ShellClient *client);
+    void updateWindowRadius();
 
 private:
     void init();
