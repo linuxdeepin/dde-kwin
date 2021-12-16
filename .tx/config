@@ -20,3 +20,9 @@ file_filter = translations/desktop/desktop_<lang>.ts
 source_file = translations/desktop/desktop.ts
 source_lang = en
 type = QT
+
+[dde-kwin.splitmenu]
+file_filter = plugins/kdecoration/translations/splitmenu_<lang>.ts
+source_file = plugins/kdecoration/translations/splitmenu.ts
+source_lang = en
+type = QT

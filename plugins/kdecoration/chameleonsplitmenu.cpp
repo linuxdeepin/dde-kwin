@@ -9,7 +9,9 @@
 #include <QTimer>
 #include "kwinutils.h"
 #include <QToolTip>
+#include <QTranslator>
 
+Q_LOGGING_CATEGORY(SPLIT_MENU, "kwin.splitmenu", QtCriticalMsg);
 
 ChameleonSplitMenu::ChameleonSplitMenu(QWidget *parent) : QWidget (parent)
 {
@@ -42,6 +44,14 @@ ChameleonSplitMenu::ChameleonSplitMenu(QWidget *parent) : QWidget (parent)
     shadow->setColor(Qt::gray);
     shadow->setBlurRadius(10);
     this->setGraphicsEffect(shadow);
+
+    QString qm = QString(":/splitmenu/translations/splitmenu_%1.qm").arg(QLocale::system().name());
+    auto tran = new QTranslator(this);
+    if (tran->load(qm)) {
+        qApp->installTranslator(tran);
+    } else {
+        qCDebug(SPLIT_MENU) << "load " << qm << "failed";
+    }
 }
 
 ChameleonSplitMenu::~ChameleonSplitMenu()
