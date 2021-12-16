@@ -1,3 +1,13 @@
+dde-kwin (5.4.19-1) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: Cannot use shortcut keys to bring up the multitasking view.
+
+  * Unit test:
+    + test: modify the unit test working directory
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 16 Dec 2021 10:17:07 +0800
+
 dde-kwin (5.4.18-1) unstable; urgency=medium
 
   * Bug fix:
