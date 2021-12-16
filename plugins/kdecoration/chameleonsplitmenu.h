@@ -21,6 +21,7 @@ enum class QuickTileFlag {
 
 class ChameleonSplitMenu : public QWidget
 {
+    Q_OBJECT
 public:
     explicit ChameleonSplitMenu(QWidget *parent = nullptr);
     ~ChameleonSplitMenu();

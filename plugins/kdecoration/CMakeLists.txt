@@ -8,13 +8,21 @@ find_package(Qt5DBus REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KDecoration2 REQUIRED)
-
+find_package(Qt5LinguistTools REQUIRED)
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
 option(DISABLE_LIB_KWIN_XCB "Don't use libkwin-xcb" OFF)
 
 set(CMAKE_CXX_STANDARD 11)
+
+# translations
+file(GLOB TS LIST_DIRECTORIES false translations/splitmenu*.ts)
+foreach(_ts_file ${TS})
+    execute_process(
+        COMMAND ${LUPDATE_EXECUTABLE} -recursive ${CMAKE_SOURCE_DIR}/translations -ts ${_ts_file})
+    execute_process(COMMAND lrelease ${_ts_file})
+endforeach()
 
 add_library(
     ${TARGET_NAME}
