@@ -133,38 +133,44 @@ void ChameleonButton::paint(QPainter *painter, const QRect &repaintRegion)
 
 void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
 {
-    KDecoration2::DecorationButton::hoverEnterEvent(event);
+    Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
+    if (decoration) {
+        effect = decoration->effect();
+        if (effect && !effect->isUserMove()) {
+            KDecoration2::DecorationButton::hoverEnterEvent(event);
 
-    if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
-        if (KWinUtils::instance()->isCompositing()) {
-            if (!m_pSplitMenu) {
-                m_pSplitMenu = new ChameleonSplitMenu();
-                Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
-                m_pSplitMenu->setEffect(decoration->client().data()->windowId());
-            }
-            if (m_pSplitMenu) {
-                //if (!decoration()->client().data()->isMaximized()) {
-                    Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
-                    effect = decoration->effect();
-                    qreal x = effect->geometry().x();
-                    qreal y = effect->geometry().y();
-                    QPoint p(x + geometry().x(), y + geometry().height());
-                    m_pSplitMenu->setShowSt(true);
-                    m_pSplitMenu->stopTime();
-                    m_pSplitMenu->Show(p);
-                //}
+            if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
+                if (KWinUtils::instance()->isCompositing()) {
+                    if (!m_pSplitMenu) {
+                        m_pSplitMenu = new ChameleonSplitMenu();
+                        m_pSplitMenu->setEffect(decoration->client().data()->windowId());
+                    }
+                    if (m_pSplitMenu) {
+                        qreal x = effect->geometry().x();
+                        qreal y = effect->geometry().y();
+                        QPoint p(x + geometry().x(), y + geometry().height());
+                        m_pSplitMenu->setShowSt(true);
+                        m_pSplitMenu->stopTime();
+                        m_pSplitMenu->Show(p);
+                    }
+                }
             }
         }
     }
-
 }
 
 void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
 {
-    KDecoration2::DecorationButton::hoverLeaveEvent(event);
-    if (m_pSplitMenu && m_type == KDecoration2::DecorationButtonType::Maximize) {
-        m_pSplitMenu->setShowSt(false);
-        m_pSplitMenu->startTime();
+    Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
+    if (decoration) {
+        effect = decoration->effect();
+        if (effect && !effect->isUserMove()) {
+            KDecoration2::DecorationButton::hoverLeaveEvent(event);
+            if (m_pSplitMenu && m_type == KDecoration2::DecorationButtonType::Maximize) {
+                m_pSplitMenu->setShowSt(false);
+                m_pSplitMenu->startTime();
+            }
+        }
     }
 }
 
