@@ -1,3 +1,10 @@
+dde-kwin (5.4.21-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 104607 chore: add a dependency on 'kwin-wayland'.
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 30 Dec 2021 19:09:00 +0800
+
 dde-kwin (5.4.20-1) unstable; urgency=medium
 
   * Bug fix:
