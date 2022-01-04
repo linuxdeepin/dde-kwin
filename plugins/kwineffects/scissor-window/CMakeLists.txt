@@ -1,4 +1,5 @@
 set(TARGET_NAME "scissor-window")
+find_package(X11 REQUIRED)
 
 add_library(
     ${TARGET_NAME} MODULE
@@ -9,12 +10,13 @@ add_library(
 
 target_link_libraries(
     ${TARGET_NAME}
-    PUBLIC
-    Qt5::Core
-    Qt5::Gui
     PRIVATE
     KF5::CoreAddons
     KF5::WindowSystem
+    PUBLIC
+    Qt5::Core
+    Qt5::Gui
+    X11::X11
 )
 
 option(DISABLE_LIB_KWIN_XCB "Don't use libkwin-xcb" OFF)

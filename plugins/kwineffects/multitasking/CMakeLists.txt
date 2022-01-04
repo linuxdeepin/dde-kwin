@@ -6,6 +6,7 @@ set(PLASMA_RELATIVE_DATA_INSTALL_DIR "plasma")
 set(KF5_DEP_VERSION "5.54.0") # handled by release scripts
 
 find_package(ECM 5.54.0  NO_MODULE)
+find_package(X11 REQUIRED)
 
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR})
 
@@ -22,7 +23,9 @@ if(KF5Wayland_FOUND)
 endif()
 
 #optional features
-find_package(X11 MODULE)
+message(STATUS "X11_FOUND = ${X11_FOUND}")
+message(STATUS "X11_INCLUDE_DIR = ${X11_INCLUDE_DIR}")
+message(STATUS "X11_LIBRARIES = ${X11_LIBRARIES}")
 set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
                        URL "http://www.x.org"
                        TYPE OPTIONAL
@@ -32,6 +35,10 @@ set_package_properties(XCB PROPERTIES DESCRIPTION "X protocol C-language Binding
                        URL "http://xcb.freedesktop.org"
                        TYPE OPTIONAL
                       )
+
+message(STATUS "XCB_XCB_FOUND = ${XCB_XCB_FOUND}")
+message(STATUS "XCB_LIBRARIES = ${XCB_LIBRARIES}")
+
 if(X11_FOUND AND XCB_XCB_FOUND)
   set(HAVE_X11 1)
   find_package(Qt5 REQUIRED NO_MODULE COMPONENTS X11Extras)
@@ -104,6 +111,7 @@ target_link_libraries(
     Qt5::Widgets
     Qt5::Quick
     Qt5::QuickWidgets
+    X11::X11
     PRIVATE
     KF5::ConfigCore
     KF5::CoreAddons

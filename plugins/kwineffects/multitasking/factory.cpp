@@ -18,28 +18,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "../../../accessible.h"
+
 #include "multitasking.h"
 
-//KWIN_EFFECT_FACTORY(MultitaskingPluginFactory, MultitaskingEffect, "multitasking.json")
-
-class MultitaskingPluginFactory : public KWin::EffectPluginFactory
-{
-    Q_OBJECT
-    Q_INTERFACES(KPluginFactory)
-    Q_PLUGIN_METADATA(IID KPluginFactory_iid FILE "multitasking.json")
-
-public:
-    explicit MultitaskingPluginFactory() {}
-    ~MultitaskingPluginFactory() {}
-
-    KWin::Effect *createEffect() const override {
-        KWin::Effect *e = new  MultitaskingEffect();
-        QAccessible::installFactory(accessibleFactory);
-        return e;
-    }
-};
-
+KWIN_EFFECT_FACTORY_SUPPORTED(MultitaskingPluginFactory, MultitaskingEffect, "multitasking.json", return true;)
 K_EXPORT_PLUGIN_VERSION(KWIN_EFFECT_API_VERSION)
 
 #include "factory.moc"

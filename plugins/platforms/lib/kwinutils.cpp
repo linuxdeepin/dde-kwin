@@ -87,7 +87,11 @@ public:
 public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+    // remove by c61085dc2e28cb7d737c9b049499b4433916b194
+    // change to Compositor::compositing()
     bool compositing() const;
+#endif
     void slotTouchPadTomoveWindow(int x, int y);
     void slotEndTouchPadToMoveWindow();
 
@@ -139,6 +143,7 @@ class Compositor : public QObject
 public:
     enum SuspendReason { NoReasonSuspend = 0, UserSuspend = 1<<0, BlockRuleSuspend = 1<<1, ScriptSuspend = 1<<2, AllReasonSuspend = 0xff };
     static Compositor *s_compositor;
+    bool isActive();
 };
 
 // 光标管理
@@ -1039,12 +1044,18 @@ void KWinUtils::removeWindowPropertyMonitor(quint32 property_atom)
 
 bool KWinUtils::isCompositing()
 {
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 23, 4, 0)
+    if (KWin::Compositor::s_compositor) {
+        return KWin::Compositor::s_compositor->isActive();
+    }
+#else
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         return ws->compositing();
-    } else {
-        return compositorIsActive();
     }
+#endif
+
+    return compositorIsActive();
 }
 
 bool KWinUtils::buildNativeSettings(QObject *baseObject, quint32 windowID)
