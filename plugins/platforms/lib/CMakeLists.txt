@@ -6,12 +6,14 @@ find_package(Qt5Qml REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KF5CoreAddons REQUIRED)
-
+find_package(X11)
 if (${KF5WindowSystem_VERSION_MINOR} GREATER 45)
     add_definitions(-DKWINDOWSYSTEM_NO_QWIDGET)
 else()
     find_package(Qt5Widgets REQUIRED)
 endif()
+
+link_libraries(${X11_LIBRARIES})
 
 add_library(
     ${TARGET_NAME} SHARED
@@ -33,6 +35,7 @@ target_link_libraries(
     KF5::ConfigCore
     KF5::WindowSystem
     KF5::CoreAddons
+    X11::X11
 )
 
 if (KWIN_LIBRARY_PATH)

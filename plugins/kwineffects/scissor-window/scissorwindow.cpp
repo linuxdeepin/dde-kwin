@@ -31,6 +31,7 @@
 #include <QExplicitlySharedDataPointer>
 #include <QSignalBlocker>
 #include <QPainterPath>
+#include <QScopedPointer>
 
 Q_DECLARE_METATYPE(QPainterPath)
 
@@ -169,7 +170,6 @@ Q_DECLARE_METATYPE(MaskCache::TextureData)
 bool ScissorWindow::supported()
 {
     bool supported = KWin::effects->isOpenGLCompositing() && KWin::GLRenderTarget::supported() && KWin::GLRenderTarget::blitSupported();
-
     return supported;
 }
 
@@ -182,11 +182,11 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     m_fullMaskShader = KWin::ShaderManager::instance()->generateShaderFromResources(KWin::ShaderTrait::MapTexture, QString(), "full-mask.frag");
 
     if (!m_shader->isValid()) {
-        // qWarning() << Q_FUNC_INFO << "Invalid fragment shader of corner mask";
+        qWarning() << Q_FUNC_INFO << "Invalid fragment shader of corner mask";
     }
 
     if (!m_fullMaskShader->isValid()) {
-        // qWarning() << Q_FUNC_INFO << "Invalid fragment shader of full mask";
+        qWarning() << Q_FUNC_INFO << "Invalid fragment shader of full mask";
     }
 }
 
@@ -204,6 +204,10 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         return Effect::drawWindow(w, mask, region, data);
     }
 
+    if (KWin::effects->hasActiveFullScreenEffect() || w->isFullScreen()) {
+        return Effect::drawWindow(w, mask, region, data);
+    }
+
     MaskCache::TextureData mask_texture = MaskCache::instance()->getTextureByWindow(w);
 
     if (!mask_texture) {
@@ -213,7 +217,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     QRegion corner_region;
 
     if (!mask_texture->customMask) {
-        const QRect window_rect = w->geometry();
+        const QRect window_rect = w->frameGeometry();
         QRect corner_rect(window_rect.topLeft(), mask_texture->size);
 
         // top left
@@ -240,6 +244,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         }
     }
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
     KWin::WindowQuadList decoration_quad_list;
     KWin::WindowQuadList content_quad_list;
 
@@ -256,54 +261,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
             break;
         }
     }
-
-    if (!mask_texture->customMask) {
-        // 此时只允许绘制窗口边框和阴影
-        // 针对设置了自定义裁剪的窗口，则不绘制标题栏和阴影
-        data.quads = decoration_quad_list;
-        Effect::drawWindow(w, mask, region, data);
-    }
-
-    if (!corner_region.isEmpty()) {
-        QRegion new_region = region - corner_region;
-
-        // 先绘制未处于mask区域的窗口材质
-        if (!new_region.isEmpty()) {
-            data.quads = content_quad_list;
-            Effect::drawWindow(w, mask, new_region, data);
-        }
-
-        // 重新设置要绘制的区域
-        region = region - new_region;
-    }
-
-    // 将mask材质绑定到第二个材质
-    glActiveTexture(GL_TEXTURE1);
-    mask_texture->bind();
-
-    // 对于窗口圆角的材质，由于其需要被访问材质范围外的像素，在此设置范围外材质的颜色
-    // 其中alpha通道为1表示此处的窗口像素完全显示
-    if (!mask_texture->customMask) {
-        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    }
-
-    // 重新激活第一个材质
-    glActiveTexture(GL_TEXTURE0);
-
-    // 激活着色器
-    KWin::GLShader *shader = mask_texture->customMask ? m_fullMaskShader : m_shader;
-    KWin::ShaderManager::instance()->pushShader(shader);
-    shader->setUniform("mask", 1);
-
-    if (!mask_texture->customMask) {
-        shader->setUniform("scale", QVector2D(w->width() / qreal(mask_texture->size.width()), w->height() / qreal(mask_texture->size.height())));
-    }
-
-    // 此时只允许绘制窗口内容
-    auto old_shader = data.shader;
-    data.quads = content_quad_list;
-    data.shader = shader;
+#endif
 
 #ifndef DISBLE_DDE_KWIN_XCB
     class SetWindowDepth {
@@ -312,8 +270,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
             : m_window(w)
         {
             // 此时正在进行窗口绘制，会有大量的调用，应当避免窗口发射hasAlphaChanged信号
-            QSignalBlocker blocker(w->parent());
-            Q_UNUSED(blocker)
+            QSignalBlocker(w->parent());
             KWinUtils::setClientDepth(w->parent(), depth);
         }
 
@@ -339,15 +296,70 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     };
 
     // 要想窗口裁剪生效，必须要保证窗口材质绘制时开启了alpha通道混合
+    QScopedPointer<SetWindowDepth> setDepth;
     if (!w->hasAlpha()) {
-        SetWindowDepth set_depth(w, 32);
-        Q_UNUSED(set_depth)
-        Effect::drawWindow(w, mask, region, data);
-    } else
+        QScopedPointer<SetWindowDepth> alpha(new SetWindowDepth(w, 32));
+        setDepth.swap(alpha);
+    }
 #endif
-    {
+
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+    if (!mask_texture->customMask) {
+        // 此时只允许绘制窗口边框和阴影
+        // 针对设置了自定义裁剪的窗口，则不绘制标题栏和阴影
+        data.quads = decoration_quad_list;
         Effect::drawWindow(w, mask, region, data);
     }
+#endif
+
+    if (!corner_region.isEmpty()) {
+        QRegion new_region = region - corner_region;
+
+        // 先绘制未处于mask区域的窗口材质
+        if (!new_region.isEmpty()) {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+            data.quads = content_quad_list;
+#endif
+            Effect::drawWindow(w, mask, new_region, data);
+        }
+
+        // 重新设置要绘制的区域
+        region = region - new_region;
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 将mask材质绑定到第二个材质
+    glActiveTexture(GL_TEXTURE1);
+    mask_texture->bind();
+
+    // 对于窗口圆角的材质，由于其需要被访问材质范围外的像素，在此设置范围外材质的颜色
+    // 其中alpha通道为1表示此处的窗口像素完全显示
+    if (!mask_texture->customMask) {
+        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    }
+
+    // 重新激活第一个材质
+    glActiveTexture(GL_TEXTURE0);
+
+    // 激活着色器
+    KWin::GLShader *shader = mask_texture->customMask ? m_fullMaskShader : m_shader;
+    KWin::ShaderManager::instance()->pushShader(shader);
+    shader->setUniform("mask", 1);
+
+    if (!mask_texture->customMask) {
+        shader->setUniform("scale", QVector2D(w->width() / qreal(mask_texture->size.width()), w->height() / qreal(mask_texture->size.height())));
+    }
+
+    auto old_shader = data.shader;
+    data.shader = shader;
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+    data.quads = content_quad_list;
+#endif
+
+    Effect::drawWindow(w, mask, region, data);
 
     data.shader = old_shader;
 
@@ -356,4 +368,6 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     glActiveTexture(GL_TEXTURE1);
     mask_texture->unbind();
     glActiveTexture(GL_TEXTURE0);
+
+    glDisable(GL_BLEND);
 }
