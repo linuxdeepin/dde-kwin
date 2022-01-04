@@ -293,8 +293,8 @@ void ChameleonConfig::onWindowShapeChanged(quint32 windowId)
 void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
 {
     // NOTE:
-    // since this slot gets executed in the event loop, there is a chance that 
-    // window has already been destroyed as of now. so we need to do double 
+    // since this slot gets executed in the event loop, there is a chance that
+    // window has already been destroyed as of now. so we need to do double
     // check here.
     auto kv = m_pendingWindows.find(window);
     if (kv != m_pendingWindows.end()) {
@@ -1164,7 +1164,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
         effect = window->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
 
         if (effect) {
-            QRect shape_rect = effect->shape().boundingRect();
+            QRect shape_rect = effect->clientGeometry();
             const QRect window_rect(QPoint(0, 0), window->property("size").toSize());
 
             // 减去窗口的shape区域

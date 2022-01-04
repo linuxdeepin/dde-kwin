@@ -38,6 +38,7 @@
 
 #include "multitasking.h"
 #include "multitasking_model.h"
+#include "../../../accessible.h"
 
 const QString actionName = "ShowMultitasking";
 
@@ -289,6 +290,8 @@ MultitaskingEffect::MultitaskingEffect()
 
     // Load all other configuration details
     reconfigure(ReconfigureAll);
+
+    QAccessible::installFactory(accessibleFactory);
 }
 
 MultitaskingEffect::~MultitaskingEffect()
@@ -410,7 +413,7 @@ void MultitaskingEffect::onWindowClosed(KWin::EffectWindow* w)
 
     refreshWindows();
     m_multitaskingModel->setCurrentSelectIndex(-1);
-    if(m_multitaskingModel->isCurrentScreensEmpty()) 
+    if(m_multitaskingModel->isCurrentScreensEmpty())
     {
         m_multitaskingModel->setCurrentSelectIndex(-1);
     }
@@ -566,7 +569,7 @@ void MultitaskingEffect::prePaintScreen(ScreenPrePaintData &data, TimeArgType ti
 {
     //EffectWindow of m_multitaskingView changes every time when
     //multitaskingView show, we need to set EffectWindow before paintwindow
-    if (m_multitaskingView) { 
+    if (m_multitaskingView) {
         if (!multitaskingViewEffectWindow()) {
             auto* ew = effects->findWindow(m_multitaskingView->winId());
             if (ew) {
@@ -588,8 +591,8 @@ void MultitaskingEffect::paintScreen(int mask, QRegion region, ScreenPaintData &
 
 void MultitaskingEffect::postPaintScreen()
 {
-    for (auto const& w: effects->stackingOrder()) { 
-        w->setData(WindowForceBlurRole, QVariant()); 
+    for (auto const& w: effects->stackingOrder()) {
+        w->setData(WindowForceBlurRole, QVariant());
     }
     effects->postPaintScreen();
 }
@@ -598,7 +601,7 @@ void MultitaskingEffect::postPaintScreen()
 // Window painting
 void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &data, TimeArgType time)
 {
-    if (m_multitaskingView && multitaskingViewEffectWindow() 
+    if (m_multitaskingView && multitaskingViewEffectWindow()
         && w == multitaskingViewEffectWindow()) {
         effects->prePaintWindow(w, data, time);
         return;
@@ -852,8 +855,8 @@ void MultitaskingEffect::grabbedKeyboardEvent(QKeyEvent *e)
             case Qt::Key_2:
             case Qt::Key_3:
             case Qt::Key_4:
-                if (e->modifiers() == Qt::NoModifier || 
-                        e->modifiers() == Qt::MetaModifier || 
+                if (e->modifiers() == Qt::NoModifier ||
+                        e->modifiers() == Qt::MetaModifier ||
                         e->modifiers() == (Qt::MetaModifier|Qt::KeypadModifier)) {
                     int index = e->key() - Qt::Key_1;
                     if (m_multitaskingModel->rowCount() > index) {
@@ -1166,7 +1169,7 @@ void MultitaskingEffect::switchTwoDesktop(int to, int from)
     emit forceResetWindowThumbnailModel();
 }
 
-void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId) 
+void MultitaskingEffect::moveWindow2Desktop(int screen, int desktop, QVariant winId)
 {
     auto* ew = effects->findWindow(winId.toULongLong());
     if (!ew) {
@@ -1336,7 +1339,7 @@ void MultitaskingEffect::setActive(bool active)
 
         auto root = m_multitaskingView->rootObject();
         root->setAcceptHoverEvents(true);
-        connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)), 
+        connect(root, SIGNAL(qmlRequestMove2Desktop(int, int, QVariant)),
                 m_thumbManager, SIGNAL(requestMove2Desktop(int, int, QVariant)));
         connect(root, SIGNAL(qmlCloseMultitask()), this, SLOT(toggleActive()));
         connect(this, SIGNAL(modeChanged()),root, SIGNAL(resetModel()));
@@ -1360,7 +1363,7 @@ void MultitaskingEffect::setActive(bool active)
         m_hasKeyboardGrab = false;
         effects->stopMouseInterception(this);
     }
-    
+
     m_multitaskingView->setVisible(m_multitaskingViewVisible);
     if (m_multitaskingViewVisible) {
         // set nullptr to avoid confusing prepaintscreen check
