@@ -29,6 +29,9 @@
 #include <QDebug>
 #include <QX11Info>
 
+#define LONG_PRESS_TIME     300
+#define OUT_RELEASE_EVENT   100
+
 ChameleonButton::ChameleonButton(KDecoration2::DecorationButtonType type, const QPointer<KDecoration2::Decoration> &decoration, QObject *parent)
     : KDecoration2::DecorationButton(type, decoration, parent)
 {
@@ -172,6 +175,52 @@ void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
             }
         }
     }
+}
+
+void ChameleonButton::mousePressEvent(QMouseEvent *event)
+{
+    KDecoration2::DecorationButton::mousePressEvent(event);
+    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
+        if (!max_timer) {
+            max_timer = new QTimer();
+            max_timer->setSingleShot(true);
+            connect(max_timer, &QTimer::timeout, [this] {
+                m_isMaxAvailble = false;
+                Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
+                if (decoration) {
+                    effect = decoration->effect();
+                    if (m_pSplitMenu && effect) {
+                        qreal x = effect->geometry().x();
+                        qreal y = effect->geometry().y();
+                        QPoint p(x + geometry().x(), y + geometry().height());
+                        m_pSplitMenu->setShowSt(true);
+                        m_pSplitMenu->stopTime();
+                        m_pSplitMenu->Show(p);
+                    }
+                }
+            });
+            max_timer->start(LONG_PRESS_TIME);
+        } else {
+            max_timer->start(LONG_PRESS_TIME);
+        }
+    }
+}
+
+void ChameleonButton::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (m_type == KDecoration2::DecorationButtonType::Maximize) {
+        if (max_timer) {
+            max_timer->stop();
+        }
+        if (!m_isMaxAvailble) {
+            event->setLocalPos(QPointF(event->localPos().x() - OUT_RELEASE_EVENT, event->localPos().y()));
+        } else if (m_pSplitMenu) {
+            m_pSplitMenu->setShowSt(false);
+            m_pSplitMenu->Hide();
+        }
+    }
+    KDecoration2::DecorationButton::mouseReleaseEvent(event);
+    m_isMaxAvailble = true;
 }
 
 void ChameleonButton::onCompositorChanged(bool active)
