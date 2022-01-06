@@ -151,6 +151,12 @@ public:
     Q_INVOKABLE bool buildNativeSettings(QObject *baseObject, quint32 windowID);
 
     bool isInitialized() const;
+
+    void registerGesture(QObject *gesture);
+    void unregisterGesture(QObject *gesture);
+
+    bool enableZoneDetected() const;
+
 public Q_SLOTS:
     void WalkThroughWindows();
     void WalkBackThroughWindows();
@@ -164,6 +170,7 @@ public Q_SLOTS:
     void SuspendCompositor(int type);
     void TouchPadToMoveWindow(int x, int y);
     void EndTouchPadToMoveWindow();
+    void EnableZoneDetected(bool enabled);
 
 Q_SIGNALS:
     void initialized();

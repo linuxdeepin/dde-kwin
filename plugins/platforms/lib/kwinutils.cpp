@@ -29,6 +29,7 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QAbstractNativeEventFilter>
+#include <QMouseEvent>
 
 // 为了访问 KWinEffects 的保护成员变量
 #define protected public
@@ -167,6 +168,19 @@ public:
     static Extensions *s_self;
 };
 }
+
+class ScreenEdges : public QObject {
+public:
+    bool isEntered(QMouseEvent *event);
+};
+
+class Gesture : public QObject {};
+
+class GestureRecognizer : public QObject {
+public:
+    void registerGesture(Gesture *gesture);
+    void unregisterGesture(Gesture *gesture);
+};
 }
 
 static inline bool isPlatformX11()
@@ -285,6 +299,21 @@ static xcb_window_t getParentWindow(xcb_window_t WId)
     return XCB_WINDOW_NONE;
 }
 
+bool KWin::ScreenEdges::isEntered(QMouseEvent *event) {
+    const bool enabled = KWinUtils::instance()->enableZoneDetected();
+    typedef bool (*ScreenEdgesIsEnter)(QMouseEvent *event);
+    ScreenEdgesIsEnter isEnter = (ScreenEdgesIsEnter)KWinUtils::resolve("_ZN4KWin11ScreenEdges9isEnteredEP11QMouseEvent");
+    return enabled ? isEnter(event) : false;
+}
+
+void KWin::GestureRecognizer::registerGesture(KWin::Gesture* gesture) {
+    KWinUtils::instance()->registerGesture(gesture);
+}
+
+void KWin::GestureRecognizer::unregisterGesture(KWin::Gesture* gesture) {
+    KWinUtils::instance()->unregisterGesture(gesture);
+}
+
 class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
@@ -302,6 +331,8 @@ class KWinInterface
     typedef int (*XcbExtensionsShapeNotifyEvent)(void*);
     typedef void (*CompositorToggle)(void *, KWin::Compositor::SuspendReason);
     typedef int (*ClientWindowType)(const void*, bool, int);
+    typedef void (*RegisterGesture)(KWin::Gesture *gesture);
+    typedef void (*UnregisterGesture)(KWin::Gesture *gesture);
 public:
     KWinInterface()
     {
@@ -328,6 +359,8 @@ public:
             compositorResume = (CompositorToggle)KWinUtils::resolve("_ZN4KWin13X11Compositor6resumeENS0_13SuspendReasonE");
         }
         clientWindowType = (ClientWindowType)KWinUtils::resolve("_ZNK4KWin6Client10windowTypeEbi");
+        registerGesture = (RegisterGesture)KWinUtils::resolve("_ZN4KWin17GestureRecognizer15registerGestureEPNS_7GestureE");
+        unregisterGesture = (UnregisterGesture)KWinUtils::resolve("_ZN4KWin17GestureRecognizer17unregisterGestureEPNS_7GestureE");
     }
 
     ClientWindowType clientWindowType;
@@ -346,6 +379,8 @@ public:
     XcbExtensionsShapeNotifyEvent xcbExtensionsShapeNotifyEvent;
     CompositorToggle compositorSuspend;
     CompositorToggle compositorResume;
+    RegisterGesture registerGesture;
+    UnregisterGesture unregisterGesture;
 };
 
 Q_GLOBAL_STATIC(KWinInterface, interface)
@@ -504,11 +539,13 @@ public:
     QList<xcb_atom_t> wmSupportedList;
     QList<xcb_atom_t> removedWMSupportedList;
     QSet<xcb_atom_t> monitorProperties;
+    QList<KWin::Gesture*> gestures;
     xcb_atom_t _NET_SUPPORTED;
     qint64 lastUpdateTime = 0;
     bool initialized = false;
     bool filterInstalled = false;
     bool monitorRootWindowProperty = false;
+    bool isEnableScreenEdges = true;
 };
 
 KWinUtils::KWinUtils(QObject *parent)
@@ -1114,6 +1151,13 @@ void KWinUtils::EndTouchPadToMoveWindow()
     }
 }
 
+void KWinUtils::EnableZoneDetected(bool enabled) {
+    d->isEnableScreenEdges = enabled;
+    for (KWin::Gesture* gesture : d->gestures) {
+        gesture->blockSignals(enabled);
+    }
+}
+
 void KWinUtils::WindowMaximize()
 {
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
@@ -1213,6 +1257,20 @@ void KWinUtils::ShowWindowsView()
     if (presentWindows) {
         QMetaObject::invokeMethod(presentWindows, "toggleActive");
     }
+}
+
+void KWinUtils::registerGesture(QObject* gesture) {
+    d->gestures << static_cast<KWin::Gesture*>(gesture);
+    return interface->registerGesture(static_cast<KWin::Gesture*>(gesture));
+}
+
+void KWinUtils::unregisterGesture(QObject* gesture) {
+    d->gestures.removeOne(static_cast<KWin::Gesture*>(gesture));
+    return interface->unregisterGesture(static_cast<KWin::Gesture*>(gesture));
+}
+
+bool KWinUtils::enableZoneDetected() const {
+    return d->isEnableScreenEdges;
 }
 
 bool KWinUtils::Window::isDesktop(const QObject *window)

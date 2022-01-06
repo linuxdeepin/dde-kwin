@@ -28,4 +28,7 @@
     </method>
     <method name="EndTouchPadToMoveWindow">
     </method>
+    <method name="EnableZoneDetected">
+        <arg type="b" name="enabled" direction="in" />
+    </method>
 </interface>
