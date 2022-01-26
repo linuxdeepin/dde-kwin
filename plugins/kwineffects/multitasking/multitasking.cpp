@@ -257,6 +257,7 @@ MultitaskingEffect::MultitaskingEffect()
     m_showAction(new QAction(this)),
 	m_multitaskingModel(new MultitaskingModel)
 {
+#if 0
     QAction* a = m_showAction;
     a->setObjectName(actionName);
     a->setText(i18n("Show Multitasking View"));
@@ -266,11 +267,11 @@ MultitaskingEffect::MultitaskingEffect()
     KGlobalAccel::self()->setShortcut(a, QList<QKeySequence>() << ks);
     shortcut = KGlobalAccel::self()->shortcut(a);
     effects->registerGlobalShortcut(ks, a);
-
+    connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleActive()));
+#endif
     m_gtkFrameExtentsAtom = effects->announceSupportProperty(s_GtkFrameAtomName, this);
     m_targetDesktop = effects->currentDesktop();
 
-    connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleActive()));
 
     connect(KGlobalAccel::self(), &KGlobalAccel::globalShortcutChanged, this, &MultitaskingEffect::globalShortcutChanged);
     connect(effects, &EffectsHandler::windowAdded, this, &MultitaskingEffect::onWindowAdded);
