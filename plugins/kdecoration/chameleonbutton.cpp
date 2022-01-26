@@ -139,7 +139,10 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
         if (effect && !effect->isUserMove()) {
             KDecoration2::DecorationButton::hoverEnterEvent(event);
 
-            if (m_type == KDecoration2::DecorationButtonType::Maximize && QX11Info::isPlatformX11()) {
+            if (!contains(event->posF())) {
+                return;
+            }
+            if (m_type == KDecoration2::DecorationButtonType::Maximize) {
                 if (KWinUtils::instance()->isCompositing()) {
                     if (!m_pSplitMenu) {
                         m_pSplitMenu = new ChameleonSplitMenu();
