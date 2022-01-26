@@ -10,12 +10,17 @@
 #include "kwinutils.h"
 #include <QToolTip>
 #include <QTranslator>
+#include <QX11Info>
 
 Q_LOGGING_CATEGORY(SPLIT_MENU, "kwin.splitmenu", QtCriticalMsg);
 
 ChameleonSplitMenu::ChameleonSplitMenu(QWidget *parent) : QWidget (parent)
 {
-    setWindowFlags(Qt::X11BypassWindowManagerHint);
+    if (QX11Info::isPlatformX11()) {
+        setWindowFlags(Qt::X11BypassWindowManagerHint);
+    } else {
+        setWindowFlags(Qt::Popup | Qt::X11BypassWindowManagerHint);
+    }
     setAttribute(Qt::WA_TranslucentBackground);
 
     QHBoxLayout *layout = new QHBoxLayout();
