@@ -292,6 +292,7 @@ class KWinInterface
     typedef xcb_cursor_t (*X11CursorGetCursor)(Qt::CursorShape);
     typedef KWin::Options::WindowOperation (*OptionsWindowOperation)(const QString &, bool);
     typedef QObject *(*WorkspaceFindClient)(void *, KWinUtils::Predicate, xcb_window_t);
+    typedef QObject *(*WorkspaceFindShellClient)(void *, quint32);
     typedef QObject *(*WorkspaceFindUnmanaged)(void *, xcb_window_t);
     typedef QObject *(*WorkspaceFindUnmanagedByFunction)(void *, std::function<bool (const KWin::Unmanaged*)>);
     typedef void (*WorkspaceSendPingToWindow)(void *, quint32, quint32);
@@ -312,6 +313,7 @@ public:
         x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor9x11CursorEN2Qt11CursorShapeE");
         optionsWindowOperation = (OptionsWindowOperation)KWinUtils::resolve("_ZN4KWin7Options15windowOperationERK7QStringb");
         findClient = (WorkspaceFindClient)KWinUtils::resolve("_ZNK4KWin9Workspace10findClientENS_9PredicateEj");
+        findShellClient = (WorkspaceFindShellClient)KWinUtils::resolve("_ZNK4KWin9Workspace15findShellClientEj");
         findUnmanaged = (WorkspaceFindUnmanaged)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedEj");
         findUnmanagedByFunction = (WorkspaceFindUnmanagedByFunction)KWinUtils::resolve("_ZNK4KWin9Workspace13findUnmanagedESt8functionIFbPKNS_9UnmanagedEEE");
         sendPingToWindow = (WorkspaceSendPingToWindow)KWinUtils::resolve("_ZN4KWin9Workspace16sendPingToWindowEjj");
@@ -339,6 +341,7 @@ public:
     X11CursorGetCursor x11CursorGetCursor;
     OptionsWindowOperation optionsWindowOperation;
     WorkspaceFindClient findClient;
+    WorkspaceFindShellClient findShellClient;
     WorkspaceFindUnmanaged findUnmanaged;
     WorkspaceFindUnmanagedByFunction findUnmanagedByFunction;
     WorkspaceSendPingToWindow sendPingToWindow;
@@ -677,18 +680,21 @@ QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
 {
     if (!workspace())
         return nullptr;
+    if (QX11Info::isPlatformX11()) {
+        if (predicate == Predicate::UnmanagedMatch) {
+            if (!interface->findUnmanaged)
+                return nullptr;
 
-    if (predicate == Predicate::UnmanagedMatch) {
-        if (!interface->findUnmanaged)
+            return interface->findUnmanaged(workspace(), window);
+        }
+
+        if (!interface->findClient)
             return nullptr;
 
-        return interface->findUnmanaged(workspace(), window);
+        return interface->findClient(workspace(), predicate, window);
+    } else {
+        return interface->findShellClient(workspace(), window);
     }
-
-    if (!interface->findClient)
-        return nullptr;
-
-    return interface->findClient(workspace(), predicate, window);
 }
 
 void KWinUtils::clientUpdateCursor(QObject *client)
