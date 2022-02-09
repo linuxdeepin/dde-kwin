@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Deepin WaterMark
+Exec=/usr/bin/deepin-watermark-dbus
+NoDisplay=true
+Type=Application

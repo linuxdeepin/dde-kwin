@@ -1,0 +1,17 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.deepin.watermark">
+    <method name="setProhibitScreenShot">
+      <arg type="i" direction="out"/>
+      <arg name="prohibit" type="b" direction="in"/>
+    </method>
+    <method name="setScreenWatermark">
+      <arg name="strPolicy" type="s" direction="in"/>
+    </method>
+    <method name="watermarkStatus">
+      <arg type="b" direction="out"/>
+    </method>
+    <method name="initConfig">
+    </method>
+  </interface>
+</node>
