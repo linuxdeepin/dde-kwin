@@ -610,9 +610,11 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
         w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
     }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) || w->isMinimized()) {
-        w->disablePainting(EffectWindow::PAINT_DISABLED);
-        w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
+    if (!w->windowClass().contains("deepin-watermark-dbus")) {
+        if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) || w->isMinimized()) {
+            w->disablePainting(EffectWindow::PAINT_DISABLED);
+            w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
+        }
     }
 
     effects->prePaintWindow(w, data, time);
@@ -620,6 +622,9 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 
 void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data)
 {
+    if (w->windowClass().contains("deepin-watermark-dbus")) {
+        effects->setElevatedWindow(w, true);
+    }
     effects->paintWindow(w, mask, region, data);
 }
 
