@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.deepin.watermark
+Exec=${TARGET_PATH}/${TARGET_NAME}
