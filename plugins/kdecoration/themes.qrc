@@ -68,6 +68,10 @@
         <file>deepin/light/icons/max_split_normal.svg</file>
         <file>deepin/light/icons/right_split_hover.svg</file>
         <file>deepin/light/icons/right_split_normal.svg</file>
+        <file>deepin/light/icons/restore_split_hover.svg</file>
+        <file>deepin/light/icons/restore_split_normal.svg</file>
+        <file>deepin/dark/icons/restore_split_hover.svg</file>
+        <file>deepin/dark/icons/restore_split_normal.svg</file>
     </qresource>
     <qresource prefix="/splitmenu">
         <file>translations/splitmenu_bo.qm</file>

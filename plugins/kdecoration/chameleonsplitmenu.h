@@ -26,7 +26,7 @@ public:
     explicit ChameleonSplitMenu(QWidget *parent = nullptr);
     ~ChameleonSplitMenu();
 
-    void Show(QPoint pos);
+    void Show(QPoint pos, QColor color);
     void Hide();
     bool isShow();
     void setShowSt(bool flag);
@@ -35,6 +35,8 @@ public:
 
     void startTime();
     void stopTime();
+
+    void CheckTheme();
 
     void enterEvent(QEvent *e) override;
     void leaveEvent(QEvent *e) override;
@@ -45,7 +47,9 @@ public:
 private:
     bool m_isShow = false;
     bool m_MenuSt = false;
+    bool m_isDark = false;
     QPoint m_pos;
+    QColor m_color;
     QLabel *llabel;
     QLabel *clabel;
     QLabel *rlabel;

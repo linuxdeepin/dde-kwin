@@ -60,6 +60,7 @@ public:
 
     QColor shadowColor() const;
     QColor borderColor() const;
+    QColor getBackgroundColor() const;
 
     QIcon menuIcon() const;
     QIcon minimizeIcon() const;
@@ -104,7 +105,6 @@ private:
     bool windowNeedBorder() const;
 
     QColor getTextColor() const;
-    QColor getBackgroundColor() const;
 
     bool m_initialized = false;
     qint8 m_noTitleBar = -1;

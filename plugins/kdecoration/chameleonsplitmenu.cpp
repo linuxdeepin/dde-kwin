@@ -89,7 +89,7 @@ void ChameleonSplitMenu::paintEvent(QPaintEvent *e)
     QPainter painter(this);
     painter.setRenderHints(QPainter::Antialiasing, true);
     painter.setPen(Qt::NoPen);
-    QColor col_menu(255, 255, 255, 255);
+    QColor col_menu = m_color;
     painter.setBrush(QBrush(col_menu));
 
     QPainterPath painterPath;
@@ -112,54 +112,63 @@ void ChameleonSplitMenu::paintEvent(QPaintEvent *e)
 
 bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
 {
+    QString str = "light";
+    if (m_isDark) {
+        str = "dark";
+    }
+
     if (obj == llabel) {
         if (event->type() == QEvent::MouseButtonRelease) {
-            llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            llabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/left_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             if (m_client) {
                 KWinUtils::Window::setQuikTileMode(m_client, (int)QuickTileFlag::Left, true);
             }
-            llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            llabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/left_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             Hide();
         } else if (event->type() == QEvent::Enter) {
-            llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            llabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/left_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             QPoint pos = m_pos;
             pos.setX(m_pos.x() - 70);
             pos.setY(m_pos.y() + 50);
             QToolTip::showText(pos, tr("Tile window to left of screen"));
         } else if (event->type() == QEvent::Leave) {
-            llabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/left_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            llabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/left_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             QToolTip::hideText();
         }
         return false;
     } else if (obj == clabel) {
         if (event->type() == QEvent::MouseButtonRelease) {
-            clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            clabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/right_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             if (m_client) {
                 KWinUtils::Window::setQuikTileMode(m_client, (int)QuickTileFlag::Right, true);
             }
-            clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            clabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/right_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             Hide();
         } else if (event->type() == QEvent::Enter) {
-            clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            clabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/right_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             QPoint pos = m_pos;
             pos.setX(m_pos.x() - 20);
             pos.setY(m_pos.y() + 50);
             QToolTip::showText(pos, tr("Tile window to right of screen"));
         } else if (event->type() == QEvent::Leave) {
-            clabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/right_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            clabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/right_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str));
             QToolTip::hideText();
         }
         return false;
     } else if (obj == rlabel) {
+        QString icon = "max";
+        if (KWinUtils::Window::isFullMaximized(m_client)) {
+            icon = "restore";
+        }
         if (event->type() == QEvent::MouseButtonRelease) {
-            rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            rlabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/%2_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str).arg(icon));
             if (m_client) {
                 KWinUtils::Window::setQuikTileMode(m_client, (int)QuickTileFlag::Maximize);
             }
-            rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            rlabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/%2_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str).arg(icon));
             Hide();
         } else if (event->type() == QEvent::Enter) {
-            rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_hover.svg); background-repeat:no-repeat;background-position:center;");
+            rlabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/%2_split_hover.svg); background-repeat:no-repeat;background-position:center;").arg(str).arg(icon));
             QPoint pos = m_pos;
             pos.setX(m_pos.x() + 30);
             pos.setY(m_pos.y() + 50);
@@ -169,7 +178,7 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
                 QToolTip::showText(pos, tr("Maximize"));
             }
         } else if (event->type() == QEvent::Leave) {
-            rlabel->setStyleSheet("background-image:url(:/deepin/themes/deepin/light/icons/max_split_normal.svg); background-repeat:no-repeat;background-position:center;");
+            rlabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/%2_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str).arg(icon));
             QToolTip::hideText();
         }
         return false;
@@ -178,12 +187,25 @@ bool ChameleonSplitMenu::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter(obj, event);
 }
 
-void ChameleonSplitMenu::Show(QPoint pos)
+void ChameleonSplitMenu::CheckTheme()
+{
+
+    QColor clr(255, 255, 255, 255);
+    if (m_color == clr) {
+        m_isDark = false;
+    } else {
+        m_isDark = true;
+    }
+}
+
+void ChameleonSplitMenu::Show(QPoint pos, QColor color)
 {
     if (m_isShow)
         return;
     m_isShow = true;
     m_pos = pos;
+    m_color = color;
+    CheckTheme();
     pos.setX(m_pos.x() -75);
     QRect rect(pos, QSize(158, 85));
     setGeometry(rect);
@@ -220,9 +242,9 @@ void ChameleonSplitMenu::startTime()
         connect(tip_timer, &QTimer::timeout, [this] {
             Hide();
         });
-        tip_timer->start(700);
+        tip_timer->start(300);
     } else {
-        tip_timer->start(700);
+        tip_timer->start(300);
     }
 }
 

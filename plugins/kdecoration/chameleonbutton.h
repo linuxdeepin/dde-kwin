@@ -44,7 +44,9 @@ protected:
     KDecoration2::DecorationButtonType m_type;
 
     ChameleonSplitMenu *m_pSplitMenu = nullptr;
+    QTimer *max_hover_timer = nullptr;
 
+    QColor m_backgroundColor;
     KWin::EffectWindow *effect = nullptr;
 };
 
