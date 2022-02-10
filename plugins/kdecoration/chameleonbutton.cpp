@@ -149,12 +149,28 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
                         m_pSplitMenu->setEffect(decoration->client().data()->windowId());
                     }
                     if (m_pSplitMenu) {
-                        qreal x = effect->geometry().x();
-                        qreal y = effect->geometry().y();
-                        QPoint p(x + geometry().x(), y + geometry().height());
-                        m_pSplitMenu->setShowSt(true);
                         m_pSplitMenu->stopTime();
-                        m_pSplitMenu->Show(p);
+                        m_pSplitMenu->Hide();
+                    }
+                    m_backgroundColor = decoration->getBackgroundColor();
+                    if (!max_hover_timer) {
+                        max_hover_timer = new QTimer();
+                        max_hover_timer->setSingleShot(true);
+
+                        connect(max_hover_timer, &QTimer::timeout, [this]{
+                            if (m_pSplitMenu) {
+                                qreal x = effect->geometry().x();
+                                qreal y = effect->geometry().y();
+                                QPoint p(x + geometry().x(), y + geometry().height());
+                                m_pSplitMenu->setShowSt(true);
+                                m_pSplitMenu->stopTime();
+                                m_pSplitMenu->Show(p, m_backgroundColor);
+                            }
+                        });
+                        max_hover_timer->start(500);
+                    }
+                    else {
+                        max_hover_timer->start(500);
                     }
                 }
             }
@@ -167,6 +183,9 @@ void ChameleonButton::hoverLeaveEvent(QHoverEvent *event)
     Chameleon *decoration = qobject_cast<Chameleon*>(this->decoration());
     if (decoration) {
         effect = decoration->effect();
+        if (max_hover_timer && m_type == KDecoration2::DecorationButtonType::Maximize) {
+            max_hover_timer->stop();
+        }
         if (effect && !effect->isUserMove()) {
             KDecoration2::DecorationButton::hoverLeaveEvent(event);
             if (m_pSplitMenu && m_type == KDecoration2::DecorationButtonType::Maximize) {
