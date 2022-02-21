@@ -180,6 +180,9 @@ bool DeepinWatermark::isValidInvoker(const uint &pid)
 
 void DeepinWatermark::refreshWindow()
 {
+    if (!m_bIsX11Server) {
+        clearMask();
+    }
     if (m_bIsOpen) {
         if (m_bShowTime) {
             m_strCurrentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd");
