@@ -1,3 +1,10 @@
+dde-kwin (5.4.26-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 112988 fix: In 2D mode, ssd client's chameleonButtons invalid.
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 22 Feb 2022 19:35:07 +0800
+
 dde-kwin (5.4.23-1) unstable; urgency=medium
 
   * Bug fix:
