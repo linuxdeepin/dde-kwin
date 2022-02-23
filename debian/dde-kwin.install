@@ -1,9 +1,14 @@
-etc/xdg
-usr/bin
+etc/xdg/kdeglobals
+etc/xdg/kglobalshortcutsrc
+etc/xdg/klaunchrc
+etc/xdg/kwinrc
+etc/xdg/kwinrulesrc
+usr/bin/deepin-wm-dbus
+usr/bin/kwin_no_scale
 usr/lib/*/*.so.*
 usr/lib/*/qt5
 usr/share/kwin/scripts
 usr/share/kwin/tabbox
 usr/share/dbus-1/interfaces
-usr/share/dbus-1/services
+usr/share/dbus-1/services/com.deepin.wm.service
 usr/share/dde-kwin-xcb
