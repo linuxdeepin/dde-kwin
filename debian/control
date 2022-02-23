@@ -48,3 +48,9 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Developer package of dde-kwin
  Provide dde-kwin plugin implementation basis files.
+
+Package: deepin-watermark-dbus
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Developer package of dde-kwin
+ Provide dde-kwin plugin implementation basis files.
