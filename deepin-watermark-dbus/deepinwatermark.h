@@ -1,12 +1,32 @@
-#ifndef WIDGET_H
-#define WIDGET_H
+/*
+ * Copyright (C) 2022 ~ 2022 Deepin Technology Co., Ltd.
+ *
+ * Author:     xupeidong <xupeidong@uniontech.com>
+ *
+ * Maintainer: xupeidong <xupeidong@uniontech.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#ifndef DEEPINWATERMARK_H
+#define DEEPINWATERMARK_H
 
 #include <QWidget>
 #include <QDBusContext>
 #include <QSet>
 #include <QLoggingCategory>
 
-Q_DECLARE_LOGGING_CATEGORY(WATERMARK_LOG)
+Q_DECLARE_LOGGING_CATEGORY(DEEPINWATERMARK)
 
 #define FORMAT_HORIZONTAL 1
 #define FORMAT_LEAN 2
@@ -24,42 +44,41 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    void executeLinuxCmd(const QString &strCmd);
     void writeConfig();
     void readConfig();
     bool isValidInvoker(const uint &pid);
     void refreshWindow();
     QString getCustomContent() const;
     QString jsonAutoTest() const;
-    int calculateCoordinate(const int &index, const int &h_space, const int &hSpace);
+    int calculateCoordinate(const int &index, const int &textWidth, const int &hSpace);
 
 private:
-    bool m_bIsX11Server{false};
-    bool m_bWatermarkStatus{false};
-    QTimer *m_pCurrentTime{nullptr};
-    QPainter *m_pPainter{nullptr};
-    bool m_bCompositorActive{false};
-    QSet<QString> m_setWhiteProcess;
+    bool m_isX11Server{false};
+    bool m_watermarkStatus{false};
+    QTimer *m_currentTime{nullptr};
+    QPainter *m_painter{nullptr};
+    bool m_compositorActive{false};
+    QSet<QString> m_whiteProcess;
 
-    bool m_bIsOpen{false};
-    QString m_strContent{"默认水印"};
-    bool m_bShowTime{false};
-    QString m_strCurrentTime{""};
-    int m_nFontSize{11};
-    int m_nTransparency{50};
-    int m_nDensity{5};
-    int m_nFontFormate{FORMAT_LEAN};
+    bool m_isOpen{false};
+    QString m_content{""};
+    bool m_showTime{false};
+    QString m_currentTimeString{""};
+    int m_fontSize{11};
+    int m_transparency{50};
+    int m_density{5};
+    int m_fontFormate{FORMAT_LEAN};
 
-    bool m_bShowUsrName{false};
-    QString m_strUsrName{"xxx"};
-    bool m_bShowHostName{false};
-    QString m_strHostName{"xxx"};
-    bool m_bshowTerminalAliasName{false};
-    QString m_strTerminalAliasName{"xxx"};
-    bool m_bShowIpAddress{false};
-    QString m_strIpAddress{"xxx"};
-    bool m_bShowMacAddress{false};
-    QString m_strMacAddress{"xxx"};
+    bool m_showUsrName{false};
+    QString m_usrName{""};
+    bool m_showHostName{false};
+    QString m_hostName{""};
+    bool m_showTerminalAliasName{false};
+    QString m_terminalAliasName{""};
+    bool m_showIpAddress{false};
+    QString m_ipAddress{""};
+    bool m_showMacAddress{false};
+    QString m_macAddress{""};
 public Q_SLOTS:
     int setProhibitScreenShot(bool prohibit);
     void setScreenWatermark(const QString &strPolicy);
@@ -70,4 +89,4 @@ private Q_SLOTS:
     void compositingSetup();
 };
 
-#endif // WIDGET_H
+#endif // DEEPINWATERMARK_H
