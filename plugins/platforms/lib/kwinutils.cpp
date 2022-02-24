@@ -680,21 +680,23 @@ QObject *KWinUtils::findClient(KWinUtils::Predicate predicate, quint32 window)
 {
     if (!workspace())
         return nullptr;
-    if (QX11Info::isPlatformX11()) {
-        if (predicate == Predicate::UnmanagedMatch) {
-            if (!interface->findUnmanaged)
-                return nullptr;
-
-            return interface->findUnmanaged(workspace(), window);
+    if (!QX11Info::isPlatformX11()) {
+        QObject *shellClient = interface->findShellClient(workspace(), window);
+        if (shellClient) {
+            return shellClient;
         }
-
-        if (!interface->findClient)
+    }
+    if (predicate == Predicate::UnmanagedMatch) {
+        if (!interface->findUnmanaged)
             return nullptr;
 
-        return interface->findClient(workspace(), predicate, window);
-    } else {
-        return interface->findShellClient(workspace(), window);
+        return interface->findUnmanaged(workspace(), window);
     }
+
+    if (!interface->findClient)
+        return nullptr;
+
+    return interface->findClient(workspace(), predicate, window);
 }
 
 void KWinUtils::clientUpdateCursor(QObject *client)
