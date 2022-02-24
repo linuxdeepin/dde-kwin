@@ -49,6 +49,8 @@ Q_LOGGING_CATEGORY(BLUR_CAT, "kwin.blur", QtCriticalMsg);
 
 static const QByteArray s_GtkFrameAtomName = QByteArrayLiteral("_GTK_FRAME_EXTENTS");
 
+#define WATERMARK_CLASS_NAME "deepin-watermark-dbus deepin-watermark-dbus"
+
 DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     :QWidget(nullptr),
     m_effectWindow(nullptr),
@@ -610,7 +612,7 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
         w->enablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);   // Display always
     }
     w->enablePainting(EffectWindow::PAINT_DISABLED);
-    if (!w->windowClass().contains("deepin-watermark-dbus")) {
+    if (w->windowClass() != WATERMARK_CLASS_NAME) {
         if (!(w->isDesktop() || isRelevantWithPresentWindows(w)) || w->isMinimized()) {
             w->disablePainting(EffectWindow::PAINT_DISABLED);
             w->disablePainting(EffectWindow::PAINT_DISABLED_BY_MINIMIZE);
@@ -622,7 +624,7 @@ void MultitaskingEffect::prePaintWindow(EffectWindow *w, WindowPrePaintData &dat
 
 void MultitaskingEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPaintData &data)
 {
-    if (w->windowClass().contains("deepin-watermark-dbus")) {
+    if (w->windowClass() == WATERMARK_CLASS_NAME) {
         effects->setElevatedWindow(w, true);
     }
     effects->paintWindow(w, mask, region, data);
@@ -1359,6 +1361,12 @@ void MultitaskingEffect::setActive(bool active)
             m_multitaskingModel->setCurrentSelectIndex(-1);
         }
     } else {
+        for (auto w : effects->stackingOrder()) {
+            if (w->windowClass() == WATERMARK_CLASS_NAME) {
+                effects->setElevatedWindow(w, false);
+                break;
+            }
+        }
         if (m_hasKeyboardGrab) {
             effects->ungrabKeyboard();
         }
