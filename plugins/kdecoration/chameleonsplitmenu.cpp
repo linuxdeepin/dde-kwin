@@ -209,6 +209,17 @@ void ChameleonSplitMenu::Show(QPoint pos, QColor color)
     pos.setX(m_pos.x() -75);
     QRect rect(pos, QSize(158, 85));
     setGeometry(rect);
+    if (!QX11Info::isPlatformX11() && m_client) {
+        QString str = "light";
+        if (m_isDark) {
+            str = "dark";
+        }
+        QString icon = "max";
+        if (KWinUtils::Window::isFullMaximized(m_client)) {
+            icon = "restore";
+        }
+        rlabel->setStyleSheet(QString("background-image:url(:/deepin/themes/deepin/%1/icons/%2_split_normal.svg); background-repeat:no-repeat;background-position:center;").arg(str).arg(icon));
+    }
 
     show();
 }
