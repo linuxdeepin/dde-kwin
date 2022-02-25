@@ -45,10 +45,12 @@ BlackScreenEffect::~BlackScreenEffect()
 }
 #if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
 void BlackScreenEffect::drawWindow(KWin::EffectWindow *w, int mask, const QRegion &_region, KWin::WindowPaintData &data)
+{
+    QRegion region = _region;
 #else
 void BlackScreenEffect::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, KWin::WindowPaintData &data)
-#endif
 {
+#endif
     if (!m_activated) {
         effects->drawWindow(w, mask, region, data);
         return;
