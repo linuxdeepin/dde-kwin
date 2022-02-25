@@ -41,8 +41,11 @@ public:
 
     BlackScreenEffect(QObject *parent = nullptr, const QVariantList &args = QVariantList());
     ~BlackScreenEffect() override;
-
+#if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
+    void drawWindow(KWin::EffectWindow* w, int mask, const QRegion &region, KWin::WindowPaintData& data) override;
+#else
     void drawWindow(KWin::EffectWindow* w, int mask, QRegion region, KWin::WindowPaintData& data) override;
+#endif
     virtual bool isActive() const override;
     int requestedEffectChainPosition() const override {
         return 1;
