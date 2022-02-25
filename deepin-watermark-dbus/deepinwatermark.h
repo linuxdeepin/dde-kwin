@@ -53,6 +53,9 @@ private:
     int calculateCoordinate(const int &index, const int &textWidth, const int &hSpace);
 
 private:
+    QTimer *m_getDesktopStatusTimer{nullptr};
+    bool m_isOpenScreenSaver{false};
+
     bool m_isX11Server{false};
     bool m_watermarkStatus{false};
     QTimer *m_currentTime{nullptr};
