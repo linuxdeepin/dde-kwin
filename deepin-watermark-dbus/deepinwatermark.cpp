@@ -51,6 +51,8 @@ const int TIME_INTERVAL = 1000;
 const int DEFAULT_ERROR = -4;
 const float DENSITY = 0.15;
 const int LEAN_ANGLE = -30;
+const int SCREENSAVER_INTERVAL = 50;
+
 DeepinWatermark::DeepinWatermark(QWidget *parent) :
     QWidget(parent)
 {
@@ -89,6 +91,22 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
            update();
        }
     });
+
+    if (m_isX11Server) {
+        m_getDesktopStatusTimer = new QTimer(this);
+        m_getDesktopStatusTimer->setInterval(SCREENSAVER_INTERVAL);
+        connect(m_getDesktopStatusTimer, &QTimer::timeout, this, [this](){
+            // 监听屏保状态
+            QDBusInterface screensaverInterface("com.deepin.ScreenSaver", "/com/deepin/ScreenSaver", "com.deepin.ScreenSaver");
+            bool isRunning = screensaverInterface.property("isRunning").toBool();
+            if (isRunning != m_isOpenScreenSaver) {
+                m_isOpenScreenSaver = isRunning;
+                clearMask();
+                update();
+            }
+        });
+        m_getDesktopStatusTimer->start();
+    }
 
     initConfig();
 }
@@ -440,6 +458,17 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     pixmap.fill(Qt::transparent);
     m_painter->begin(&pixmap);
     m_painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+
+    // 开启屏保的时候只画一个背景，不显示水印
+    if (m_isOpenScreenSaver) {
+        m_painter->drawRect(0, 0, width(), height());
+        m_painter->end();
+        m_painter->begin(this);
+        m_painter->drawPixmap(QPoint(0, 0), pixmap);
+        m_painter->end();
+        setMask(pixmap.mask());
+        return;
+    }
 
     // 获取水印展示内容
     QString text = getCustomContent();
