@@ -141,7 +141,7 @@ void ChameleonConfig::onConfigChanged()
 }
 
 #define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
-void ChameleonConfig::onClientAdded(KWin::Client *client)
+void ChameleonConfig::onClientAdded(KWin::AbstractClient *client)
 {
     QObject *c = reinterpret_cast<QObject*>(client);
 
@@ -846,7 +846,7 @@ void ChameleonConfig::init()
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     connect(KWinUtils::workspace(), SIGNAL(configChanged()), this, SLOT(onConfigChanged()));
-    connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::Client*)), this, SLOT(onClientAdded(KWin::Client*)));
+    connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::AbstractClient*)), this, SLOT(onClientAdded(KWin::AbstractClient*)));
     connect(KWinUtils::workspace(), SIGNAL(unmanagedAdded(KWin::Unmanaged*)), this, SLOT(onUnmanagedAdded(KWin::Unmanaged*)));
     connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
     connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);

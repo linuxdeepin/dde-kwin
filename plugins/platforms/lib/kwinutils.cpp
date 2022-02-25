@@ -678,8 +678,8 @@ QObjectList KWinUtils::clientList()
         return {};
     }
 
-    QList<KWin::Client*> clients;
-    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::Client*>, clients));
+    QList<KWin::AbstractClient*> clients;
+    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::AbstractClient*>, clients));
 
     if (!ok) {
         return {};
@@ -687,7 +687,7 @@ QObjectList KWinUtils::clientList()
 
     QObjectList list;
 
-    for (KWin::Client *c : clients) {
+    for (KWin::AbstractClient *c : clients) {
         list << c;
     }
 
