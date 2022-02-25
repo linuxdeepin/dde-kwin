@@ -283,6 +283,7 @@ static xcb_window_t getParentWindow(xcb_window_t WId)
 class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
+    typedef int (*ShellClientMaximizeMode)(const void *);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ActivateClient)(void*, void*, bool force);
     typedef void (*ClientUpdateCursor)(void *);
@@ -304,6 +305,7 @@ public:
     KWinInterface()
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
+        shellClientMaximizeMode = (ShellClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin11ShellClient12maximizeModeEv");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
@@ -332,6 +334,7 @@ public:
 
     ClientWindowType clientWindowType;
     ClientMaximizeMode clientMaximizeMode;
+    ShellClientMaximizeMode shellClientMaximizeMode;
     ClientMaximize clientMaximize;
     ActivateClient activateClient;
     ClientUpdateCursor clientUpdateCursor;
@@ -990,6 +993,9 @@ QVariant KWinUtils::getParentWindow(const QObject *window) const
 
 QVariant KWinUtils::isFullMaximized(const QObject *window) const
 {
+    if (!isPlatformX11() && !interface->shellClientMaximizeMode) {
+        return QVariant();
+    }
     if (!interface->clientMaximizeMode) {
         return QVariant();
     }
@@ -1256,6 +1262,16 @@ bool KWinUtils::Window::isFullMaximized(const QObject *window)
         return false;
     }
 
+    if (!isPlatformX11()) {
+        if (!interface->shellClientMaximizeMode) {
+            return false;
+        }
+        else {
+            if (interface->shellClientMaximizeMode(window) == MaximizeFull) {
+                return true;
+            }
+        }
+    }
     if (!interface->clientMaximizeMode) {
         return false;
     }
