@@ -82,6 +82,11 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     // 监听kwin compositor setup信号
     QDBusConnection::sessionBus().connect("org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing", "compositingSetup", this, SLOT(compositingSetup()));
 
+    // 监听屏幕分辨率变化
+    connect(QGuiApplication::primaryScreen(), &QScreen::geometryChanged, this, &DeepinWatermark::desktopResize);
+    m_screenWidth = QGuiApplication::primaryScreen()->availableGeometry().width();
+    m_screenHeight = QGuiApplication::primaryScreen()->availableGeometry().height();
+
     m_currentTime = new QTimer(this);
     m_currentTime->setInterval(TIME_INTERVAL);
     connect(m_currentTime, &QTimer::timeout, this, [this](){
@@ -479,11 +484,11 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     int hSpace = 0;
     int vSpace = 0;
     if (m_compositorActive) {
-        hSpace = QGuiApplication::primaryScreen()->availableGeometry().width() * (m_density / 100.0f);
-        vSpace = QGuiApplication::primaryScreen()->availableGeometry().height() * (m_density / 100.0f);
+        hSpace = m_screenWidth * (m_density / 100.0f);
+        vSpace = m_screenHeight * (m_density / 100.0f);
     }else {
-        hSpace = QGuiApplication::primaryScreen()->availableGeometry().width() * (DENSITY);
-        vSpace = QGuiApplication::primaryScreen()->availableGeometry().height() * (DENSITY);
+        hSpace = m_screenWidth * DENSITY;
+        vSpace = m_screenHeight * DENSITY;
     }
     // 获取字体的长和宽
     QFontMetrics fm(font);
@@ -589,4 +594,11 @@ void DeepinWatermark::compositingSetup()
     qCDebug(DEEPINWATERMARK) << "kwin compositor setup" << __FUNCTION__ << __LINE__;
     // 部分机器防止2D切3D的时候屏幕闪黑，先隐藏水印
     hide();
+}
+
+void DeepinWatermark::desktopResize(QRect rect)
+{
+    m_screenWidth = rect.width();
+    m_screenHeight = rect.height();
+    update();
 }
