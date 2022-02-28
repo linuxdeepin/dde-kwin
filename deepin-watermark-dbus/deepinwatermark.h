@@ -53,6 +53,8 @@ private:
     int calculateCoordinate(const int &index, const int &textWidth, const int &hSpace);
 
 private:
+    int m_screenWidth;
+    int m_screenHeight;
     QTimer *m_getDesktopStatusTimer{nullptr};
     bool m_isOpenScreenSaver{false};
 
@@ -90,6 +92,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void compositingToggled(bool active);
     void compositingSetup();
+    void desktopResize(QRect rect);
 };
 
 #endif // DEEPINWATERMARK_H
