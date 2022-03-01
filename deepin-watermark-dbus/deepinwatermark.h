@@ -55,6 +55,8 @@ private:
 private:
     int m_screenWidth;
     int m_screenHeight;
+    int m_primaryScreenWidth{0};
+    int m_primaryScreenHeight{0};
     QTimer *m_getDesktopStatusTimer{nullptr};
     bool m_isOpenScreenSaver{false};
 
@@ -93,6 +95,7 @@ private Q_SLOTS:
     void compositingToggled(bool active);
     void compositingSetup();
     void desktopResize(QRect rect);
+    void displayMode(QRect rect);
 };
 
 #endif // DEEPINWATERMARK_H
