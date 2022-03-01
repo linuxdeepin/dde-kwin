@@ -58,7 +58,6 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
 {
     // 判断当前平台是x11还是wayland
     m_isX11Server = QX11Info::isPlatformX11();
-    setGeometry(0, 0, qApp->desktop()->width(), qApp->desktop()->height());//设置水印覆盖整个整个屏幕
     QDBusInterface watermarkInterface("org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing");
     m_compositorActive = watermarkInterface.property("active").toBool();
     /*
@@ -84,8 +83,12 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
 
     // 监听屏幕分辨率变化
     connect(QGuiApplication::primaryScreen(), &QScreen::geometryChanged, this, &DeepinWatermark::desktopResize);
-    m_screenWidth = QGuiApplication::primaryScreen()->availableGeometry().width();
-    m_screenHeight = QGuiApplication::primaryScreen()->availableGeometry().height();
+    // 监听屏幕模式变化
+    connect(QGuiApplication::primaryScreen(), &QScreen::virtualGeometryChanged, this, &DeepinWatermark::displayMode);
+    m_screenWidth = QGuiApplication::primaryScreen()->virtualGeometry().width();
+    m_screenHeight = QGuiApplication::primaryScreen()->virtualGeometry().height();
+    m_primaryScreenWidth = QGuiApplication::primaryScreen()->geometry().width();
+    m_primaryScreenHeight = QGuiApplication::primaryScreen()->geometry().height();
 
     m_currentTime = new QTimer(this);
     m_currentTime->setInterval(TIME_INTERVAL);
@@ -114,6 +117,7 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     }
 
     initConfig();
+    setGeometry(0, 0, m_screenWidth, m_screenHeight);//设置水印覆盖整个整个屏幕
 }
 
 DeepinWatermark::~DeepinWatermark()
@@ -443,20 +447,20 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     if (nullptr == m_painter) {
         return;
     }
-    int pixmapWidth = width();
-    int pixmapHeight = height();
+    int pixmapWidth = m_screenWidth;
+    int pixmapHeight = m_screenHeight;
     // 计算旋转矩阵
     QTransform transform;
     int transformx = 0;
     int transformy = 0;
     if (m_compositorActive && m_fontFormate == FORMAT_LEAN) {
-        transform.translate(width() / 2, height() / 2);
+        transform.translate(m_screenWidth / 2, m_screenHeight / 2);
         transform.rotate(LEAN_ANGLE);
-        transform.translate(-width() / 2, -height() / 2);
+        transform.translate(-m_screenWidth / 2, -m_screenHeight / 2);
         transformx = transform.m11() * 0 + transform.m21() * 0 + transform.dx();
-        transformy = transform.m22() * 0 + transform.m12() * width() + transform.dy();
-        pixmapWidth = width() + qAbs(transformx) * 2;
-        pixmapHeight = height() + qAbs(transformy) * 2;
+        transformy = transform.m22() * 0 + transform.m12() * m_screenWidth + transform.dy();
+        pixmapWidth = m_screenWidth + qAbs(transformx) * 2;
+        pixmapHeight = m_screenHeight + qAbs(transformy) * 2;
     }
 
     QPixmap pixmap(pixmapWidth, pixmapHeight);
@@ -466,7 +470,7 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
 
     // 开启屏保的时候只画一个背景，不显示水印
     if (m_isOpenScreenSaver) {
-        m_painter->drawRect(0, 0, width(), height());
+        m_painter->drawRect(0, 0, m_screenWidth, m_screenHeight);
         m_painter->end();
         m_painter->begin(this);
         m_painter->drawPixmap(QPoint(0, 0), pixmap);
@@ -484,11 +488,11 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     int hSpace = 0;
     int vSpace = 0;
     if (m_compositorActive) {
-        hSpace = m_screenWidth * (m_density / 100.0f);
-        vSpace = m_screenHeight * (m_density / 100.0f);
+        hSpace = m_primaryScreenWidth * (m_density / 100.0f);
+        vSpace = m_primaryScreenHeight * (m_density / 100.0f);
     }else {
-        hSpace = m_screenWidth * DENSITY;
-        vSpace = m_screenHeight * DENSITY;
+        hSpace = m_primaryScreenWidth * DENSITY;
+        vSpace = m_primaryScreenHeight * DENSITY;
     }
     // 获取字体的长和宽
     QFontMetrics fm(font);
@@ -500,8 +504,8 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     // 设置绘制区域
     int xStart = 0;
     int yStart = rec.height();
-    int xEnd = width();
-    int yEnd = height();
+    int xEnd = m_screenWidth;
+    int yEnd = m_screenHeight;
     if (m_compositorActive && m_fontFormate == FORMAT_LEAN) {
         xStart = transformx;
         yStart = transformy;
@@ -533,7 +537,6 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
                 m_painter->translate(-xx, -yy);
 #endif
             }
-
             QPainterPath path;
             path.addText(xCoord, yCoord, font, text);
             QPen pen;
@@ -598,7 +601,20 @@ void DeepinWatermark::compositingSetup()
 
 void DeepinWatermark::desktopResize(QRect rect)
 {
+    clearMask();
     m_screenWidth = rect.width();
     m_screenHeight = rect.height();
+    m_primaryScreenWidth = rect.width();
+    m_primaryScreenHeight = rect.height();
+    setGeometry(0, 0, m_screenWidth, m_screenHeight);
+    update();
+}
+
+void DeepinWatermark::displayMode(QRect rect)
+{
+    clearMask();
+    m_screenWidth = rect.width();
+    m_screenHeight = rect.height();
+    setGeometry(0, 0, m_screenWidth, m_screenHeight);
     update();
 }
