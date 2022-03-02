@@ -96,6 +96,7 @@ private Q_SLOTS:
     void compositingSetup();
     void desktopResize(QRect rect);
     void displayMode(QRect rect);
+    void lockFrontStatus(bool visible);
 };
 
 #endif // DEEPINWATERMARK_H
