@@ -93,6 +93,9 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     // 监听lockFront锁屏信号
     QDBusConnection::sessionBus().connect("com.deepin.dde.lockFront", "/com/deepin/dde/lockFront", "com.deepin.dde.lockFront", "Visible", this, SLOT(lockFrontStatus(bool)));
 
+    // 监听控制中心字体变化
+    QDBusConnection::sessionBus().connect("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance", "com.deepin.daemon.Appearance", "Changed", this, SLOT(fontChanged(QString, QString)));
+
     m_currentTime = new QTimer(this);
     m_currentTime->setInterval(TIME_INTERVAL);
     connect(m_currentTime, &QTimer::timeout, this, [this](){
@@ -485,6 +488,7 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
     // 获取水印展示内容
     QString text = getCustomContent();
     QFont font = m_painter->font();
+    font.setFamily(m_fontFamily);
     font.setPointSize(m_fontSize);
     m_painter->setFont(font);
     //根据分辨率设置密度
@@ -634,5 +638,13 @@ void DeepinWatermark::lockFrontStatus(bool visible)
             QDBusConnection::sessionBus().connect("org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing", "compositingSetup", this, SLOT(compositingSetup()));
         });
     }
+    update();
+}
+
+void DeepinWatermark::fontChanged(const QString &fontType, const QString &fontName)
+{
+    Q_UNUSED(fontType);
+    clearMask();
+    m_fontFamily = fontName;
     update();
 }
