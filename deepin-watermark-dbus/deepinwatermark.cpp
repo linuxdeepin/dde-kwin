@@ -90,6 +90,9 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     m_primaryScreenWidth = QGuiApplication::primaryScreen()->geometry().width();
     m_primaryScreenHeight = QGuiApplication::primaryScreen()->geometry().height();
 
+    // 监听lockFront锁屏信号
+    QDBusConnection::sessionBus().connect("com.deepin.dde.lockFront", "/com/deepin/dde/lockFront", "com.deepin.dde.lockFront", "Visible", this, SLOT(lockFrontStatus(bool)));
+
     m_currentTime = new QTimer(this);
     m_currentTime->setInterval(TIME_INTERVAL);
     connect(m_currentTime, &QTimer::timeout, this, [this](){
@@ -616,5 +619,20 @@ void DeepinWatermark::displayMode(QRect rect)
     m_screenWidth = rect.width();
     m_screenHeight = rect.height();
     setGeometry(0, 0, m_screenWidth, m_screenHeight);
+    update();
+}
+
+void DeepinWatermark::lockFrontStatus(bool visible)
+{
+    QDBusConnection::sessionBus().disconnect("org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing", "compositingSetup", this, SLOT(compositingSetup()));
+    // 监听到锁屏界面状态
+    if (visible) {
+        hide();
+    } else {
+        show();
+        QTimer::singleShot(TIME_INTERVAL, [this](){
+            QDBusConnection::sessionBus().connect("org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing", "compositingSetup", this, SLOT(compositingSetup()));
+        });
+    }
     update();
 }
