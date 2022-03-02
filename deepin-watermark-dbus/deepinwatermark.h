@@ -53,6 +53,7 @@ private:
     int calculateCoordinate(const int &index, const int &textWidth, const int &hSpace);
 
 private:
+    QString m_fontFamily;
     int m_screenWidth;
     int m_screenHeight;
     int m_primaryScreenWidth{0};
@@ -97,6 +98,7 @@ private Q_SLOTS:
     void desktopResize(QRect rect);
     void displayMode(QRect rect);
     void lockFrontStatus(bool visible);
+    void fontChanged(const QString &fontType, const QString &fontName);
 };
 
 #endif // DEEPINWATERMARK_H
