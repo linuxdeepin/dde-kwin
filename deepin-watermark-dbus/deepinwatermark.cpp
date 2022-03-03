@@ -221,9 +221,7 @@ bool DeepinWatermark::isValidInvoker(const uint &pid)
 
 void DeepinWatermark::refreshWindow()
 {
-    if (!m_isX11Server) {
-        clearMask();
-    }
+    clearMask();
     if (m_isOpen) {
         if (m_showTime) {
             m_currentTimeString = QDateTime::currentDateTime().toString("yyyy-MM-dd");
@@ -534,15 +532,9 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
             if (m_fontFormate == FORMAT_HORIZONTAL && !m_compositorActive) {
                 m_painter->rotate(0);
             }else if (m_fontFormate == FORMAT_LEAN && !m_compositorActive) {
-#if 1
-                m_painter->translate(xCoord + rec.width() / 2, yCoord + rec.height() / 2);
+                m_painter->translate(m_screenWidth / 2, m_screenHeight / 2);
                 m_painter->rotate(LEAN_ANGLE);
-                m_painter->translate(-(xCoord + rec.width() / 2), -(yCoord + rec.height() / 2));
-#else
-                m_painter->translate(xx, yy);
-                m_painter->rotate(-30);
-                m_painter->translate(-xx, -yy);
-#endif
+                m_painter->translate(-m_screenWidth / 2, -m_screenHeight / 2);
             }
             QPainterPath path;
             path.addText(xCoord, yCoord, font, text);
@@ -643,8 +635,9 @@ void DeepinWatermark::lockFrontStatus(bool visible)
 
 void DeepinWatermark::fontChanged(const QString &fontType, const QString &fontName)
 {
-    Q_UNUSED(fontType);
-    clearMask();
-    m_fontFamily = fontName;
-    update();
+    if (fontType == "standardfont" || fontType == "monospacefont") {
+        clearMask();
+        m_fontFamily = fontName;
+        update();
+    }
 }
