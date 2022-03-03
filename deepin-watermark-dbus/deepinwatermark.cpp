@@ -68,7 +68,7 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     setAttribute(Qt::WA_ShowWithoutActivating);
     setWindowFlags(Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint | Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground, true);
-    setWindowState(Qt::WindowNoState | Qt::WindowFullScreen);
+    setWindowState(Qt::WindowNoState);
     setFocusPolicy(Qt::NoFocus);
     // x11设置鼠标穿透
     if (m_isX11Server) {
