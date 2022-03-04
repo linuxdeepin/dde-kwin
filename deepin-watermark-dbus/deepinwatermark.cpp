@@ -542,11 +542,13 @@ void DeepinWatermark::paintEvent(QPaintEvent *event)
             pen.setWidth(1);
             pen.setColor(QColor("#000000"));
             if (m_compositorActive) {
-                m_painter->setOpacity(0.1);
+                // 描边的透明度是0到20
+                m_painter->setOpacity(m_transparency / 500.0f);
             }
             m_painter->strokePath(path, pen);
             m_painter->drawPath(path);
             if (m_compositorActive) {
+                // 文字的透明度是0到100
                 m_painter->setOpacity(m_transparency / 100.0f);
             }
             m_painter->fillPath(path, QBrush(QColor("#DFDFDF")));
