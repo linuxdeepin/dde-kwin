@@ -49,7 +49,7 @@ Q_LOGGING_CATEGORY(BLUR_CAT, "kwin.blur", QtCriticalMsg);
 
 static const QByteArray s_GtkFrameAtomName = QByteArrayLiteral("_GTK_FRAME_EXTENTS");
 
-#define WATERMARK_CLASS_NAME "deepin-watermark-dbus deepin-watermark-dbus"
+#define WATERMARK_CLASS_NAME "deepin-watermark deepin-watermark"
 
 DesktopThumbnailManager::DesktopThumbnailManager(EffectsHandler* h)
     :QWidget(nullptr),
