@@ -3,13 +3,13 @@ export DISPLAY=:0.0
 utdir=sanitizer
 rm -r $utdir
 rm -r ../$utdir
-mkdir ../$utdir
+mkdir -p ../$utdir
 cd ../$utdir
 
 cmake -DCMAKE_SAFETYTEST_ARG="CMAKE_SAFETYTEST_ARG_ON" ..
 make -j4
 
-./tests/dde-kwin_test -o asan.log
+./tests/dde-kwin_test -o ut-report.txt
 
 workdir=$(cd ../$(dirname $0)/$utdir; pwd)
 
