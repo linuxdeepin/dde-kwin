@@ -101,4 +101,5 @@ if (${KWIN_VERSION} STRLESS ${DDE_KWIN_SUPPORTED_VERSION} OR  ${KWIN_VERSION} ST
     if (BUILD_TESTING)
         add_subdirectory(tests)
     endif()
+    add_subdirectory(windowtool)
 endif()
