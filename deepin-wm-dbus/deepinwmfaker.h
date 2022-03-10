@@ -163,7 +163,7 @@ private:
 
     QString getWorkspaceBackgroundForMonitor(const int index,const QString &strMonitorName) const;                    // index 为工作区索引，strMonitorName为显示器的名称
     void setWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri) const;         // index 为工作区索引，strMonitorName为显示器的名称，uri为图片资源
-
+    bool isX11Platform();
 #ifndef DISABLE_DEEPIN_WM
     void onGsettingsDDEAppearanceChanged(const QString &key);
     void onGsettingsDDEZoneChanged(const QString &key);
@@ -195,7 +195,7 @@ private:
     QPair<uint, bool> m_previewWinMiniPair;
 
     bool m_isMultitaskingActived = false;
-
+    bool m_isPlatformX11 = true;
     bool m_isShowDesktop = false;
 };
 
