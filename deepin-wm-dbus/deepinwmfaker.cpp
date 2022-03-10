@@ -6,6 +6,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDBusInterface>
+#include <QProcess>
+#include <QStringList>
 
 #include <KF5/KConfigCore/KConfig>
 #include <KF5/KConfigCore/KConfigGroup>
@@ -301,6 +304,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     , m_kwinUtilsInter(new KWin(KWinUtilsDbusService, KWinUtilsDbusPath, QDBusConnection::sessionBus(), this))
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
 {
+    m_isPlatformX11 = isX11Platform();
 #ifndef DISABLE_DEEPIN_WM
     m_currentDesktop = m_kwinConfig->group("Workspace").readEntry<int>("CurrentDesktop", 1);
 
@@ -1082,13 +1086,23 @@ void DeepinWMFaker::PresentWindows(const QList<uint> &xids)
 {
     if (xids.isEmpty())
         return;
+    if (m_isPlatformX11) {
+        QList<WId> windows;
 
-    QList<WId> windows;
+        for (uint w : xids)
+            windows << w;
 
-    for (uint w : xids)
-        windows << w;
-
-    KWindowEffects::presentWindows(windows.first(), windows);
+        KWindowEffects::presentWindows(windows.first(), windows);
+    } else {
+        QDBusInterface Interface("org.kde.KWin",
+                                 "/org/kde/KWin/PresentWindows",
+                                "org.kde.KWin.PresentWindows",
+                                QDBusConnection::sessionBus());
+        QStringList strList;
+        for (uint w : xids)
+            strList << QString::number(w);
+        Interface.call("PresentWindows",strList);
+    }
 }
 
 // TODO(zccrs): 开启/禁用热区
@@ -1234,6 +1248,20 @@ void DeepinWMFaker::setWorkspaceBackgroundForMonitor(const int index, const QStr
     allWallpaper[index - 1] = uri;
     _gsettings_dde_appearance->set(GsettingsBackgroundUri, allWallpaper);
 #endif // DISABLE_DEEPIN_WM
+}
+
+bool DeepinWMFaker::isX11Platform()
+{
+    QString strCmd = "loginctl show-session $(loginctl | grep $(whoami) | awk '{print $1}') -p Type";
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << strCmd);
+    p.waitForFinished();
+    QString result = p.readAllStandardOutput();
+    if (result.replace("\n", "").contains("Type=x11")) {
+        return  true;
+    } else {
+        return  false;
+    }
 }
 
 void DeepinWMFaker::quitTransientBackground()
