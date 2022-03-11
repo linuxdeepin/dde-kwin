@@ -1,12 +1,13 @@
-#ifndef H_WINDOW_INFO_LOADER_H_
-#define H_WINDOW_INFO_LOADER_H_
+#ifndef H_INTERFACE_MANAGER_H_
+#define H_INTERFACE_MANAGER_H_
 
+#include <QList>
 #include <QMap>
 #include <QObject>
-#include <QThread>
+#include <QSharedPointer>
 
-#include "WindowInfo.h"
-#include "XcbWindowLoader.h"
+#include "ScreenRecorder.h"
+#include "WaylandWindowLoader.h"
 
 namespace KWayland {
 namespace Client {
@@ -16,6 +17,7 @@ class EventQueue;
 class ClientManagement;
 class Registry;
 class Buffer;
+class RemoteAccessManager;
 
 }  // namespace Client
 }  // namespace KWayland
@@ -24,40 +26,43 @@ class WindowInfoLoader : public QObject
 {
     Q_OBJECT
 private:
-    WindowInfoLoader(QObject *parent = nullptr);
+    WindowInfoLoader(QObject *parent);
+    WindowInfoLoader(WindowInfoLoader &) = delete;
+    WindowInfoLoader &operator=(WindowInfoLoader &) = delete;
 
-    void init();
-    void updateWindowInfos();
-    void setupRegistry(KWayland::Client::Registry *registry);
-    void onWindowCaptured(int windowId, bool succeed);
+    static WindowInfoLoader *s_interface;
 
     QThread *m_Thread                                = nullptr;
     KWayland::Client::ConnectionThread *m_connection = nullptr;
     KWayland::Client::EventQueue *m_eventQueue       = nullptr;
 
-    KWayland::Client::ShmPool *m_shmPool                   = nullptr;
-    KWayland::Client::ClientManagement *m_clientManagement = nullptr;
+    QList<KWayland::Client::Output *> m_outputList;
 
-    static WindowInfoLoader *s_Loader;
+    QSharedPointer<ScreenRecorder> m_screenRecorder           = nullptr;
+    QSharedPointer<WaylandWindowLoader> m_waylandWindowLoader = nullptr;
 
-    bool inited = false;
-    XcbWindowLoader *m_xcbLoader;
-    QMap<int, QSharedPointer<WindowInfo>> m_windows;
-    QMap<int, QSharedPointer<KWayland::Client::Buffer>> m_windowBuffers;
+    void init();
+    void setupRegistry(KWayland::Client::Registry *registry);
 
 public:
-    ~WindowInfoLoader();
+    virtual ~WindowInfoLoader();
 
-    static WindowInfoLoader *loader(QObject *parent = nullptr);
+    static WindowInfoLoader *get(QObject *parent = nullptr);
+
+    bool startRecording();
+    bool screenshot(int count);
 
     QMap<int, QSharedPointer<WindowInfo>> getWindowInfos();
-
     QSharedPointer<WindowInfo> getWindowInfo(int windowId);
-
     bool captureWindow(QSharedPointer<WindowInfo> info);
 
+    KWayland::Client::RemoteAccessManager *remoteAccessManager = nullptr;
+    KWayland::Client::ClientManagement *clientManagement       = nullptr;
+    KWayland::Client::ShmPool *shmPool                         = nullptr;
+    KWayland::Client::Output *output                           = nullptr;
+
 Q_SIGNALS:
-    void windowCaptured(QSharedPointer<WindowInfo> info);
+    void bufferCallback(QSharedPointer<WindowInfo> info);
 };
 
 #endif
