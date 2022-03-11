@@ -26,10 +26,10 @@ public:
 
     WindowInfo() {}
 
-    ~WindowInfo()
+    virtual ~WindowInfo()
     {
         if (winType == WIN_X11 && data) {
-            free(data);
+            data = nullptr;
         }
     }
 };

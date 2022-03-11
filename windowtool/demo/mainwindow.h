@@ -23,6 +23,8 @@ private:
     QMap<int, QSharedPointer<WindowInfo>> m_windows;
 
     void onWindowCaptured(QSharedPointer<WindowInfo> info);
+
+    int m_count = 0;
 };
 
 #endif  // MAINWINDOW_H
