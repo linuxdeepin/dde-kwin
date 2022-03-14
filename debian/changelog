@@ -1,3 +1,10 @@
+dde-kwin (5.4.33-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 107455 fix: DDE-kwin cannot call PresentWindows under wayland platform.
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 14 Mar 2022 19:26:40 +0800
+
 dde-kwin (5.4.26-1) unstable; urgency=medium
 
   * Bug fix:
