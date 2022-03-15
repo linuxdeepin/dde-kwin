@@ -84,6 +84,8 @@ public:
     static void clientCheckNoBorder(QObject *client);
     static bool sendPingToWindow(quint32 WId, quint32 timestamp);
     static bool sendPingToWindow(QObject *client, quint32 timestamp);
+
+    static void setDarkTheme(bool isDark);
     static void activateClient(QObject *window);
     static QFunctionPointer resolve(const char *symbol);
 

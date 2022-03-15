@@ -284,6 +284,7 @@ class KWinInterface
 {
     typedef int (*ClientMaximizeMode)(const void *);
     typedef int (*ShellClientMaximizeMode)(const void *);
+    typedef void (*WorkspaceSetDarkTheme)(void *, bool);
     typedef void (*ClientMaximize)(void *, KWinUtils::MaximizeMode);
     typedef void (*ActivateClient)(void*, void*, bool force);
     typedef void (*ClientUpdateCursor)(void *);
@@ -306,6 +307,7 @@ public:
     {
         clientMaximizeMode = (ClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin6Client12maximizeModeEv");
         shellClientMaximizeMode = (ShellClientMaximizeMode)KWinUtils::resolve("_ZNK4KWin11ShellClient12maximizeModeEv");
+        setDarkTheme = (WorkspaceSetDarkTheme)KWinUtils::resolve("_ZN4KWin9Workspace12setDarkThemeEb");
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
@@ -335,6 +337,7 @@ public:
     ClientWindowType clientWindowType;
     ClientMaximizeMode clientMaximizeMode;
     ShellClientMaximizeMode shellClientMaximizeMode;
+    WorkspaceSetDarkTheme setDarkTheme;
     ClientMaximize clientMaximize;
     ActivateClient activateClient;
     ClientUpdateCursor clientUpdateCursor;
@@ -1009,6 +1012,11 @@ void KWinUtils::activateClient(QObject *window)
         KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
         interface->activateClient(ws, window, false);
     }
+}
+
+void KWinUtils::setDarkTheme(bool isDark)
+{
+    interface->setDarkTheme(workspace(), isDark);
 }
 
 QVariant KWinUtils::fullmaximizeWindow(QObject *window) const
