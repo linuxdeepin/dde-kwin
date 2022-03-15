@@ -115,6 +115,12 @@ bool ChameleonConfig::setTheme(QString theme)
             clearX11ShadowCache();
             buildKWinX11ShadowForNoBorderWindows();
         }
+        bool isDark = false;
+        if (theme.contains("dark")) {
+            isDark = true;
+        }
+
+        KWinUtils::setDarkTheme(isDark);
 
         return true;
     }
