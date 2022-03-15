@@ -353,6 +353,9 @@ void BlurEffect::slotWindowAdded(EffectWindow *w)
 #endif
 
     updateBlurRegion(w);
+
+    if (w->isDock())
+        w->setData(WindowBlurBehindRole, 1);
 }
 
 void BlurEffect::slotWindowDeleted(EffectWindow *w)
@@ -613,6 +616,9 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
 #else
     const QRect screen = effects->virtualScreenGeometry();
 #endif
+
+    auto wndClassName = w->windowClass();
+
     if (shouldBlur(w, mask, data)) {
         QRegion shape = region & blurRegion(w).translated(w->pos()) & screen;
 
@@ -638,7 +644,18 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
         }
 
         if (!shape.isEmpty()) {
-            doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
+            if (w->isDock() || wndClassName.contains("dde-osd")) { 
+                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), true, w->geometry());
+	    } else {
+	        doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), false, w->geometry());
+	    }
+        } else {
+            if (w->isDock() || wndClassName.contains("dde-launcher")
+                    || wndClassName.contains("dde-osd") || wndClassName.contains("dde-clipboard")
+                    || (w->caption()=="" && w->windowType()==12)) {
+                QRegion shape = region & w->shape().translated(w->pos()) & screen;
+                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
+            }
         }
     }
 
