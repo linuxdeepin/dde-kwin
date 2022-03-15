@@ -1,3 +1,13 @@
+dde-kwin (5.4.34-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 96087, 103388 fix: transparency of docker/launcher/notification/clipboard on wayland
+
+  * Task:
+    + 101855 feat: add style to titlebar menu
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 15 Mar 2022 22:41:38 +0800
+
 dde-kwin (5.4.33-1) unstable; urgency=medium
 
   * Bug fix:
