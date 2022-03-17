@@ -1,6 +1,8 @@
 #ifndef H_WINDOW_INFO_LOADER_H_
 #define H_WINDOW_INFO_LOADER_H_
 
+#include <memory>
+
 #include <QMap>
 #include <QObject>
 #include <QThread>
@@ -29,7 +31,7 @@ private:
 
     bool inited = false;
     XcbWindowLoader *m_xcbLoader;
-    QMap<int, QSharedPointer<WindowInfo>> m_windows;
+    std::map<int, std::shared_ptr<WindowInfo>> m_windows;
     QMap<int, QSharedPointer<KWayland::Client::Buffer>> m_windowBuffers;
 
     void init();
@@ -38,19 +40,17 @@ private:
 
 public:
     WaylandWindowLoader(KWayland::Client::ClientManagement *clientManagement,
-            QObject *parent = nullptr);
+            KWayland::Client::ShmPool *shmPool, QObject *parent = nullptr);
     ~WaylandWindowLoader();
 
-    QMap<int, QSharedPointer<WindowInfo>> getWindowInfos();
+    std::map<int, std::shared_ptr<WindowInfo>> getWindowInfos();
 
-    QSharedPointer<WindowInfo> getWindowInfo(int windowId);
+    std::shared_ptr<WindowInfo> getWindowInfo(int windowId);
 
-    bool captureWindow(QSharedPointer<WindowInfo> info);
-
-    void onProtocolInited();
+    bool captureWindow(std::shared_ptr<WindowInfo> info);
 
 Q_SIGNALS:
-    void windowCaptured(QSharedPointer<WindowInfo> info);
+    void windowCaptured(std::shared_ptr<WindowInfo> info);
 };
 
 #endif
