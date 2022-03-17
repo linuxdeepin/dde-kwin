@@ -15,8 +15,8 @@
 using namespace KWayland::Client;
 
 WaylandWindowLoader::WaylandWindowLoader(
-        ClientManagement *clientManagement, QObject *parent)
-    : m_clientManagement(clientManagement), QObject(parent)
+        ClientManagement *clientManagement, ShmPool *shmPool, QObject *parent)
+    : m_clientManagement(clientManagement), m_shmPool(shmPool), QObject(parent)
 {
     init();
 }
@@ -37,31 +37,25 @@ void WaylandWindowLoader::init()
     m_clientManagement->getWindowStates();
 }
 
-void WaylandWindowLoader::onProtocolInited()
-{
-    WindowInfoLoader *interfaces = WindowInfoLoader::get();
-    m_shmPool                    = interfaces->shmPool;
-}
-
 void WaylandWindowLoader::updateWindowInfos()
 {
     QVector<ClientManagement::WindowState> windowStates =
             m_clientManagement->getWindowStates();
 
-    if (!m_windows.isEmpty()) {
+    if (!m_windows.empty()) {
         m_windows.clear();
     }
 
     for (int i = 0; i < windowStates.count(); ++i) {
         ClientManagement::WindowState state = windowStates.at(i);
 
-        qDebug() << __FUNCTION__ << ":" << __LINE__ << " Add window id " << state.windowId
+        qDebug() << __func__ << ":" << __LINE__ << " Add window id " << state.windowId
                  << " pid " << state.pid << " resourceName " << state.resourceName
                  << " isMinimized " << state.isMinimized << " isFullScreen "
                  << state.isFullScreen << " isActive " << state.isActive << " geometry "
                  << state.geometry.width << "x" << state.geometry.height;
 
-        auto info = QSharedPointer<WindowInfo>(new WindowInfo());
+        auto info = std::shared_ptr<WindowInfo>(new WindowInfo());
 
         info->pid          = state.pid;
         info->windowId     = state.windowId;
@@ -74,22 +68,26 @@ void WaylandWindowLoader::updateWindowInfos()
         info->isFullScreen = state.isFullScreen;
         info->isActive     = state.isActive;
 
-        m_windows.insert(state.windowId, info);
+        m_windows.insert(
+                std::pair<int, std::shared_ptr<WindowInfo>>(state.windowId, info));
     }
-    if (!m_windows.isEmpty()) {
+    if (!m_windows.empty()) {
         inited = true;
     }
 }
 
-QSharedPointer<WindowInfo> WaylandWindowLoader::getWindowInfo(int windowId)
+std::shared_ptr<WindowInfo> WaylandWindowLoader::getWindowInfo(int windowId)
 {
-    if (m_windows.contains(windowId)) {
-        return m_windows.value(windowId);
+    std::map<int, std::shared_ptr<WindowInfo>>::iterator it;
+    it = m_windows.find(windowId);
+    if (it != m_windows.end()) {
+        m_windows.at(windowId);
     }
+
     return nullptr;
 }
 
-QMap<int, QSharedPointer<WindowInfo>> WaylandWindowLoader::getWindowInfos()
+std::map<int, std::shared_ptr<WindowInfo>> WaylandWindowLoader::getWindowInfos()
 {
     while (!inited) {
         QEventLoop eventloop;
@@ -102,16 +100,20 @@ QMap<int, QSharedPointer<WindowInfo>> WaylandWindowLoader::getWindowInfos()
     return m_windows;
 }
 
-bool WaylandWindowLoader::captureWindow(QSharedPointer<WindowInfo> info)
+bool WaylandWindowLoader::captureWindow(std::shared_ptr<WindowInfo> info)
 {
     if (!m_shmPool) {
         qDebug() << __func__ << __LINE__ << " windowId" << info->windowId
                  << " failed for not shmpool";
         return false;
     }
-    if (!m_windows.contains(info->windowId)) {
+
+    std::map<int, std::shared_ptr<WindowInfo>>::iterator it;
+    it = m_windows.find(info->windowId);
+    if (it == m_windows.end()) {
         return false;
     }
+
     QSize size(info->width, info->height);
     auto buffer = m_shmPool->getBuffer(size, size.width() * 4).toStrongRef();
 
@@ -124,26 +126,29 @@ bool WaylandWindowLoader::captureWindow(QSharedPointer<WindowInfo> info)
 
 void WaylandWindowLoader::onWindowCaptured(int windowId, bool succeed)
 {
-    if (!m_windows.contains(windowId)) {
+    qDebug() << __func__ << __LINE__;
+    std::map<int, std::shared_ptr<WindowInfo>>::iterator it;
+    it = m_windows.find(windowId);
+    if (it == m_windows.end()) {
         qDebug() << __func__ << __LINE__ << " windowId" << windowId << " succeed "
                  << succeed << " but can not find callback";
         return;
     }
 
     auto buffer = m_windowBuffers.value(windowId);
-    auto info   = m_windows.value(windowId);
+    auto info   = m_windows.at(windowId);
 
     if (!succeed) {
         if (!m_xcbLoader) {
             qDebug() << __func__ << __LINE__ << " try get xcb window " << windowId
-                     << " resourceName " << info->resourceName << " failed";
+                     << " resourceName " << info->resourceName.c_str() << " failed";
             return;
         }
 
         bool xcb_ok = m_xcbLoader->captureXcbWindow(info);
         if (!xcb_ok) {
             qDebug() << __func__ << __LINE__ << " windowId " << windowId
-                     << " resourceName " << info->resourceName << " failed";
+                     << " resourceName " << info->resourceName.c_str() << " failed";
             return;
         }
     } else {
@@ -162,7 +167,7 @@ void WaylandWindowLoader::onWindowCaptured(int windowId, bool succeed)
         QString fileName = "/tmp/window_screenshot_";
         fileName += QString::number(windowId);
         fileName += "_";
-        fileName += info->resourceName;
+        fileName += info->resourceName.c_str();
         fileName += ".png";
 
         img.save(fileName, "PNG", 100);

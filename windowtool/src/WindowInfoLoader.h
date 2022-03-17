@@ -1,68 +1,49 @@
 #ifndef H_INTERFACE_MANAGER_H_
 #define H_INTERFACE_MANAGER_H_
 
-#include <QList>
-#include <QMap>
-#include <QObject>
-#include <QSharedPointer>
+#include <map>
+#include <memory>
+#include <vector>
 
-#include "ScreenRecorder.h"
-#include "WaylandWindowLoader.h"
+#include "WindowInfo.h"
 
-namespace KWayland {
-namespace Client {
-class ShmPool;
-class ConnectionThread;
-class EventQueue;
-class ClientManagement;
-class Registry;
-class Buffer;
-class RemoteAccessManager;
-
-}  // namespace Client
-}  // namespace KWayland
-
-class WindowInfoLoader : public QObject
+class BufferHandler
 {
-    Q_OBJECT
+public:
+    virtual void onInited()                                       = 0;
+    virtual void bufferCallback(std::shared_ptr<WindowInfo> info) = 0;
+};
+
+class WindowInfoLoader
+{
 private:
-    WindowInfoLoader(QObject *parent);
+    WindowInfoLoader(int argc, char **argv);
     WindowInfoLoader(WindowInfoLoader &) = delete;
     WindowInfoLoader &operator=(WindowInfoLoader &) = delete;
 
     static WindowInfoLoader *s_interface;
 
-    QThread *m_Thread                                = nullptr;
-    KWayland::Client::ConnectionThread *m_connection = nullptr;
-    KWayland::Client::EventQueue *m_eventQueue       = nullptr;
-
-    QList<KWayland::Client::Output *> m_outputList;
-
-    QSharedPointer<ScreenRecorder> m_screenRecorder           = nullptr;
-    QSharedPointer<WaylandWindowLoader> m_waylandWindowLoader = nullptr;
-
-    void init();
-    void setupRegistry(KWayland::Client::Registry *registry);
+    std::vector<BufferHandler *> m_bufferHandlers;
+    void *m_private = nullptr;
 
 public:
     virtual ~WindowInfoLoader();
 
-    static WindowInfoLoader *get(QObject *parent = nullptr);
+    static WindowInfoLoader *get(int argc, char **argv);
+
+    void onInited();
+    void bufferCallback(std::shared_ptr<WindowInfo> info);
+
+    void addBufferHandler(BufferHandler *handler);
+    void removeBufferHandler(BufferHandler *handler);
 
     bool startRecording();
     bool screenshot(int count);
+    int run();
 
-    QMap<int, QSharedPointer<WindowInfo>> getWindowInfos();
-    QSharedPointer<WindowInfo> getWindowInfo(int windowId);
-    bool captureWindow(QSharedPointer<WindowInfo> info);
-
-    KWayland::Client::RemoteAccessManager *remoteAccessManager = nullptr;
-    KWayland::Client::ClientManagement *clientManagement       = nullptr;
-    KWayland::Client::ShmPool *shmPool                         = nullptr;
-    KWayland::Client::Output *output                           = nullptr;
-
-Q_SIGNALS:
-    void bufferCallback(QSharedPointer<WindowInfo> info);
+    std::map<int, std::shared_ptr<WindowInfo>> getWindowInfos();
+    std::shared_ptr<WindowInfo> getWindowInfo(int windowId);
+    bool captureWindow(std::shared_ptr<WindowInfo> info);
 };
 
 #endif

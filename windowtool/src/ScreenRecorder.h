@@ -1,6 +1,8 @@
 #ifndef H_SCREEN_RECORDER_H_
 #define H_SCREEN_RECORDER_H_
 
+#include <memory>
+
 #include <QObject>
 
 #if HAVE_GBM
@@ -48,7 +50,7 @@ private:
     bool findRenderNode(char *node, size_t maxlen);
     void processBuffer(const KWayland::Client::Output *output,
             const KWayland::Client::RemoteBuffer *remoteBuffer);
-    void gbmProcessBuffer(QSharedPointer<FrameInfo> info);
+    void gbmProcessBuffer(std::shared_ptr<FrameInfo> info);
 
 public:
     ScreenRecorder(KWayland::Client::RemoteAccessManager *remoteAccessManager,
@@ -60,7 +62,7 @@ public:
     bool screenshot(int count);
 
 Q_SIGNALS:
-    void bufferCallback(QSharedPointer<WindowInfo> info);
+    void bufferCallback(std::shared_ptr<WindowInfo> info);
 };
 
 #endif

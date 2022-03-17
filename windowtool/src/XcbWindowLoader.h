@@ -1,9 +1,9 @@
 #ifndef H_SRC_XCB_WINDOW_INFO_H_
 #define H_SRC_XCB_WINDOW_INFO_H_
 
-#include <xcb/xcb.h>
+#include <memory>
 
-#include <QSize>
+#include <xcb/xcb.h>
 
 #include "WindowInfo.h"
 
@@ -25,8 +25,8 @@ public:
 
     static XcbWindowLoader *get();
 
-    QSize getWindowSize(QSharedPointer<WindowInfo> info);
-    bool captureXcbWindow(QSharedPointer<WindowInfo> info);
+    Size getWindowSize(std::shared_ptr<WindowInfo> info);
+    bool captureXcbWindow(std::shared_ptr<WindowInfo> info);
 };
 
 #endif

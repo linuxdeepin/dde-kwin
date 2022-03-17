@@ -5,6 +5,7 @@
 // QT
 #include <QDebug>
 #include <QImage>
+#include <QObject>
 #include <QThread>
 
 // system
@@ -98,7 +99,7 @@ bool ScreenRecorder::initGbm()
 
     char render_node[256];
     if (!findRenderNode(render_node, sizeof(render_node))) {
-        qDebug() << __func__ << "Failed to find a DRM render node";
+        qDebug() << __func__ << __LINE__ << "Failed to find a DRM render node";
         return false;
     }
 
@@ -106,7 +107,7 @@ bool ScreenRecorder::initGbm()
 
     m_drmFd = open(render_node, O_RDWR);
     if (m_drmFd < 0) {
-        qDebug() << __func__ << "Failed to open drm render node";
+        qDebug() << __func__ << __LINE__ << "Failed to open drm render node";
         return false;
     }
 
@@ -122,11 +123,11 @@ bool ScreenRecorder::initGbm()
 void ScreenRecorder::processBuffer(const Output *output, const RemoteBuffer *remoteBuffer)
 {
     if (!remoteBuffer) {
-        qDebug() << __func__ << " remoteBuffer is nullptr";
+        qDebug() << __func__ << __LINE__ << " remoteBuffer is nullptr";
         return;
     }
 
-    auto info = QSharedPointer<FrameInfo>(new FrameInfo());
+    auto info = std::shared_ptr<FrameInfo>(new FrameInfo());
 
     info->pid          = 0;
     info->windowId     = 0;
@@ -147,33 +148,30 @@ void ScreenRecorder::processBuffer(const Output *output, const RemoteBuffer *rem
     info->stride = remoteBuffer->stride();
     info->dmaFd  = remoteBuffer->fd();
 
-    qDebug() << __func__ << " dma fd " << info->dmaFd << " width " << info->width
-             << " height " << info->height << " stride " << info->stride;
-
     unsigned char *mapData = static_cast<unsigned char *>(mmap(
             nullptr, info->stride * info->height, PROT_READ, MAP_SHARED, info->dmaFd, 0));
 
     if (mapData != MAP_FAILED) {
-        qDebug() << __func__ << "success mmap dmafd " << info->dmaFd << " size "
-                 << info->width << "x" << info->height;
+        qDebug() << __func__ << __LINE__ << "success mmap dmafd " << info->dmaFd
+                 << " size " << info->width << "x" << info->height;
         info->data = mapData;
     } else {
         gbmProcessBuffer(info);
     }
 
+    qDebug() << __func__ << __LINE__;
+
     if (info->data) {
+        qDebug() << __func__ << __LINE__;
         info->format = QImage::Format_RGB32;
         emit bufferCallback(info);
     }
 }
 
-void ScreenRecorder::gbmProcessBuffer(QSharedPointer<FrameInfo> info)
+void ScreenRecorder::gbmProcessBuffer(std::shared_ptr<FrameInfo> info)
 {
-    qDebug() << __func__ << " dma fd " << info->dmaFd << " width " << info->width
-             << " height " << info->height << " stride " << info->stride;
-
     if (!initGbm()) {
-        qDebug() << __func__ << " gbm_device is null";
+        qDebug() << __func__ << __LINE__ << " gbm_device is null";
         return;
     }
 
@@ -188,7 +186,7 @@ void ScreenRecorder::gbmProcessBuffer(QSharedPointer<FrameInfo> info)
     gbm_bo *bo = gbm_bo_import(m_gbmDevice, GBM_BO_IMPORT_FD, &gdata, GBM_BO_USE_SCANOUT);
 
     if (!bo) {
-        qDebug() << __func__ << " gbm_bo_import fail";
+        qDebug() << __func__ << __LINE__ << " gbm_bo_import fail";
         return;
     }
 
@@ -196,11 +194,11 @@ void ScreenRecorder::gbmProcessBuffer(QSharedPointer<FrameInfo> info)
     void *data    = gbm_bo_map(bo, 0, 0, info->width, info->height, GBM_BO_TRANSFER_READ,
                &info->stride, &mapData);
 
-    qDebug() << __func__ << " dma fd " << info->dmaFd << " width " << info->width
-             << " height " << info->height << " stride " << info->stride;
+    qDebug() << __func__ << __LINE__ << " dma fd " << info->dmaFd << " width "
+             << info->width << " height " << info->height << " stride " << info->stride;
 
     if (data != MAP_FAILED) {
-        qDebug() << __func__ << " success dma fd " << info->dmaFd << " size "
+        qDebug() << __func__ << __LINE__ << " success dma fd " << info->dmaFd << " size "
                  << info->width << "x" << info->height;
         info->data    = data;
         info->mapData = mapData;

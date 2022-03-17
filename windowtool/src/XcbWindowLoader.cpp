@@ -34,10 +34,10 @@ bool XcbWindowLoader::init()
     return true;
 }
 
-QSize XcbWindowLoader::getWindowSize(QSharedPointer<WindowInfo> info)
+Size XcbWindowLoader::getWindowSize(std::shared_ptr<WindowInfo> info)
 {
     if (!init()) {
-        return QSize();
+        return Size();
     }
 
     int width, height;
@@ -56,18 +56,18 @@ QSize XcbWindowLoader::getWindowSize(QSharedPointer<WindowInfo> info)
                      << err->error_code;
             free(err);
         }
-        return QSize(info->width, info->height);
+        return Size(info->width, info->height);
     }
-    return QSize(width, height);
+    return Size(width, height);
 }
 
-bool XcbWindowLoader::captureXcbWindow(QSharedPointer<WindowInfo> info)
+bool XcbWindowLoader::captureXcbWindow(std::shared_ptr<WindowInfo> info)
 {
     if (!init()) {
         return false;
     }
 
-    QSize size = getWindowSize(info);
+    Size size = getWindowSize(info);
     if (size.isEmpty()) {
         return false;
     }
