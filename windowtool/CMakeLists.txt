@@ -10,6 +10,8 @@ find_package(KF5Wayland REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Qt5 COMPONENTS
     Core
+    Gui
+    Widgets
 REQUIRED)
 
 find_package(Libdrm 2.4.62)
@@ -45,7 +47,7 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-target_link_libraries(${PROJECT_NAME}  Qt5::Core)
+target_link_libraries(${PROJECT_NAME}  Qt5::Core Qt5::Gui Qt5::Widgets)
 target_link_libraries(${PROJECT_NAME}  KF5::WaylandClient)
 target_link_libraries(${PROJECT_NAME}  X11)
 target_link_libraries(${PROJECT_NAME}  xcb)
