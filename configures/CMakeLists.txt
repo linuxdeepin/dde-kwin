@@ -7,6 +7,7 @@ install(
     kwinrulesrc
     klaunchrc
     kdeglobals
+    kwin.multitask-view.display.dconfig.json
     DESTINATION
     "/etc/xdg"
 )
