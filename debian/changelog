@@ -1,3 +1,10 @@
+dde-kwin (5.5.3-1) unstable; urgency=medium
+
+  * feat:
+    + refactor: Refactor the multitasking view.
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 21 Mar 2022 21:21:57 +0800
+
 dde-kwin (5.4.34-1) unstable; urgency=medium
 
   * Bug fix:
