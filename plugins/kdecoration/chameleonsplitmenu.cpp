@@ -209,7 +209,7 @@ void ChameleonSplitMenu::Show(QPoint pos, QColor color)
     pos.setX(m_pos.x() -75);
     QRect rect(pos, QSize(158, 85));
     setGeometry(rect);
-    if (!QX11Info::isPlatformX11() && m_client) {
+    if (m_client) {
         QString str = "light";
         if (m_isDark) {
             str = "dark";
