@@ -227,7 +227,7 @@ void ChameleonButton::mousePressEvent(QMouseEvent *event)
                         QPoint p(x + geometry().x(), y + geometry().height());
                         m_pSplitMenu->setShowSt(true);
                         m_pSplitMenu->stopTime();
-                        m_pSplitMenu->Show(p);
+                        m_pSplitMenu->Show(p, m_backgroundColor);
                     }
                 }
             });
