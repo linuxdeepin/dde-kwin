@@ -35,6 +35,9 @@ public:
 
     virtual void hoverEnterEvent(QHoverEvent *event) override;
     virtual void hoverLeaveEvent(QHoverEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+
 protected slots:
     void onCompositorChanged(bool);
 
@@ -48,6 +51,8 @@ protected:
 
     QColor m_backgroundColor;
     KWin::EffectWindow *effect = nullptr;
+    QTimer *max_timer = nullptr;
+    bool m_isMaxAvailble = true;
 };
 
 #endif // CHAMELEONBUTTON_H
