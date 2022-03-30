@@ -112,7 +112,23 @@ public:
         if (!data_radius.isValid())
             return TextureData();
 
-        const QPointF &window_radius = data_radius.toPointF();
+        QPointF window_radius = data_radius.toPointF();
+
+        const int RR = 17;
+        if (KWin::effects->waylandDisplay()) {
+            if (w->windowClass().contains("Deepin") || w->windowClass().contains("dde-")) {
+                window_radius.setX(RR);
+                window_radius.setY(RR);
+            } else if(w->isTooltip()) {
+                window_radius.setX(RR);
+                window_radius.setY(RR);
+            } else if(w->isDock()) {
+                window_radius.setX(RR);
+                window_radius.setY(RR);
+            }
+            else {
+            }
+        }
 
         // 排除无效的数据
         if (qIsNull(window_radius.x()) || qIsNull(window_radius.y()))
@@ -262,7 +278,14 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
         // 此时只允许绘制窗口边框和阴影
         // 针对设置了自定义裁剪的窗口，则不绘制标题栏和阴影
         data.quads = decoration_quad_list;
-        Effect::drawWindow(w, mask, region, data);
+
+        if (KWin::effects->waylandDisplay()) {
+            if (!w->isDock()) {
+                Effect::drawWindow(w, mask, region, data);
+            }
+        } else {
+            Effect::drawWindow(w, mask, region, data);
+        }
     }
 
     if (!corner_region.isEmpty()) {
