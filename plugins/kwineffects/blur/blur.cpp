@@ -43,6 +43,12 @@
 #include <KWaylandServer/display.h>
 #endif
 
+static const int RR = 18;    // radius of rounded corner
+static const int DOCK_WINDTH_JUDGE = 800;    // differentiate tooltip on dock
+static const int NEAR_PLANE = -1000;
+static const int FAR_PLANE = 1000;
+static const int EYE_POSZ = 100;
+
 static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEHIND_REGION");
 
 BlurEffect::BlurEffect(QObject *, const QVariantList &)
@@ -290,6 +296,27 @@ void BlurEffect::reconfigure(ReconfigureFlags flags)
     effects->addRepaintFull();
 }
 
+QRegion rounded(QRegion region, int r)
+{
+    auto rect = region.boundingRect();
+    int x = rect.x();
+    int y = rect.y();
+    int w = rect.width()-r;
+    int h = rect.height()-r;
+
+    auto r1 = QRegion(x, y, r, r);
+    auto r2 = r1.translated(0, h);
+    auto r3 = r1.translated(w, h);
+    auto r4 = r1.translated(w, 0);
+
+    auto c1 = QRegion(x, y, 2 * r, 2 * r, QRegion::Ellipse);
+    auto c2 = c1.translated(0, h - r);
+    auto c3 = c1.translated(w - r, h - r);
+    auto c4 = c1.translated(w - r, 0);
+
+    return (region - (r1 + r2 + r3 + r4) + (c1 + c2 + c3 + c4));
+}
+
 void BlurEffect::updateBlurRegion(EffectWindow *w) const
 {
     QRegion region;
@@ -331,8 +358,24 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
         // This is needed to be able to distinguish between the value not
         // being set, and being set to an empty region.
         w->setData(WindowBlurBehindRole, 1);
-    } else
-        w->setData(WindowBlurBehindRole, region);
+    } else {
+        if (effects->waylandDisplay()) {
+            auto wndClassName = w->windowClass();
+            auto wndType = w->windowType();
+            if (wndClassName.contains("dde-launcher")
+                    || (wndClassName.contains("dde-clipboard"))
+                    || (wndClassName.contains("dde-osd"))  //notification, cap
+                    || (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE)
+                    || w->isPopupWindow()
+                    || (wndClassName.contains("deepin-app-store"))) {
+                w->setData(WindowBlurBehindRole, 1);
+            } else {
+                w->setData(WindowBlurBehindRole, region);
+            }
+        } else {
+            w->setData(WindowBlurBehindRole, region);
+        }
+    }
 }
 
 void BlurEffect::slotWindowAdded(EffectWindow *w)
@@ -353,9 +396,6 @@ void BlurEffect::slotWindowAdded(EffectWindow *w)
 #endif
 
     updateBlurRegion(w);
-
-    if (w->isDock())
-        w->setData(WindowBlurBehindRole, 1);
 }
 
 void BlurEffect::slotWindowDeleted(EffectWindow *w)
@@ -450,8 +490,27 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
                 region = w->shape();
                 region -= w->decorationInnerRect();
             }
-            region |= appRegion.translated(w->contentsRect().topLeft()) &
-                      w->decorationInnerRect();
+
+            if (effects->waylandDisplay()) {
+                if ( w->windowClass().contains("dde-clipboard")
+                        || w->windowClass().contains("dde-osd")
+                        || w->windowClass().contains("DeepinAI")
+                        || w->windowClass().contains("dde-launcher")) {
+                    region = rounded(w->shape(), RR);
+                } else if (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE) {
+                    region = rounded(w->shape(), RR);
+                } else if (w->isPopupWindow()) {
+                    region = rounded(w->shape(), RR);
+                } else if (w->isTooltip()) {
+                    region = rounded(w->shape(), RR);
+                } else {
+                    region |= appRegion.translated(w->contentsRect().topLeft()) &
+                              w->decorationInnerRect();
+                }
+            } else {
+                region |= appRegion.translated(w->contentsRect().topLeft()) &
+                          w->decorationInnerRect();
+            }
         } else {
             // An empty region means that the blur effect should be enabled
             // for the whole window.
@@ -462,6 +521,20 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
         // the effect behind the decoration.
         region = w->shape();
         region -= w->decorationInnerRect();
+    } else {
+        if (effects->waylandDisplay()) {
+            if (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE) {
+                region = rounded(w->shape(), RR);
+            } else if (w->isTooltip()) {
+                region = rounded(w->shape(), RR);
+            } else if (w->windowClass().contains("dde-launcher")) {
+                region = rounded(w->shape(), RR);
+            } else if (w->windowClass().contains("Deepin")) {
+                region = rounded(w->shape(), RR);
+            } else if (w->isPopupWindow()) {
+                region = rounded(w->shape(), RR);
+            }
+        }
     }
 
     return region;
@@ -644,16 +717,12 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
         }
 
         if (!shape.isEmpty()) {
-            if (w->isDock() || wndClassName.contains("dde-osd")) { 
-                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), true, w->geometry());
-	    } else {
-	        doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), false, w->geometry());
-	    }
-        } else {
-            if (w->isDock() || wndClassName.contains("dde-launcher")
-                    || wndClassName.contains("dde-osd") || wndClassName.contains("dde-clipboard")
-                    || (w->caption()=="" && w->windowType()==12)) {
-                QRegion shape = region & w->shape().translated(w->pos()) & screen;
+            if (effects->waylandDisplay()) {
+                GLint vp[4];
+                glGetIntegerv(GL_VIEWPORT, &vp[0]);
+                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
+                glViewport(vp[0], vp[1], vp[2], vp[3]);
+            } else {
                 doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
             }
         }
@@ -780,9 +849,25 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
         glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
     }
 
-    doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection);
+    if (effects->waylandDisplay()) {
+        int x = screen.x();
+        int y = screen.y();
+        int w = screen.width();
+        int h = screen.height();
+        float cx = x + w / 2;
+        float cy = y + h / 2;
 
-    upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
+        QMatrix4x4 projection, view;
+        projection.ortho(-w / 2, w / 2, h / 2, -h / 2, NEAR_PLANE, FAR_PLANE);
+        view.lookAt(QVector3D(cx, cy, EYE_POSZ), QVector3D(cx, cy, 0), QVector3D(0, 1, 0));
+        QMatrix4x4 combinedMatrix = projection * view;
+
+        doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, combinedMatrix);
+        upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, combinedMatrix, windowRect.topLeft());
+    } else {
+        doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection);
+        upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
+    }
 
     if (useSRGB) {
         glDisable(GL_FRAMEBUFFER_SRGB);
