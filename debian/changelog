@@ -1,3 +1,10 @@
+dde-kwin (5.5.8-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 96087, 119943, 103388 fix: not blur and two half-width docks on wayland
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 31 Mar 2022 22:05:59 +0800
+
 dde-kwin (5.5.7-1) unstable; urgency=medium
 
   * feat:
