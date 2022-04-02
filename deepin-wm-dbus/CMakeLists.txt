@@ -3,6 +3,7 @@ set(TARGET_NAME "deepin-wm-dbus")
 
 find_package(Qt5Core REQUIRED)
 find_package(Qt5DBus REQUIRED)
+find_package(X11 REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KF5GlobalAccel REQUIRED)
