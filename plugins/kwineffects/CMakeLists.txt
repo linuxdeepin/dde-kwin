@@ -4,7 +4,23 @@ find_package(KF5WindowSystem REQUIRED)
 
 set(INSTALL_PATH "${QT_INSTALL_PLUGINS}/kwin/effects/plugins")
 
-add_subdirectory(scissor-window)
-add_subdirectory(blur)
-add_subdirectory(multitasking)
-add_subdirectory(black-screen)
+option(ENABLE_BUILTIN_SCISSOR_WINDOW "enable deepin built-in scissor window plugin" ON)
+option(ENABLE_BUILTIN_BLUR "enable deepin built-in blur plugin" ON)
+option(ENABLE_BUILTIN_MULTITASKING "enable deepin built-in multitasking plugin" ON)
+option(ENABLE_BUILTIN_BLACK_SCREEN "enable deepin built-in black screen plugin" ON)
+
+if (ENABLE_BUILTIN_SCISSOR_WINDOW)
+    add_subdirectory(scissor-window)
+endif()
+
+if (ENABLE_BUILTIN_BLUR)
+    add_subdirectory(blur)
+endif()
+
+if (ENABLE_BUILTIN_MULTITASKING)
+    add_subdirectory(multitasking)
+endif()
+
+if (ENABLE_BUILTIN_BLACK_SCREEN)
+    add_subdirectory(black-screen)
+endif()
