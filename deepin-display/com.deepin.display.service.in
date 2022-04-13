@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.deepin.kwin.display
+Exec=${TARGET_PATH}/${TARGET_NAME}

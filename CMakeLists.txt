@@ -17,6 +17,8 @@ add_definitions(
 
 option(USE_SCRIPTS "use scripts" ON)
 option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
+option(USE_DEEPIN_DISPLAY "use deepin-display dbus service" ON)
+option(BUILD_TESTING "default build testing" ON)
 
 #when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
 find_path(
@@ -109,6 +111,10 @@ endif()
 
 if (USE_DEEPIN_WM_DBUS)
   add_subdirectory(deepin-wm-dbus)
+endif()
+
+if (USE_DEEPIN_DISPLAY)
+  add_subdirectory(deepin-display)
 endif()
 
 if (BUILD_TESTING)

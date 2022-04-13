@@ -31,16 +31,45 @@ find_package(Qt5LinguistTools REQUIRED)
 find_package(Qt5X11Extras REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../deepin-display/mouse)
 
-set( test
-    ut_mulitask_model.cpp
-    ../plugins/kwineffects/multitasking/multitasking_model.cpp
+
+#set( test
+#    ut_mulitask_model.cpp
+#    ../plugins/kwineffects/multitasking/multitasking_model.cpp
+#)
+
+#add_executable(${PROJECT_NAME_TEST} ${test})
+#target_link_libraries(
+#    ${PROJECT_NAME_TEST}
+#    Qt5::Core
+#    Qt5::Gui
+#    Qt5::Widgets
+#    Qt5::Quick
+#    Qt5::QuickWidgets
+#    Qt5::Test
+#    Qt5::DBus
+#    Qt5::X11Extras
+#    KF5::ConfigCore
+#    KF5::CoreAddons
+#    KF5::WindowSystem
+#    KF5::GlobalAccel
+#    KF5::I18n
+#    PkgConfig::QGSETTINGS
+#    Qt5::X11Extras
+#    xcb
+#    kwineffects
+#)
+
+set( testDisplayMouse_SRCS
+    mouseDisplayTest.cpp
+    ../deepin-display/
 )
 
-add_executable(${PROJECT_NAME_TEST} ${test})
+add_executable(testDisplayMouse ${testDisplayMouse_SRCS})
 
 target_link_libraries(
-    ${PROJECT_NAME_TEST}
+    testDisplayMouse
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
@@ -49,15 +78,6 @@ target_link_libraries(
     Qt5::Test
     Qt5::DBus
     Qt5::X11Extras
-    KF5::ConfigCore
-    KF5::CoreAddons
-    KF5::WindowSystem
-    KF5::GlobalAccel
-    KF5::I18n
-    PkgConfig::QGSETTINGS
-    Qt5::X11Extras
-    xcb
-    kwineffects
 )
 
 include_directories(../plugins/platforms/lib)

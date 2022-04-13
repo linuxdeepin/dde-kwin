@@ -1,0 +1,17 @@
+<interface name="com.deepin.display">
+    <property name="AdaptiveAccelProfile" type="b" access="readwrite"/>
+    <property name="DisableTpad" type="b" access="readwrite"/>
+    <property name="Exist" type="b" access="read"/>
+    <property name="LeftHanded" type="b" access="readwrite"/>
+    <property name="MiddleButtonEmulation" type="b" access="readwrite"/>
+    <property name="NaturalScroll" type="b" access="readwrite"/>
+    <property name="MotionAcceleration" type="d" access="readwrite"/>
+    <property name="MotionScaling" type="d" access="readwrite"/>
+    <property name="MotionThreshold" type="d" access="readwrite"/>
+    <property name="DoubleClick" type="i" access="readwrite"/>
+    <property name="DragThreshold" type="i" access="readwrite"/>
+    <property name="DeviceList" type="s" access="readwrite"/>
+
+    <method name="Reset">
+    </method>
+</interface>
