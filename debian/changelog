@@ -1,3 +1,10 @@
+dde-kwin (5.5.9-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 111891 fix: add shortcut of ScreenshotOcr/ScreenshotScroll/GlobalSearch.
+
+ -- Lei Su <sulei@uniontech.com>  Mon, 18 Apr 2022 15:08:35 +0800
+
 dde-kwin (5.5.8-1) unstable; urgency=medium
 
   * Bug fix:
