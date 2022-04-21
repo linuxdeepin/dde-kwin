@@ -1,0 +1,96 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.deepin.KWin.Display.Output">
+    <property name="Monitors" type="as" access="read"/>
+    <property name="CustomIdList" type="as" access="read"/>
+    <property name="Touchscreens" type="av" access="read"/>
+    <property name="HasChanged" type="b" access="read"/>
+    <property name="DisplayMode" type="y" access="read"/>
+    <property name="Brightness" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QMap&lt;QString,QVariant&gt;"/>
+    </property>
+    <property name="TouchMap" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QMap&lt;QString,QVariant&gt;"/>
+    </property>
+    <property name="ColorTemperatureManual" type="i" access="read"/>
+    <property name="ColorTemperatureMode" type="i" access="read"/>
+    <property name="CurrentCustomId" type="s" access="read"/>
+    <property name="Primary" type="s" access="read"/>
+    <property name="PrimaryRect" type="av" access="read"/>
+    <property name="ScreenHeight" type="q" access="read"/>
+    <property name="ScreenWidth" type="q" access="read"/>
+    <property name="MaxBacklightBrightness" type="u" access="read"/>
+    <method name="ApplyChanged">
+    </method>
+    <method name="AssociateTouch">
+      <arg name="strOutputName" type="s" direction="in"/>
+      <arg name="strTouchSerial" type="s" direction="in"/>
+    </method>
+    <method name="AssociateTouchByUUID">
+      <arg name="strOutputName" type="s" direction="in"/>
+      <arg name="strTouchUUID" type="s" direction="in"/>
+    </method>
+    <method name="CanRotate">
+      <arg type="b" direction="out"/>
+    </method>
+    <method name="CanSetBrightness">
+      <arg type="b" direction="out"/>
+      <arg name="strOutputName" type="s" direction="in"/>
+    </method>
+    <method name="ChangeBrightness">
+      <arg name="bRaised" type="b" direction="in"/>
+    </method>
+    <method name="DeleteCustomMode">
+      <arg name="strName" type="s" direction="in"/>
+    </method>
+    <method name="GetBrightness">
+      <arg type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QVariant&gt;"/>
+    </method>
+    <method name="GetBuiltinMonitor">
+      <arg type="as" direction="out"/>
+    </method>
+    <method name="GetRealDisplayMode">
+      <arg type="y" direction="out"/>
+    </method>
+    <method name="ListOutputNames">
+      <arg type="as" direction="out"/>
+    </method>
+    <method name="ListOutputsCommonModes">
+      <arg type="av" direction="out"/>
+    </method>
+    <method name="ModifyConfigName">
+      <arg name="strName" type="s" direction="in"/>
+      <arg name="strNewName" type="s" direction="in"/>
+    </method>
+    <method name="RefreshBrightness">
+    </method>
+    <method name="Reset">
+    </method>
+    <method name="ResetChanges">
+    </method>
+    <method name="Save">
+    </method>
+    <method name="SetAndSaveBrightness">
+      <arg name="strOutputName" type="s" direction="in"/>
+      <arg name="dValue" type="d" direction="in"/>
+    </method>
+    <method name="SetBrightness">
+      <arg name="strOutputName" type="s" direction="in"/>
+      <arg name="dValue" type="d" direction="in"/>
+    </method>
+    <method name="SetColorTemperature">
+      <arg name="nValue" type="i" direction="in"/>
+    </method>
+    <method name="SetMethodAdjustCCT">
+      <arg name="nAdjustMethod" type="i" direction="in"/>
+    </method>
+    <method name="SetPrimary">
+      <arg name="strOutputName" type="s" direction="in"/>
+    </method>
+    <method name="SwitchMode">
+      <arg name="uMode" type="y" direction="in"/>
+      <arg name="strName" type="s" direction="in"/>
+    </method>
+  </interface>
+</node>

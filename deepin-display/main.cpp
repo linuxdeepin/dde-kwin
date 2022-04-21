@@ -3,19 +3,21 @@
 #include "wayland/wayland_trackpoint.h"
 #include "wayland/wayland_effects.h"
 #include "wayland/wayland_inputdevices.h"
+#include "wayland/wayland_output.h"
 
 #include "x11/x11_mouse.h"
 #include "x11/x11_keyboard.h"
 #include "x11/x11_trackpoint.h"
 #include "x11/x11_effects.h"
 #include "x11/x11_inputdevices.h"
-
+#include "x11/x11_output.h"
 
 #include "mouseadaptor.h"
 #include "keyboardadaptor.h"
 #include "trackpointadaptor.h"
 #include "effectsadaptor.h"
 #include "inputdevicesadaptor.h"
+#include "outputadaptor.h"
 
 #include <QGuiApplication>
 #include <QtCore/QObject>
@@ -40,6 +42,10 @@
 
 #define InputDevicesPath "/com/deepin/kwin/Display/InputDevices"
 #define InputDevicesInterface "com.deepin.kwin.Display.InputDevices"
+
+#define outputService "com.deepin.kwin.Display.output"
+#define outputPath "/com/deepin/kwin/Display/output"
+#define outputInterface "com.deepin.kwin.Display.output"
 
 DCORE_USE_NAMESPACE
 
@@ -74,6 +80,7 @@ int main(int argc, char *argv[])
     AbstractTrackpoint* atrackpoint;
     AbstractEffects* aeffects;
     AbstractInputDevices* ainputdevices;
+    AbstractOutput *output;
 
     if (isX11Platform()) {
         amouse = new X11Mouse();
@@ -81,12 +88,14 @@ int main(int argc, char *argv[])
         atrackpoint = new X11Trackpoint();
         aeffects = new X11Effects();
         ainputdevices = new X11InputDevices();
+        output = new X11Output();
     } else {
         amouse = new WaylandMouse();
         akeyboard = new WaylandKeyboard();
         atrackpoint = new WaylandTrackpoint();
         aeffects = new WaylandEffects();
         ainputdevices = new WaylandInputDevices();
+        output = new WaylandOutput();
     }
 
     MouseAdaptor mouseadadaptor(amouse);
@@ -94,7 +103,7 @@ int main(int argc, char *argv[])
     TrackpointAdaptor trackpointadaptor(atrackpoint);
     EffectsAdaptor effectsadaptor(aeffects);
     InputDevicesAdaptor inputdevicesadaptor(ainputdevices);
-
+    OutputAdaptor outputAdaptor(output);
 
     if (!QDBusConnection::sessionBus().registerService(Service)) {
         return -1;
@@ -111,6 +120,10 @@ int main(int argc, char *argv[])
     }
 
     if (!QDBusConnection::sessionBus().registerObject(InputDevicesPath, InputDevicesInterface, ainputdevices)) {
+        return -2;
+    }
+
+    if (!QDBusConnection::sessionBus().registerObject(outputPath, outputInterface, output)) {
         return -2;
     }
 
