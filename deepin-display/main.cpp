@@ -1,14 +1,45 @@
 #include "wayland/wayland_mouse.h"
+#include "wayland/wayland_keyboard.h"
+#include "wayland/wayland_trackpoint.h"
+#include "wayland/wayland_effects.h"
+#include "wayland/wayland_inputdevices.h"
+
 #include "x11/x11_mouse.h"
+#include "x11/x11_keyboard.h"
+#include "x11/x11_trackpoint.h"
+#include "x11/x11_effects.h"
+#include "x11/x11_inputdevices.h"
+
+
+#include "mouseadaptor.h"
+#include "keyboardadaptor.h"
+#include "trackpointadaptor.h"
+#include "effectsadaptor.h"
+#include "inputdevicesadaptor.h"
 
 #include <QGuiApplication>
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>
 #include <DLog>
 
-#define Service "com.deepin.kwin.display"
-#define Path "/com/deepin/kwin/display"
-#define Interface "com.deepin.kwin.display"
+#define Service "com.deepin.kwin.Display"
+#define Path "/com/deepin/kwin/Display"
+#define Interface "com.deepin.kwin.Display"
+
+#define MousePath "/com/deepin/kwin/Display/Mouse"
+#define MouseInterface "com.deepin.kwin.Display.Mouse"
+
+#define KeyboardPath "/com/deepin/kwin/Display/Keyboard"
+#define KeyboardInterface "com.deepin.kwin.Display.Keyboard"
+
+#define TrackpointPath "/com/deepin/kwin/Display/Trackpoint"
+#define TrackpointInterface "com.deepin.kwin.Display.Trackpoint"
+
+#define EffectsPath "/com/deepin/kwin/Display/Effects"
+#define EffectsInterface "com.deepin.kwin.Display.Effects"
+
+#define InputDevicesPath "/com/deepin/kwin/Display/InputDevices"
+#define InputDevicesInterface "com.deepin.kwin.Display.InputDevices"
 
 DCORE_USE_NAMESPACE
 
@@ -38,15 +69,49 @@ int main(int argc, char *argv[])
     DLogManager::registerConsoleAppender();
     DLogManager::registerFileAppender();
 
+    AbstractMouse* amouse;
+    AbstractKeyboard* akeyboard;
+    AbstractTrackpoint* atrackpoint;
+    AbstractEffects* aeffects;
+    AbstractInputDevices* ainputdevices;
 
     if (isX11Platform()) {
-        new X11Mouse();
+        amouse = new X11Mouse();
+        akeyboard = new X11Keyboard();
+        atrackpoint = new X11Trackpoint();
+        aeffects = new X11Effects();
+        ainputdevices = new X11InputDevices();
     } else {
-        new WaylandMouse();
+        amouse = new WaylandMouse();
+        akeyboard = new WaylandKeyboard();
+        atrackpoint = new WaylandTrackpoint();
+        aeffects = new WaylandEffects();
+        ainputdevices = new WaylandInputDevices();
     }
+
+    MouseAdaptor mouseadadaptor(amouse);
+    KeyboardAdaptor keyboardadaptor(akeyboard);
+    TrackpointAdaptor trackpointadaptor(atrackpoint);
+    EffectsAdaptor effectsadaptor(aeffects);
+    InputDevicesAdaptor inputdevicesadaptor(ainputdevices);
+
 
     if (!QDBusConnection::sessionBus().registerService(Service)) {
         return -1;
+    }
+
+    if (!QDBusConnection::sessionBus().registerObject(MousePath, MouseInterface, amouse)) {
+        return -2;
+    }
+    if (!QDBusConnection::sessionBus().registerObject(KeyboardPath, KeyboardInterface, akeyboard)) {
+        return -2;
+    }
+    if (!QDBusConnection::sessionBus().registerObject(EffectsPath, EffectsInterface, aeffects)) {
+        return -2;
+    }
+
+    if (!QDBusConnection::sessionBus().registerObject(InputDevicesPath, InputDevicesInterface, ainputdevices)) {
+        return -2;
     }
 
     return app.exec();

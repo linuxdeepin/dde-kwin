@@ -1,0 +1,16 @@
+<interface name="com.deepin.KWin.Display.Trackpoint">
+    <property name="DeviceList" type="s" access="readwrite"/>
+    <property name="Exist" type="b" access="readwrite"/>
+    <property name="LeftHanded" type="b" access="readwrite"/>
+    <property name="MiddleButtonEmulation" type="b" access="readwrite"/>
+    <property name="MiddleButtonTimeout" type="i" access="readwrite"/>
+    <property name="MotionAcceleration" type="d" access="readwrite"/>
+    <property name="MotionScaling" type="d" access="readwrite"/>
+    <property name="MotionThreshold" type="d" access="readwrite"/>
+    <property name="WheelEmulation" type="b" access="readwrite"/>
+    <property name="WheelEmulationButton" type="i" access="readwrite"/>
+    <property name="WheelEmulationTimeout" type="i" access="readwrite"/>
+    <property name="WheelHorizScroll" type="b" access="readwrite"/>
+    <method name="Reset">
+    </method>
+</interface>

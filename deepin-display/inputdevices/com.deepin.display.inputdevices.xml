@@ -1,0 +1,10 @@
+<interface name="com.deepin.KWin.Display.InputDevices">
+    <property name="WheelSpeed" type="u" access="readwrite"/>
+    <property name="Touchscreens" type="ao" access="readwrite"/>
+    <signal name="TouchscreenAdded">
+      <arg type="o" direction="out"/>
+    </signal>
+    <signal name="TouchscreenRemoved">
+      <arg type="o" direction="out"/>
+    </signal>
+</interface>

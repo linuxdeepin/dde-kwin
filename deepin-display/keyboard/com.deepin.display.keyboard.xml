@@ -1,0 +1,43 @@
+<interface name="com.deepin.KWin.Display.Keyboard">
+    <property name="CapslockToggle" type="b" access="readwrite"/>
+    <property name="CurrentLayout" type="s" access="readwrite"/>
+    <property name="CursorBlink" type="i" access="readwrite"/>
+    <property name="LayoutScope" type="i" access="readwrite"/>
+    <property name="RepeatDelay" type="i" access="readwrite"/>
+    <property name="RepeatEnabled" type="b" access="readwrite"/>
+    <property name="RepeatInterval" type="u" access="readwrite"/>
+    <property name="UserLayoutList" type="as" access="readwrite"/>
+    <property name="UserOptionList" type="as" access="readwrite"/>
+    <signal name="KeyEvent">
+      <arg type="u" direction="out"/>
+      <arg type="b" direction="out"/>
+      <arg type="b" direction="out"/>
+      <arg type="b" direction="out"/>
+      <arg type="b" direction="out"/>
+      <arg type="b" direction="out"/>
+    </signal>
+
+    <method name="AddLayoutOption">
+        <arg name="option" type="s" direction="in"/>
+    </method>
+    <method name="AddUserLayout">
+        <arg name="layout" type="s" direction="in"/>
+    </method>
+    <method name="ClearLayoutOption"> </method>
+
+    <method name="DeleteLayoutOption">
+        <arg name="option" type="s" direction="in"/>
+    </method>
+    <method name="DeleteUserLayout">
+        <arg name="layout" type="s" direction="in"/>
+    </method>
+    <method name="GetLayoutDesc">
+        <arg type="s" direction="out"/>
+        <arg name="a" type="s" direction="in"/>
+    </method>
+    <method name="LayoutList">
+        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString, QString&gt;"/>
+        <arg type="a{ss}" direction="out"/>
+    </method>
+    <method name="Reset"></method>
+</interface>
