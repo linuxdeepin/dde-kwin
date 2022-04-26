@@ -1,3 +1,10 @@
+dde-kwin (5.5.10-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 123355 fix: no blur effect on dde-grand-search and dde-network-dialog with wayland
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 26 Apr 2022 20:29:53 +0800
+
 dde-kwin (5.5.9-1) unstable; urgency=medium
 
   * Bug fix:
