@@ -34,7 +34,6 @@ pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 
 set( test
     ut_mulitask_model.cpp
-    ../plugins/kwineffects/multitasking/multitasking_model.cpp
 )
 
 add_executable(${PROJECT_NAME_TEST} ${test})
