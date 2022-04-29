@@ -1,0 +1,26 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.deepin.KWin.Display.Touch">
+    <property name="DisableIfTypeing" type="b" access="readwrite"/>
+    <property name="EdgeScroll" type="b" access="readwrite"/>
+    <property name="Exist" type="b" access="read"/>
+    <property name="HorizScroll" type="b" access="readwrite"/>
+    <property name="LeftHanded" type="b" access="readwrite"/>
+    <property name="NaturalScroll" type="b" access="readwrite"/>
+    <property name="PalmDetect" type="b" access="readwrite"/>
+    <property name="TPadEnable" type="b" access="readwrite"/>
+    <property name="TapClick" type="b" access="readwrite"/>
+    <property name="VertScroll" type="b" access="readwrite"/>
+    <property name="MotionAcceleration" type="d" access="readwrite"/>
+    <property name="MotionScaling" type="d" access="readwrite"/>
+    <property name="MotionThreshold" type="d" access="readwrite"/>
+    <property name="DeltaScroll" type="i" access="readwrite"/>
+    <property name="DoubleClick" type="i" access="readwrite"/>
+    <property name="DragThreshold" type="i" access="readwrite"/>
+    <property name="PalmMinWidth" type="i" access="readwrite"/>
+    <property name="PalmMinZ" type="i" access="readwrite"/>
+    <property name="DeviceList" type="s" access="read"/>
+    <method name="Reset">
+    </method>
+  </interface>
+</node>

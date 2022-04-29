@@ -19,6 +19,10 @@
 #include "inputdevicesadaptor.h"
 #include "outputadaptor.h"
 
+#include "wayland/wayland_touch.h"
+#include "x11/x11_touch.h"
+#include "wayland/wayland_shortcut.h"
+#include "x11/x11_shortcut.h"
 #include <QGuiApplication>
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>
@@ -89,6 +93,8 @@ int main(int argc, char *argv[])
         aeffects = new X11Effects();
         ainputdevices = new X11InputDevices();
         output = new X11Output();
+        new X11Touch();
+        new X11Shortcut();
     } else {
         amouse = new WaylandMouse();
         akeyboard = new WaylandKeyboard();
@@ -96,6 +102,8 @@ int main(int argc, char *argv[])
         aeffects = new WaylandEffects();
         ainputdevices = new WaylandInputDevices();
         output = new WaylandOutput();
+        new WaylandTouch();
+        new WaylandShortcut();
     }
 
     MouseAdaptor mouseadadaptor(amouse);

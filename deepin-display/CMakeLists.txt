@@ -18,6 +18,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/trackpoint)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/effects)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inputdevices)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/output)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/touch)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/shortcut)
 
 # make *adaptor.h could be found
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/mouse)
@@ -27,12 +29,15 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/effects)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/inputdevices)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/output)
 
+
 add_subdirectory(mouse)
 add_subdirectory(keyboard)
 add_subdirectory(trackpoint)
 add_subdirectory(effects)
 add_subdirectory(inputdevices)
 add_subdirectory(output)
+add_subdirectory(touch)
+add_subdirectory(shortcut)
 
 install_files(
     "/share/dbus-1/services"
@@ -63,6 +68,8 @@ target_link_libraries(
     deepin-display-effects
     deepin-display-inputdevices
     deepin-display-output
+    deepin-display-touch
+    deepin-display-shortcut
 )
 
 install_targets("/bin" ${TARGET_NAME})

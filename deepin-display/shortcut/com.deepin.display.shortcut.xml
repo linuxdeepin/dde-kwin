@@ -1,0 +1,120 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.deepin.KWin.Display.Shortcut">
+    <property name="NumLockState" type="i" access="read"/>
+    <property name="ShortcutSwitchLayout" type="i" access="readwrite"/>
+    <signal name="Added">
+      <arg type="s" direction="out"/>
+      <arg type="i" direction="out"/>
+    </signal>
+    <signal name="Changed">
+      <arg type="s" direction="out"/>
+      <arg type="i" direction="out"/>
+    </signal>
+    <signal name="Deleted">
+      <arg type="s" direction="out"/>
+      <arg type="i" direction="out"/>
+    </signal>
+    <signal name="KeyEvent">
+      <arg type="b" direction="out"/>
+      <arg type="s" direction="out"/>
+    </signal>
+    <method name="Add">
+      <arg type="av" direction="out"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="AddCustomShortcut">
+      <arg type="av" direction="out"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="AddShortcutKeystroke">
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="CheckAvaliable">
+      <arg type="av" direction="out"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="ClearShortcutKeystrokes">
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="Delete">
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="DeleteCustomShortcut">
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="DeleteShortcutKeystroke">
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="Disable">
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="GetCapsLockState">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="GetShortcut">
+      <arg type="s" direction="out"/>
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="GrabScreen">
+    </method>
+    <method name="List">
+      <arg type="s" direction="out"/>
+    </method>
+    <method name="ListAllShortcuts">
+      <arg type="s" direction="out"/>
+    </method>
+    <method name="ListAllShortcutsByType">
+      <arg type="s" direction="out"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="LookupConflictingShortcut">
+      <arg type="s" direction="out"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="ModifiedAccel">
+      <arg type="av" direction="out"/>
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+      <arg type="s" direction="in"/>
+      <arg type="b" direction="in"/>
+    </method>
+    <method name="ModifyCustomShortcut">
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="Query">
+      <arg type="s" direction="out"/>
+      <arg type="s" direction="in"/>
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="Reset">
+    </method>
+    <method name="SearchShortcuts">
+      <arg type="s" direction="out"/>
+      <arg type="s" direction="in"/>
+    </method>
+    <method name="SelectKeystroke">
+    </method>
+    <method name="SetCapsLockState">
+      <arg type="i" direction="in"/>
+    </method>
+    <method name="SetNumLockState">
+      <arg type="i" direction="in"/>
+    </method>
+  </interface>
+</node>
