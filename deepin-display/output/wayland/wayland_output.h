@@ -302,7 +302,7 @@ public:
     enum CCTMode {
         noMode = 0,
         autoMode = 1,
-        manualmode =2,
+        manualmode = 2,
     };
 
     void init();
@@ -376,6 +376,7 @@ private:
     QMap<QString, QVariant> outputBrightnessMap;
     int nDisplayMode = 0;
     int m_strCCTMode = 0;
+    int m_nCCTValue = 6500;
 
     QMap<QString, QVariant> m_associateMap;
 };

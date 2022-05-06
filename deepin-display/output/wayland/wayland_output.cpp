@@ -9,6 +9,19 @@
 #include <QDBusInterface>
 #include <QProcess>
 #include <QStringList>
+#include <QDBusReply>
+#include <QJsonParseError>
+#include <QDir>
+
+#define DBUS_DEEPIN_WM_SERVICE "org.kde.KWin"
+#define DBUS_DEEPIN_WM_OBJ "/KWin"
+#define DBUS_DEEPIN_WM_INTF "org.kde.KWin"
+
+#define DBUS_DEEPIN_DOCK_SERVICE "com.deepin.dde.daemon.Dock"
+#define DBUS_DEEPIN_DOCK_OBJ "/com/deepin/dde/daemon/Dock"
+#define DBUS_DEEPIN_DOCK_INTF "com.deepin.dde.daemon.Dock"
+
+#define BLACK_LIGHT_PATH "/sys/class/backlight"
 
 WaylandOutput:: WaylandOutput(QObject *parent)
     : AbstractOutput(parent)
@@ -106,19 +119,42 @@ QVariantList WaylandOutput::Touchscreens()
     return QVariantList();
 }
 
+// about configuration file
 bool WaylandOutput::HasChanged()
 {
     return true;
 }
 
+// check taskbar display mode
 uchar WaylandOutput::DisplayMode()
 {
-    return uchar();
+    int nDockMode = 0;
+    QDBusInterface dockInter(DBUS_DEEPIN_DOCK_SERVICE,
+                             DBUS_DEEPIN_DOCK_OBJ,
+                             DBUS_DEEPIN_DOCK_INTF,
+                             QDBusConnection::sessionBus());
+    if (dockInter.isValid()) {
+        nDockMode = dockInter.property("DisplayMode").toInt();
+    }
+    return nDockMode;
 }
 
 QMap<QString, QVariant> WaylandOutput::Brightness()
 {
-    return QMap<QString, QVariant>();
+    if (outputBrightnessMap.count() == 0) {
+        QMap<QString, QVariant> brightnessInfo;
+        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+            QString strScreenName = findNameForOutputDevice(pOutputDevice);
+            if (strScreenName != "") {
+                brightnessInfo[strScreenName] = 1;
+            }
+
+        }
+        return brightnessInfo;
+    }
+
+    return outputBrightnessMap;
 }
 
 QMap<QString, QVariant> WaylandOutput::TouchMap()
@@ -128,14 +164,15 @@ QMap<QString, QVariant> WaylandOutput::TouchMap()
 
 int WaylandOutput::ColorTemperatureManual()
 {
-    return 0;
+    return  m_nCCTValue;
 }
 
 int WaylandOutput::ColorTemperatureMode()
 {
-    return 0;
+    return m_strCCTMode;
 }
 
+// Abandonment method
 QString WaylandOutput::CurrentCustomId()
 {
     return QString();
@@ -148,24 +185,67 @@ QString WaylandOutput::Primary()
 
 QVariantList WaylandOutput::PrimaryRect()
 {
-    return QVariantList();
+    QVariantList primaryRectList;
+    OutputDevice *pOutputDevice = findOutputDeviceForName(m_strPrimaryScreenName);
+    if (pOutputDevice != nullptr) {
+        QRect outputDeviceRect = pOutputDevice->geometry();
+        primaryRectList << outputDeviceRect.x() << outputDeviceRect.y() << outputDeviceRect.width() << outputDeviceRect.height();
+    }
+
+    return primaryRectList;
 }
 
 ushort WaylandOutput::ScreenHeight()
 {
-    return ushort();
+    int displayheight = 0;
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+        if (pOutputDevice->geometry().y() + pOutputDevice->geometry().height() > displayheight) {
+            displayheight = pOutputDevice->geometry().y() + pOutputDevice->geometry().height();
+        }
+    }
+    return displayheight;
 }
 
 ushort WaylandOutput::ScreenWidth()
 {
-    return ushort();
+    int displayWidth = 0;
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+        if (pOutputDevice->geometry().x() + pOutputDevice->geometry().width() > displayWidth) {
+            displayWidth = pOutputDevice->geometry().x() + pOutputDevice->geometry().width();
+        }
+    }
+    return displayWidth;
 }
 
 uint WaylandOutput::MaxBacklightBrightness()
 {
+    QDir dir(BLACK_LIGHT_PATH);
+    if (!dir.exists()) {
+        return uint();
+    }
+
+    QStringList names = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (int i = 0; i < names.count(); i++) {
+        QString str = QString(BLACK_LIGHT_PATH).append(names.at(i)).append("/max_brightness");
+        QFile file(str);
+        if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            return uint();
+        }
+        while (!file.atEnd())
+        {
+            QByteArray line = file.readLine();
+            QString str = QString::fromStdString(line.toStdString());
+            if (str != "") {
+                return  str.remove(QChar('\n'), Qt::CaseInsensitive).toUInt();
+            }
+        }
+    }
     return uint();
 }
 
+// about configuration file
 void WaylandOutput::ApplyChanged()
 {
 
@@ -173,12 +253,36 @@ void WaylandOutput::ApplyChanged()
 
 void WaylandOutput::AssociateTouch(QString strOutputName, QString strTouchSerial)
 {
-    m_associateMap[strOutputName] = strTouchSerial;
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusReply<QString> getReply = wm.call("getTouchDeviceToScreenInfo");
+    if(!getReply.value().isEmpty()) {
+        QJsonParseError error;
+        QJsonDocument document = QJsonDocument::fromJson(getReply.value().toUtf8(), &error);
+        if(QJsonParseError::NoError == error.error) {
+            QList<QVariant> list = document.toVariant().toList();
+            foreach(QVariant item, list)
+            {
+                QVariantMap map = item.toMap();
+                if (findOutputDeviceForName(strOutputName) == nullptr) {
+                    sendErrorReply(QDBusError::ErrorType::Failed, "No such as touch screen exists");
+                    return;
+                }
+                QString strUUid = QString::fromStdString(findOutputDeviceForName(strOutputName)->uuid().toStdString());
+                if (strUUid.contains(strTouchSerial)) {
+                    for (int i = 0; i < map.keys().count(); i++) {
+                        if (map.keys().at(i) == "TouchDevice") {
+                            m_associateMap[strOutputName] = strTouchSerial;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void WaylandOutput::AssociateTouchByUUID(QString strOutputName, QString strTouchUUID)
 {
-    m_associateMap[strOutputName] = strTouchUUID;
+    AssociateTouch(strOutputName, strTouchUUID);
 }
 
 bool WaylandOutput::CanRotate()
@@ -227,6 +331,18 @@ void WaylandOutput::DeleteCustomMode(QString strName)
 
 QMap<QString, QVariant> WaylandOutput::GetBrightness()
 {
+    if (outputBrightnessMap.count() == 0) {
+        QMap<QString, QVariant> brightnessMap;
+        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+
+            qDebug() << pOutputDevice->model() << pOutputDevice->eisaId() << pOutputDevice->serialNumber();
+
+            brightnessMap[findNameForOutputDevice(pOutputDevice)] = 1;
+        }
+        return brightnessMap;
+    }
+
     return  outputBrightnessMap;
 }
 
@@ -244,6 +360,20 @@ QStringList WaylandOutput::GetBuiltinMonitor()
 
 uchar WaylandOutput::GetRealDisplayMode()
 {
+    if (nDisplayMode == 0) {
+        if (m_outputDeviceLst.count() > 1) {
+            for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+                OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+                if (pOutputDevice->geometry().x() > 0 || pOutputDevice->geometry().y() > 0) {
+                    return screenExtendMode;
+                }
+            }
+            return screenCopyMode;
+        } else {
+            return screenShowAloneMode;
+        }
+    }
+
     return nDisplayMode;
 }
 
@@ -336,7 +466,6 @@ void WaylandOutput::SetBrightness(QString strOutputName, double dValue)
                                 1.0) * (double)UINT16_MAX);
     }
 
-    qDebug () << vecRed<< vecGreen<< vecBlue;
     m_outputConfiguration->setColorCurves(pOutputDevice, vecRed, vecGreen, vecBlue);
     m_outputConfiguration->apply();
 
@@ -379,6 +508,10 @@ void WaylandOutput::SetColorTemperature(int nValue)
         }
         m_outputConfiguration->setColorCurves(pOutputDevice, vecRed, vecGreen, vecBlue);
         m_outputConfiguration->apply();
+    }
+
+    if (m_strCCTMode == manualmode) {
+        m_nCCTValue = nValue;
     }
 }
 
