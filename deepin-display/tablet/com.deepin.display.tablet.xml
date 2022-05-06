@@ -1,0 +1,20 @@
+<interface name="com.deepin.KWin.Display.Tablet">
+    <property name="ActionInfos" type="as" access="readwrite"/>
+    <property name="CursorMode" type="b" access="readwrite"/>
+    <property name="Exist" type="b" access="readwrite"/>
+    <property name="ForceProportions" type="b" access="readwrite"/>
+    <property name="LeftHanded" type="b" access="readwrite"/>
+    <property name="MouseEnterRemap" type="b" access="readwrite"/>
+    <property name="KeyDownAction" type="s" access="readwrite"/>
+    <property name="KeyUpAction" type="s" access="readwrite"/>
+    <property name="MapOutput" type="s" access="readwrite"/>
+    <property name="EraserPressureSensitive" type="i" access="readwrite"/>
+    <property name="EraserRawSample" type="i" access="readwrite"/>
+    <property name="EraserThreshold" type="i" access="readwrite"/>
+    <property name="StylusPressureSensitive" type="i" access="readwrite"/>
+    <property name="StylusRawSample" type="i" access="readwrite"/>
+    <property name="StylusThreshold" type="i" access="readwrite"/>
+    <property name="Suppress" type="i" access="readwrite"/>
+    <property name="DeviceList" type="s" access="readwrite"/>
+</interface>
+

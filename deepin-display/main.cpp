@@ -4,6 +4,8 @@
 #include "wayland/wayland_effects.h"
 #include "wayland/wayland_inputdevices.h"
 #include "wayland/wayland_output.h"
+#include "wayland/wayland_gesture.h"
+#include "wayland/wayland_tablet.h"
 
 #include "x11/x11_mouse.h"
 #include "x11/x11_keyboard.h"
@@ -11,6 +13,8 @@
 #include "x11/x11_effects.h"
 #include "x11/x11_inputdevices.h"
 #include "x11/x11_output.h"
+#include "x11/x11_gesture.h"
+#include "x11/x11_tablet.h"
 
 #include "mouseadaptor.h"
 #include "keyboardadaptor.h"
@@ -18,6 +22,8 @@
 #include "effectsadaptor.h"
 #include "inputdevicesadaptor.h"
 #include "outputadaptor.h"
+#include "gestureadaptor.h"
+#include "tabletadaptor.h"
 
 #include "wayland/wayland_touch.h"
 #include "x11/x11_touch.h"
@@ -46,6 +52,12 @@
 
 #define InputDevicesPath "/com/deepin/kwin/Display/InputDevices"
 #define InputDevicesInterface "com.deepin.kwin.Display.InputDevices"
+
+#define GesturePath "/com/deepin/kwin/Display/Gesture"
+#define GestureInterface "com.deepin.kwin.Display.Gesture"
+
+#define TabletPath "/com/deepin/kwin/Display/Tablet"
+#define TabletInterface "com.deepin.kwin.Display.Tablet"
 
 #define outputService "com.deepin.kwin.Display.output"
 #define outputPath "/com/deepin/kwin/Display/output"
@@ -85,6 +97,8 @@ int main(int argc, char *argv[])
     AbstractEffects* aeffects;
     AbstractInputDevices* ainputdevices;
     AbstractOutput *output;
+    AbstractGesture *gesture;
+    AbstractTablet *tablet;
 
     if (isX11Platform()) {
         amouse = new X11Mouse();
@@ -95,6 +109,8 @@ int main(int argc, char *argv[])
         output = new X11Output();
         new X11Touch();
         new X11Shortcut();
+        gesture = new X11Gesture();
+        tablet = new X11Tablet();
     } else {
         amouse = new WaylandMouse();
         akeyboard = new WaylandKeyboard();
@@ -104,6 +120,8 @@ int main(int argc, char *argv[])
         output = new WaylandOutput();
         new WaylandTouch();
         new WaylandShortcut();
+        gesture = new WaylandGesture();
+        tablet = new WaylandTablet();
     }
 
     MouseAdaptor mouseadadaptor(amouse);
@@ -112,6 +130,8 @@ int main(int argc, char *argv[])
     EffectsAdaptor effectsadaptor(aeffects);
     InputDevicesAdaptor inputdevicesadaptor(ainputdevices);
     OutputAdaptor outputAdaptor(output);
+    GestureAdaptor gestureAdaptor(gesture);
+    TabletAdaptor tabletAdaptor(tablet);
 
     if (!QDBusConnection::sessionBus().registerService(Service)) {
         return -1;
@@ -132,6 +152,14 @@ int main(int argc, char *argv[])
     }
 
     if (!QDBusConnection::sessionBus().registerObject(outputPath, outputInterface, output)) {
+        return -2;
+    }
+
+    if (!QDBusConnection::sessionBus().registerObject(GesturePath, GestureInterface, gesture)) {
+        return -2;
+    }
+
+    if (!QDBusConnection::sessionBus().registerObject(TabletPath, TabletInterface, tablet)) {
         return -2;
     }
 

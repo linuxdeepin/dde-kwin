@@ -1,0 +1,75 @@
+<interface name="com.deepin.KWin.Display.Gesture">
+    <method name="SetShortPressDuration">
+      <arg name="duration" type="i" direction="in"/>
+    </method>
+    <method name="SetEdgeMoveStopDuration">
+      <arg name="duration" type="i" direction="in"/>
+    </method>
+    <method name="SetInputIgnore">
+      <arg name="node" type="s" direction="in"/>
+      <arg name="isIgnore" type="b" direction="in"/>
+    </method>
+    <signal name="DbclickDown">
+      <arg name="fingers" type="i" direction="out"/>
+    </signal>
+    <signal name="Event">
+      <arg name="name" type="s" direction="out"/>
+      <arg name="direction" type="s" direction="out"/>
+      <arg name="fingers" type="i" direction="out"/>
+    </signal>
+    <signal name="SwipeMoving">
+      <arg name="fingers" type="i" direction="out"/>
+      <arg name="accelX" type="d" direction="out"/>
+      <arg name="accelY" type="d" direction="out"/>
+    </signal>
+    <signal name="SwipeStop">
+      <arg name="fingers" type="i" direction="out"/>
+    </signal>
+    <signal name="TouchEdgeEvent">
+      <arg name="edge" type="s" direction="out"/>
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+    </signal>
+    <signal name="TouchEdgeMoveStop">
+      <arg name="edge" type="s" direction="out"/>
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+      <arg name="duration" type="i" direction="out"/>
+    </signal>
+    <signal name="TouchEdgeMoveStopLeave">
+      <arg name="edge" type="s" direction="out"/>
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+      <arg name="duration" type="i" direction="out"/>
+    </signal>
+    <signal name="TouchMovementEvent">
+      <arg name="direction" type="s" direction="out"/>
+      <arg name="fingers" type="i" direction="out"/>
+      <arg name="startScaleX" type="d" direction="out"/>
+      <arg name="startScaleY" type="d" direction="out"/>
+      <arg name="endScaleX" type="d" direction="out"/>
+      <arg name="endScaleY" type="d" direction="out"/>
+    </signal>
+    <signal name="TouchMoving">
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+    </signal>
+    <signal name="TouchPressTimeout">
+      <arg name="fingers" type="i" direction="out"/>
+      <arg name="time" type="i" direction="out"/>
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+    </signal>
+    <signal name="TouchSinglePressTimeout">
+      <arg name="time" type="i" direction="out"/>
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+    </signal>
+    <signal name="TouchUpOrCancel">
+      <arg name="scaleX" type="d" direction="out"/>
+      <arg name="scaleY" type="d" direction="out"/>
+    </signal>
+    <method name="Reset">
+    </method>
+</interface>
+
