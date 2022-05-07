@@ -5,6 +5,18 @@
 
 #include <QObject>
 #include <QDBusContext>
+#include <QThread>
+#include <QDBusInterface>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include "connection_thread.h"
+#include "event_queue.h"
+#include "registry.h"
+#include "ddeseat.h"
+
+using namespace KWayland::Client;
 
 class WaylandTouch : public AbstractTouch
 {
@@ -14,6 +26,20 @@ public:
     explicit WaylandTouch(QObject *parent = nullptr);
     ~WaylandTouch();
 
+private:
+    QThread *m_connectionThread;
+    ConnectionThread *m_connectionThreadObject;
+    EventQueue *m_eventQueue = nullptr;
+    DDESeat *m_ddeSeat = nullptr;
+    DDETouch *m_ddeTouch = nullptr;
+
+    void init();
+    void setupRegistry(Registry *registry);
+private:
+    QString m_touchpadPath{""};
+    int m_eventId{0};
+
+    void getTouchPadInterface();
 public:
     bool getDisableIfTypeing() override;
     void setDisableIfTypeing(bool DisableIfTypeing) override;

@@ -7,6 +7,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(X11 REQUIRED)
 find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(KF5Wayland REQUIRED)
 
 add_subdirectory(wayland)
 add_subdirectory(x11)
@@ -44,6 +45,8 @@ target_link_libraries(
     Qt5::DBus
     Qt5::Gui
     dtkcore
+    KF5::WaylandServer
+    KF5::WaylandClient
 )
 
 install_targets("/lib" ${TARGET_NAME})

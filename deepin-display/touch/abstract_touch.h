@@ -10,25 +10,25 @@ class AbstractTouch : public QObject, protected QDBusContext
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "com.deepin.KWin.Display.Touch")
 
-    Q_PROPERTY(bool DisableIfTypeing READ getDisableIfTypeing WRITE setDisableIfTypeing)
-    Q_PROPERTY(bool EdgeScroll READ getEdgeScroll WRITE setEdgeScroll)
-    Q_PROPERTY(bool Exist READ getExist)
-    Q_PROPERTY(bool HorizScroll READ getHorizScroll WRITE setHorizScroll)
-    Q_PROPERTY(bool LeftHanded READ getLeftHanded WRITE setLeftHanded)
-    Q_PROPERTY(bool NaturalScroll READ getNaturalScroll WRITE setNaturalScroll)
-    Q_PROPERTY(bool PalmDetect READ getPalmDetect WRITE setPalmDetect)
-    Q_PROPERTY(bool TPadEnable READ getTPadEnable WRITE setTPadEnable)
-    Q_PROPERTY(bool TapClick READ getTapClick WRITE setTapClick)
-    Q_PROPERTY(bool VertScroll READ getVertScroll WRITE setVertScroll)
-    Q_PROPERTY(double MotionAcceleration READ getMotionAcceleration WRITE setMotionAcceleration)
-    Q_PROPERTY(double MotionScaling READ getMotionScaling WRITE setMotionScaling)
-    Q_PROPERTY(double MotionThreshold READ getMotionThreshold WRITE setMotionThreshold)
-    Q_PROPERTY(int DeltaScroll READ getDeltaScroll WRITE setDeltaScroll)
-    Q_PROPERTY(int DoubleClick READ getDoubleClick WRITE setDoubleClick)
-    Q_PROPERTY(int DragThreshold READ getDragThreshold WRITE setDragThreshold)
-    Q_PROPERTY(int PalmMinWidth READ getPalmMinWidth WRITE setPalmMinWidth)
-    Q_PROPERTY(int PalmMinZ READ getPalmMinZ WRITE setPalmMinZ)
-    Q_PROPERTY(QString DeviceList READ getDeviceList)
+    Q_PROPERTY(bool DisableIfTypeing READ getDisableIfTypeing WRITE setDisableIfTypeing)//是否在输入时禁用
+    Q_PROPERTY(bool EdgeScroll READ getEdgeScroll WRITE setEdgeScroll)//是否使用边缘滚动
+    Q_PROPERTY(bool Exist READ getExist)//是否存在
+    Q_PROPERTY(bool HorizScroll READ getHorizScroll WRITE setHorizScroll)//是否使用水平滚动
+    Q_PROPERTY(bool LeftHanded READ getLeftHanded WRITE setLeftHanded)//是否使用左手模式
+    Q_PROPERTY(bool NaturalScroll READ getNaturalScroll WRITE setNaturalScroll)//是否使用自然滚动
+    Q_PROPERTY(bool PalmDetect READ getPalmDetect WRITE setPalmDetect)//是否开启手掌误触检测
+    Q_PROPERTY(bool TPadEnable READ getTPadEnable WRITE setTPadEnable)//是否开启
+    Q_PROPERTY(bool TapClick READ getTapClick WRITE setTapClick)//是否点击
+    Q_PROPERTY(bool VertScroll READ getVertScroll WRITE setVertScroll)//是否使用竖直滚动
+    Q_PROPERTY(double MotionAcceleration READ getMotionAcceleration WRITE setMotionAcceleration)//移动加速
+    Q_PROPERTY(double MotionScaling READ getMotionScaling WRITE setMotionScaling)//移动速度范围
+    Q_PROPERTY(double MotionThreshold READ getMotionThreshold WRITE setMotionThreshold)//移动阈值
+    Q_PROPERTY(int DeltaScroll READ getDeltaScroll WRITE setDeltaScroll)//滚动变化量
+    Q_PROPERTY(int DoubleClick READ getDoubleClick WRITE setDoubleClick)//双击速度
+    Q_PROPERTY(int DragThreshold READ getDragThreshold WRITE setDragThreshold)//拖动阈值
+    Q_PROPERTY(int PalmMinWidth READ getPalmMinWidth WRITE setPalmMinWidth)//手掌误触最小宽度
+    Q_PROPERTY(int PalmMinZ READ getPalmMinZ WRITE setPalmMinZ)//手掌误触最低Z轴压力
+    Q_PROPERTY(QString DeviceList READ getDeviceList)//设备列表
 
 public:
     explicit AbstractTouch(QObject *parent = nullptr);
