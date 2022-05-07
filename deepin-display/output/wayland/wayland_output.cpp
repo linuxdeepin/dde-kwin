@@ -62,7 +62,6 @@ void WaylandOutput::setupRegistry(Registry *registry)
     connect(registry, &Registry::outputManagementAnnounced, this,
         [this, registry] (quint32 name, quint32 version) {
             m_outputManagement = registry->createOutputManagement(name, version, this);
-            qDebug() << QDateTime::currentDateTime().toString(QLatin1String("hh:mm:ss.zzz ")) << "createOutputManagement";
             m_outputManagement->setEventQueue(m_eventQueue);
         }
     );

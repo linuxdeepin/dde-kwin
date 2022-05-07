@@ -1,0 +1,51 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.deepin.KWin.Display.Screen">
+    <property name="Modes" type="av" access="read"/>
+    <property name="PreferredModes" type="av" access="read"/>
+    <property name="Reflects" type="av" access="read"/>
+    <property name="Rotations" type="av" access="read"/>
+    <property name="Connected" type="b" access="read"/>
+    <property name="Enabled" type="b" access="read"/>
+    <property name="CurrentRotateMode" type="y" access="read"/>
+    <property name="Brightness" type="d" access="read"/>
+    <property name="RefreshRate" type="d" access="read"/>
+    <property name="X" type="i" access="read"/>
+    <property name="Y" type="i" access="read"/>
+    <property name="Manufacturer" type="s" access="read"/>
+    <property name="Model" type="s" access="read"/>
+    <property name="Name" type="s" access="read"/>
+    <property name="BestMode" type="av" access="read"/>
+    <property name="CurrentMode" type="av" access="read"/>
+    <property name="Height" type="i" access="read"/>
+    <property name="Reflect" type="i" access="read"/>
+    <property name="Rotation" type="i" access="read"/>
+    <property name="Width" type="i" access="read"/>
+    <property name="ID" type="i" access="read"/>
+    <property name="MmHeight" type="i" access="read"/>
+    <property name="MmWidth" type="i" access="read"/>
+    <method name="Enable">
+      <arg name="isEnable" type="b" direction="in"/>
+    </method>
+    <method name="SetMode">
+      <arg name="nMode" type="i" direction="in"/>
+    </method>
+    <method name="SetModeBySize">
+      <arg name="nWidth" type="i" direction="in"/>
+      <arg name="nHeight" type="i" direction="in"/>
+    </method>
+    <method name="SetPosition">
+      <arg name="x" type="i" direction="in"/>
+      <arg name="y" type="i" direction="in"/>
+    </method>
+    <method name="SetReflect">
+      <arg name="nReflect" type="i" direction="in"/>
+    </method>
+    <method name="SetRefreshRate">
+      <arg name="dRefreshRate" type="d" direction="in"/>
+    </method>
+    <method name="SetRotation">
+      <arg name="nRotation" type="i" direction="in"/>
+    </method>
+  </interface>
+</node>
