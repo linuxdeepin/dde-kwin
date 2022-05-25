@@ -1,8 +1,6 @@
 ﻿#ifndef DEEPINWMFAKER_H
 #define DEEPINWMFAKER_H
 
-#include "kwinutils_interface.h"
-
 #include <QAction>
 #include <QObject>
 #include <QDBusContext>
@@ -133,8 +131,6 @@ public Q_SLOTS:
     bool GetIsShowDesktop();
     void SetShowDesktop(bool isShowDesktop);
 
-    void TouchToMove(int x, int y);
-    void ClearMoveStatus();
 Q_SIGNALS:
     void WorkspaceBackgroundChanged(int index, const QString &newUri);
     void WorkspaceBackgroundChangedForMonitor(int index, const QString &strMonitorName, const QString &newUri);
@@ -151,6 +147,16 @@ Q_SIGNALS:
     void workspaceCountChanged(int count);
 
     void desktopStatusChanged();
+
+    void BeginToMoveActiveWindowChanged();
+    void SwitchApplicationChanged(bool backward); 
+    void TileActiveWindowChanged(uint side);
+    void ToggleActiveWindowMaximizeChanged();
+    void ShowAllWindowChanged();
+    void ShowWindowChanged();
+    void ShowWorkspaceChanged();
+    void ResumeCompositorChanged(int reason);
+    void SuspendCompositorChanged(int reason);
 
 private:
     QAction *accelAction(const QString accelKid) const;
@@ -182,7 +188,6 @@ private:
     KConfigGroup *m_kwinCloseWindowGroup;
     KConfigGroup *m_kwinRunCommandGroup;
     KGlobalAccel *m_globalAccel;
-    org::kde::KWin *m_kwinUtilsInter;
 
     QMap<QString, QAction *> m_accelIdActionMap;
 

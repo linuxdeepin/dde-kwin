@@ -141,6 +141,29 @@
         <arg type="i" name="count"/>
     </signal>
 
+    <signal name="BeginToMoveActiveWindowChanged">
+    </signal>
+    <signal name="SwitchApplicationChanged">
+        <arg type="b" name="backward" direction="in"/>
+    </signal>
+    <signal name="TileActiveWindowChanged">
+        <arg type="i" name="side" direction="in"/>
+    </signal>
+    <signal name="ToggleActiveWindowMaximizeChanged">
+    </signal>
+    <signal name="ShowAllWindowChanged">
+    </signal>
+    <signal name="ShowWindowChanged">
+    </signal>
+    <signal name="ShowWorkspaceChanged">
+    </signal>
+    <signal name="ResumeCompositorChanged">
+        <arg type="i" name="reason" direction="in"/>
+    </signal>
+    <signal name="SuspendCompositorChanged">
+        <arg type="i" name="reason" direction="in"/>
+    </signal>
+
     ${DEEPIN_WM_PREFIX}
     <method name="ChangeCurrentWorkspaceBackground">
         <arg type="s" name="uri" direction="in"/>
@@ -174,11 +197,5 @@
     </method>
     <method name="SetShowDesktop">
         <arg type="b" name="isShowDesktop" direction="in"/>
-    </method>
-    <method name="TouchToMove">
-        <arg type="i" name="x" direction="in"/>
-        <arg type="i" name="y" direction="in"/>
-    </method>
-    <method name="ClearMoveStatus">
     </method>
 </interface>

@@ -40,11 +40,6 @@ qt5_add_dbus_adaptor(
     deepinwmfaker.h
     DeepinWMFaker
 )
-qt5_add_dbus_interface(
-    wm_SRCS
-    ../plugins/platforms/plugin/org.kde.kwin.KWinUtils.xml
-    kwinutils_interface
-)
 
 add_executable(
     ${TARGET_NAME}

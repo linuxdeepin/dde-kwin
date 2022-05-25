@@ -9,6 +9,9 @@
 #include <QDBusInterface>
 #include <QProcess>
 #include <QStringList>
+#include <QFileInfo>
+#include <QDBusReply>
+#include <QMetaEnum>
 
 #include <KF5/KConfigCore/KConfig>
 #include <KF5/KConfigCore/KConfigGroup>
@@ -43,9 +46,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define GlobalAccelComponentName "kwin"
 #define GlobalAccelComponentDisplayName "KWin"
 
-#define KWinUtilsDbusService "org.kde.KWin"
-#define KWinUtilsDbusPath "/dde"
-
 // kwin dbus
 #define KWinDBusService "org.kde.KWin"
 #define KWinDBusPath "/KWin"
@@ -59,7 +59,7 @@ const char defaultSecondBackgroundUri[] = "francesco-ungaro-1fzbUyzsHV8-unsplash
 
 const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
-using org::kde::KWin;
+//using org::kde::KWin;
 
 // deepin-wm's accel as Key
 static QMap<QString, QString> AllDeepinWMKWinAccelsMap {
@@ -307,7 +307,6 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     , m_kwinCloseWindowGroup(new KConfigGroup(m_kwinConfig->group(KWinCloseWindowGroupName)))
     , m_kwinRunCommandGroup(new KConfigGroup(m_kwinConfig->group(KWinRunCommandGroupName)))
     , m_globalAccel(KGlobalAccel::self())
-    , m_kwinUtilsInter(new KWin(KWinUtilsDbusService, KWinUtilsDbusPath, QDBusConnection::sessionBus(), this))
     , m_previewWinMiniPair(QPair<uint, bool>(-1, false))
 {
     m_isPlatformX11 = isX11Platform();
@@ -918,41 +917,22 @@ void DeepinWMFaker::PerformAction(int type)
 
 void DeepinWMFaker::BeginToMoveActiveWindow()
 {
-    m_kwinUtilsInter->WindowMove();
-}
-
-void DeepinWMFaker::TouchToMove(int x, int y)
-{
-#ifndef DISABLE_DEEPIN_WM
-    m_kwinUtilsInter->TouchPadToMoveWindow(x,y);
-#endif
-}
-
-void DeepinWMFaker::ClearMoveStatus()
-{
-#ifndef DISABLE_DEEPIN_WM
-    m_kwinUtilsInter->EndTouchPadToMoveWindow();
-#endif
+    Q_EMIT BeginToMoveActiveWindowChanged();
 }
 
 void DeepinWMFaker::SwitchApplication(bool backward)
 {
-    if (!m_kwinUtilsInter->isValid()) {
-        return;
-    }
-
-    backward ? m_kwinUtilsInter->WalkBackThroughWindows()
-             : m_kwinUtilsInter->WalkThroughWindows();
+    Q_EMIT SwitchApplicationChanged(backward);
 }
 
 void DeepinWMFaker::TileActiveWindow(uint side)
-{
-    m_kwinUtilsInter->QuickTileWindow(side);
+{   
+    Q_EMIT TileActiveWindowChanged(side);
 }
 
 void DeepinWMFaker::ToggleActiveWindowMaximize()
-{
-    m_kwinUtilsInter->WindowMaximize();
+{   
+    Q_EMIT ToggleActiveWindowMaximizeChanged();
 }
 
 void DeepinWMFaker::MinimizeActiveWindow()
@@ -1000,9 +980,9 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
     }
 
     if (on)
-        m_kwinUtilsInter->ResumeCompositor(1);
+        Q_EMIT ResumeCompositorChanged(1);
     else
-        m_kwinUtilsInter->SuspendCompositor(1);
+        Q_EMIT SuspendCompositorChanged(1);
 
     // !on 时说明再关闭窗口特效，关闭特效往往都能成功，因此不再需要判断是否成功（KWin中给出值时有些延迟，导致未能及时获取到值）
     if (!on || compositingEnabled() == on)
@@ -1024,7 +1004,7 @@ void DeepinWMFaker::ShowAllWindow()
     if (maybeShowWarningDialog())
         return;
 
-    m_kwinUtilsInter->ShowAllWindowsView();
+    Q_EMIT ShowAllWindowChanged();
 }
 
 void DeepinWMFaker::ShowWindow()
@@ -1032,7 +1012,7 @@ void DeepinWMFaker::ShowWindow()
     if (maybeShowWarningDialog())
         return;
 
-    m_kwinUtilsInter->ShowWindowsView();
+    Q_EMIT ShowWindowChanged();
 }
 
 void DeepinWMFaker::ShowWorkspace()
@@ -1040,7 +1020,7 @@ void DeepinWMFaker::ShowWorkspace()
     if (maybeShowWarningDialog())
         return;
 
-    m_kwinUtilsInter->ShowWorkspacesView();
+    Q_EMIT ShowWorkspaceChanged();
 }
 
 void DeepinWMFaker::setZoneEnabled(bool zoneEnabled)

@@ -15,11 +15,8 @@ add_definitions(
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
 )
 
-option(USE_PLUGINS "use dde-kwin plugins" ON)
 option(USE_SCRIPTS "use scripts" ON)
 option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
-option(USE_TABBOX "use deepin style tabbox" ON)
-option(USE_WINDOW_TOOL "support wayland and x11" ON)
 
 #when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
 find_path(
@@ -99,10 +96,6 @@ endif()
 
 add_subdirectory(configures)
 
-if (USE_PLUGINS)
-  add_subdirectory(plugins)
-endif()
-
 if (USE_SCRIPTS)
   add_subdirectory(scripts)
 endif()
@@ -111,14 +104,6 @@ if (USE_DEEPIN_WM_DBUS)
   add_subdirectory(deepin-wm-dbus)
 endif()
 
-if (USE_TABBOX)
-add_subdirectory(tabbox)
-endif()
-
 if (BUILD_TESTING)
     add_subdirectory(tests)
-endif()
-
-if (USE_WINDOW_TOOL)
-  add_subdirectory(windowtool)
 endif()
