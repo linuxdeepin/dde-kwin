@@ -43,6 +43,8 @@
 #include <KWaylandServer/display.h>
 #endif
 
+Q_LOGGING_CATEGORY(BLUR_DEBUG, "debug_k_blur", QtCriticalMsg);
+
 static const int RR = 18;    // radius of rounded corner
 static const int DOCK_WINDTH_JUDGE = 800;    // differentiate tooltip on dock
 static const int NEAR_PLANE = -1000;
@@ -79,6 +81,8 @@ BlurEffect::BlurEffect(QObject *, const QVariantList &)
     connect(effects, &EffectsHandler::windowDeleted, this, &BlurEffect::slotWindowDeleted);
     connect(effects, &EffectsHandler::propertyNotify, this, &BlurEffect::slotPropertyNotify);
     connect(effects, &EffectsHandler::screenGeometryChanged, this, &BlurEffect::slotScreenGeometryChanged);
+    connect(effects, &EffectsHandler::windowGeometryShapeChanged, this, &BlurEffect::slotWindowGeometryShapeChanged);
+
 #if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 11, 0, 0)
     connect(effects, &EffectsHandler::xcbConnectionChanged, this,
         [this] {
@@ -319,6 +323,8 @@ QRegion rounded(QRegion region, int r)
 
 void BlurEffect::updateBlurRegion(EffectWindow *w) const
 {
+    qCDebug(BLUR_DEBUG)<<"className:"<< w->windowClass();
+
     QRegion region;
     QByteArray value;
 
@@ -382,6 +388,8 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
 
 void BlurEffect::slotWindowAdded(EffectWindow *w)
 {
+    if(w) qCDebug(BLUR_DEBUG)<<"className:"<< w->windowClass();
+
     KWaylandServer::SurfaceInterface *surf = w->surface();
 
     if (surf) {
@@ -406,6 +414,8 @@ void BlurEffect::slotWindowDeleted(EffectWindow *w)
     if (it == windowBlurChangedConnections.end()) {
         return;
     }
+    qCDebug(BLUR_DEBUG)<<"className:"<< w->windowClass();
+
     disconnect(*it);
     windowBlurChangedConnections.erase(it);
 }
@@ -413,6 +423,7 @@ void BlurEffect::slotWindowDeleted(EffectWindow *w)
 void BlurEffect::slotPropertyNotify(EffectWindow *w, long atom)
 {
     if (w && atom == net_wm_blur_region && net_wm_blur_region != XCB_ATOM_NONE) {
+        qCDebug(BLUR_DEBUG)<<"className:"<< w->windowClass();
         updateBlurRegion(w);
     }
 }
@@ -1003,4 +1014,13 @@ void BlurEffect::copyScreenSampleTexture(GLVertexBuffer *vbo, int blurRectCount,
     GLRenderTarget::popRenderTarget();
 
     m_shader->unbind();
+}
+
+void BlurEffect::slotWindowGeometryShapeChanged(KWin::EffectWindow *w, const QRect &old)
+{
+    if(w) {
+        qCDebug(BLUR_DEBUG)<<"className:"<< w->windowClass()<< " old rect:"<< old;
+        updateBlurRegion(w);
+    }
+
 }
