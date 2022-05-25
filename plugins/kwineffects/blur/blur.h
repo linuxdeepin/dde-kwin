@@ -87,6 +87,7 @@ public Q_SLOTS:
     void slotWindowDeleted(KWin::EffectWindow *w);
     void slotPropertyNotify(KWin::EffectWindow *w, long atom);
     void slotScreenGeometryChanged();
+    void slotWindowGeometryShapeChanged(KWin::EffectWindow *w, const QRect &old);
 
 private:
     QRect expand(const QRect &rect) const;
