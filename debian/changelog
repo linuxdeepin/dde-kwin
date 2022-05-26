@@ -1,3 +1,10 @@
+dde-kwin (5.5.13-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 123355 fix: blur area did not update when window geomety changed
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 26 May 2022 10:20:24 +0800
+
 dde-kwin (5.5.10-1) unstable; urgency=medium
 
   * Bug fix:
