@@ -1419,6 +1419,15 @@ void KWinUtils::Window::setQuikTileMode(QObject *window, int m, bool isShowRevie
     QMetaObject::invokeMethod(workspace(), "slotSetClientSplit", Q_ARG(KWin::AbstractClient*, c), Q_ARG(int, m), Q_ARG(bool, isShowReview));
 }
 
+bool KWinUtils::Window::checkClientAllowToSplit(QObject *window)
+{
+    KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(window);
+
+    bool ret = false;
+    QMetaObject::invokeMethod(workspace(), "slotCheckClientAllowToSplit", Qt::DirectConnection, Q_RETURN_ARG(bool, ret), Q_ARG(KWin::AbstractClient*, c));
+    return ret;
+}
+
 QObject *KWinUtils::getDDEShellSurface(QObject * shellClient)
 {
     if (!shellClient) {
