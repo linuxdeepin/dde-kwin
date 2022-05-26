@@ -127,6 +127,7 @@ public:
 
         static void performWindowOperation(QObject* window, const QString &opName, bool restricted = false);
         static void setQuikTileMode(QObject* window, int m, bool isShowReview = false);
+        static bool checkClientAllowToSplit(QObject* window);
     };
 
     static quint32 internAtom(const QByteArray &name, bool only_if_exists);

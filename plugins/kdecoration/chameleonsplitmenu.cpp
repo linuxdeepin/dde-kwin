@@ -200,7 +200,7 @@ void ChameleonSplitMenu::CheckTheme()
 
 void ChameleonSplitMenu::Show(QPoint pos, QColor color)
 {
-    if (m_isShow)
+    if (m_isShow || !KWinUtils::Window::checkClientAllowToSplit(m_client))
         return;
     m_isShow = true;
     m_pos = pos;
