@@ -1,20 +1,8 @@
 #!/bin/sh
 
-KWIN_VERSION=`kwin_x11 --version 2>/dev/null`
-DDE_KWIN_SUPPORTED_VERSION='kwin 5.21.5'
-if [ "$KWIN_VERSION" \> "$DDE_KWIN_SUPPORTED_VERSION" ]; then
-    kwin_x11 $@
-    exit 0
-fi
-
 if [ -n "$HOME" ];then
     cp -n /etc/xdg/kglobalshortcutsrc $HOME/.config/kglobalshortcutsrc
 fi
 
 EXECUTE_PATH=$(cd `dirname $0`; pwd)
-
-export "LD_PRELOAD=${PLUGIN_INSTALL_PATH}/libdde-kwin-xcb.so:$LD_PRELOAD"
-export QT_SCALE_FACTOR=1
-#":"后的"appFilePath=..."会传递给QPlatformIntegration::create调用
-# appFilePath 的值会覆盖 QCoreApplication::applicationPath，以确保kwin崩溃自动重启时也是启动的kwin_no_scale脚本
-kwin_x11 -platform dde-kwin-xcb:appFilePath=$EXECUTE_PATH/kwin_no_scale $@
+deepin-kwin_x11 :appFilePath=$EXECUTE_PATH/kwin_no_scale $@

@@ -14,7 +14,7 @@ Build-Depends: debhelper (>=9),
  libkf5globalaccel-dev,
  libkf5windowsystem-dev,
  libkf5coreaddons-dev,
- kwin-dev,
+ deepin-kwin-dev,
  libkf5config-dev,
  libdtkcore-dev,
  libgsettings-qt-dev,
@@ -40,7 +40,7 @@ Homepage: https://github.com/linuxdeepin/dde-kwin
 Package: dde-kwin
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
- kwin-x11, kwin-wayland, plasma-framework, libkf5globalaccel-bin,
+ deepin-kwin-x11, deepin-kwin-wayland, plasma-framework, libkf5globalaccel-bin,
  qml-module-qtquick-controls2, qml-module-qtquick-templates2
 Description: KWin configures/plugins on the DDE
  Let kwin work well in the Deepin Desktop Environment.

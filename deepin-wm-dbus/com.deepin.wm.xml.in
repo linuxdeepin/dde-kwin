@@ -158,10 +158,10 @@
     <signal name="ShowWorkspaceChanged">
     </signal>
     <signal name="ResumeCompositorChanged">
-        <arg type="i" name="reason" direction="in"/>
+        <arg type="i" name="reason"/>
     </signal>
     <signal name="SuspendCompositorChanged">
-        <arg type="i" name="reason" direction="in"/>
+        <arg type="i" name="reason"/>
     </signal>
 
     ${DEEPIN_WM_PREFIX}
