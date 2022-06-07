@@ -1,3 +1,10 @@
+dde-kwin (5.5.15-1) unstable; urgency=medium
+
+  * Task:
+    + 99095 feat: add interface to outside about display rules
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 07 Jun 2022 17:53:12 +0800
+
 dde-kwin (5.5.14-1) unstable; urgency=medium
 
   * Bug fix:
