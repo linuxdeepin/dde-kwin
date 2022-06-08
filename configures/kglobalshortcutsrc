@@ -1,4 +1,4 @@
-[kwin]
+[deepin-kwin]
 Activate Window Demanding Attention=none,none,激活请求注意的窗口
 Decrease Opacity=none,none,降低活动窗口不透明度 5 %
 Expose=Meta+W,Ctrl+F9,切换显示窗口(对当前桌面)
