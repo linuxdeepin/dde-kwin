@@ -7,9 +7,15 @@ install(
     kwinrulesrc
     klaunchrc
     kdeglobals
-    kwin.multitask-view.display.dconfig.json
     DESTINATION
     "/etc/xdg"
+)
+
+install(
+    FILES
+    org.kde.kwin.multitaskview.display.json
+    DESTINATION
+    "/usr/share/dsg/configs/org.kde.kwin"
 )
 
 if (USE_KWIN_NO_SCALE)
