@@ -512,8 +512,6 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
                     region = rounded(w->shape(), RR);
                 } else if (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE) {
                     region = rounded(w->shape(), RR);
-                } else if (w->isPopupWindow()) {
-                    region = rounded(w->shape(), RR);
                 } else if (w->isTooltip()) {
                     region = rounded(w->shape(), RR);
                 } else {
@@ -543,8 +541,6 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
             } else if (w->windowClass().contains("dde-launcher")) {
                 region = rounded(w->shape(), RR);
             } else if (w->windowClass().contains("Deepin")) {
-                region = rounded(w->shape(), RR);
-            } else if (w->isPopupWindow()) {
                 region = rounded(w->shape(), RR);
             }
         }
@@ -730,14 +726,7 @@ void BlurEffect::paintWindow(EffectWindow *w, int mask, QRegion region, WindowPa
         }
 
         if (!shape.isEmpty()) {
-            if (effects->waylandDisplay()) {
-                GLint vp[4];
-                glGetIntegerv(GL_VIEWPORT, &vp[0]);
-                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
-                glViewport(vp[0], vp[1], vp[2], vp[3]);
-            } else {
-                doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
-            }
+            doBlur(shape, screen, data.opacity(), data.screenProjectionMatrix(), w->isDock(), w->geometry());
         }
     }
 
@@ -862,25 +851,8 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
         glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
     }
 
-    if (effects->waylandDisplay()) {
-        int x = screen.x();
-        int y = screen.y();
-        int w = screen.width();
-        int h = screen.height();
-        float cx = x + w / 2;
-        float cy = y + h / 2;
-
-        QMatrix4x4 projection, view;
-        projection.ortho(-w / 2, w / 2, h / 2, -h / 2, NEAR_PLANE, FAR_PLANE);
-        view.lookAt(QVector3D(cx, cy, EYE_POSZ), QVector3D(cx, cy, 0), QVector3D(0, 1, 0));
-        QMatrix4x4 combinedMatrix = projection * view;
-
-        doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, combinedMatrix);
-        upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, combinedMatrix, windowRect.topLeft());
-    } else {
-        doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection);
-        upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
-    }
+    doSaturation(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, 2.0, screenProjection, screen);
+    upscaleRenderToScreen(vbo, blurRectCount * (m_downSampleIterations + 1), shape.rectCount() * 6, screenProjection, windowRect.topLeft());
 
     if (useSRGB) {
         glDisable(GL_FRAMEBUFFER_SRGB);
@@ -893,8 +865,10 @@ void BlurEffect::doBlur(const QRegion& shape, const QRect& screen, const float o
     vbo->unbindArrays();
 }
 
-void BlurEffect::doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount, float sat, QMatrix4x4 screenProjection)
+void BlurEffect::doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount, float sat, QMatrix4x4 screenProjection, const QRect &screen)
 {
+    const int xTranslate = - screen.x();
+    const int yTranslate = - (effects->virtualScreenSize().height() - screen.height() - screen.y());
     auto& renderTexture = m_renderTextures[m_downSampleIterations+1];
 
     QMatrix4x4 modelViewProjectionMatrix;
@@ -910,6 +884,7 @@ void BlurEffect::doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount,
     //Render to the screen
     vbo->draw(GL_TRIANGLES, start, blurRectCount);
     GLRenderTarget::popRenderTarget();
+    glViewport(xTranslate, yTranslate, effects->virtualScreenSize().width(), effects->virtualScreenSize().height());
 
     m_shader->unbind();
 }
