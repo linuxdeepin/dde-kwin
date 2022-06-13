@@ -108,7 +108,7 @@ private:
     void downSampleTexture(GLVertexBuffer *vbo, int blurRectCount);
     void upSampleTexture(GLVertexBuffer *vbo, int blurRectCount);
     void copyScreenSampleTexture(GLVertexBuffer *vbo, int blurRectCount, QRegion blurShape, QMatrix4x4 screenProjection);
-    void doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount, float sat, QMatrix4x4 screenProjection);
+    void doSaturation(GLVertexBuffer* vbo, int start, int blurRectCount, float sat, QMatrix4x4 screenProjection, const QRect &screen);
 
 private:
     BlurShader *m_shader;
