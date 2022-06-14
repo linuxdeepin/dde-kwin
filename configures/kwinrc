@@ -24,7 +24,8 @@ Rows=1
 [org.kde.kdecoration2]
 BorderSize=Normal
 ButtonsOnRight=HIAX
-library=com.deepin.chameleon
+library=com.dde.chameleon
+deepin_library=com.deepin.chameleon
 theme=
 
 [Effect-FlipSwitch]
