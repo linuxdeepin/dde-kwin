@@ -1,3 +1,10 @@
+dde-kwin (5.5.14) unstable; urgency=medium
+
+  * Bug fix:
+    + 137089 fix: the four corners disappearing delay
+
+ -- diguoliang <diguoliang@uniontech.com>  Fri, 17 Jun 2022 21:56:04 +0800
+
 dde-kwin (5.5.13) unstable; urgency=medium
 
   * Bug fix:
