@@ -1,3 +1,9 @@
+dde-kwin (5.6.0) unstable; urgency=medium
+
+  * update release version (5.6.0).
+
+ -- xinbo wang <wangxinbo@uniontech.com>  Mon, 20 Jun 2022 19:44:04 +0800
+
 dde-kwin (5.5.14) unstable; urgency=medium
 
   * Bug fix:
