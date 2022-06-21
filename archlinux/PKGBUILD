@@ -8,7 +8,7 @@ url="https://github.com/linuxdeepin/dde-kwin"
 license=('GPL3')
 depends=('deepin-qt5integration' 'deepin-wallpapers' 'kwin')
 makedepends=('extra-cmake-modules' 'expac' 'ninja' 'qt5-tools')
-source=("$pkgname-$pkgver::source.tar.gz"
+source=("source.tar.gz"
         tabbox-chameleon-rename.patch
         added-functions-from-their-forked-kwin.patch
         fix-crash.patch
@@ -18,13 +18,9 @@ sha512sums=('SKIP'
             '48a3bead1c7cde1261f5f710fd055c52f061320999064ba4cc96a81f9b0770ea2a8fba7aff37d20bb7671b219c38bf8424f24fd7742d36b3c6bf171d3874c1f4'
             '73aef1435c83aec18f4535cc121d09121c1fb180f02b11fc57bb61339b79667ae310a4e3eb33263d6ba218b2eab7281dc9014578edf1317226239e8538e08830'
             '625113af4b4fe00b82b18c6697c2f2b23366774a820e0a83c33818846611c972dde079e5422cda92111c561d064f3767177aaa9258dd805704dbc7bb5361dab9')
-pkgver() {
-    cd $pkgname-$pkgver
-    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-}
 
 prepare() {
-  cd $pkgname-$pkgver
+ cd $deepin_source_name
 
   sed -i 's|/usr/share/backgrounds/default_background.jpg|/usr/share/backgrounds/deepin/desktop.jpg|' plugins/kwineffects/multitasking/background.cpp
   patch -R -p1 -i ../added-functions-from-their-forked-kwin.patch
@@ -34,13 +30,13 @@ prepare() {
 }
 
 build() {
-  cd $pkgname-$pkgver
+  cd $deepin_source_name
   cmake . -GNinja -DCMAKE_INSTALL_PREFIX=/usr -DKWIN_VERSION=$(expac %v kwin | cut -d - -f 1)
   ninja
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd $deepin_source_name
   DESTDIR="$pkgdir" ninja install
   chmod +x "$pkgdir"/usr/bin/kwin_no_scale
 }
