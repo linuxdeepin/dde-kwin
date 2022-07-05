@@ -372,7 +372,6 @@ void BlurEffect::updateBlurRegion(EffectWindow *w) const
                     || (wndClassName.contains("dde-clipboard"))
                     || (wndClassName.contains("dde-osd"))  //notification, cap
                     || (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE)
-                    || w->isPopupWindow()
                     || (wndClassName.contains("deepin-app-store"))
                     || (wndClassName.contains("dde-network-dialog"))
                     || (wndClassName.contains("dde-grand-search"))) {
