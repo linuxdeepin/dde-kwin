@@ -144,10 +144,10 @@
     <signal name="BeginToMoveActiveWindowChanged">
     </signal>
     <signal name="SwitchApplicationChanged">
-        <arg type="b" name="backward" direction="in"/>
+        <arg type="b" name="backward"/>
     </signal>
     <signal name="TileActiveWindowChanged">
-        <arg type="i" name="side" direction="in"/>
+        <arg type="i" name="side"/>
     </signal>
     <signal name="ToggleActiveWindowMaximizeChanged">
     </signal>

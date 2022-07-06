@@ -150,7 +150,7 @@ Q_SIGNALS:
 
     void BeginToMoveActiveWindowChanged();
     void SwitchApplicationChanged(bool backward); 
-    void TileActiveWindowChanged(uint side);
+    void TileActiveWindowChanged(int side);
     void ToggleActiveWindowMaximizeChanged();
     void ShowAllWindowChanged();
     void ShowWindowChanged();
