@@ -1349,8 +1349,6 @@ void DeepinWMFaker::syncConfigForKWin()
 {
     // 同步配置到文件
     m_kwinConfig->sync();
-    // 通知kwin重新加载配置文件
-    QDBusInterface(KWinDBusService, KWinDBusPath).call("reconfigure");
 }
 
 void DeepinWMFaker::updateCursorConfig()
