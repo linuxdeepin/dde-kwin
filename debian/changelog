@@ -1,3 +1,10 @@
+dde-kwin (5.6.1) unstable; urgency=medium
+
+  * Bug fix:
+    + 141799 fix: kglobalaccel read wrong shortcut component name.
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 07 Jul 2022 10:21:21 +0800
+
 dde-kwin (5.6.0) unstable; urgency=medium
 
   * update release version (5.6.0).
