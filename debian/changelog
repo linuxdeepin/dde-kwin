@@ -1,3 +1,10 @@
+dde-kwin (5.5.19-1) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: popup window should get blur region from dtk.
+
+ -- Lei Su <sulei@uniontech.com>  Tue, 12 Jul 2022 16:07:58 +0800
+
 dde-kwin (5.5.18-1) unstable; urgency=medium
 
   * Bug fix:
