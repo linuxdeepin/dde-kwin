@@ -22,7 +22,7 @@ Rows=1
 
 [org.kde.kdecoration2]
 BorderSize=Normal
-ButtonsOnLeft=
+ButtonsOnLeft=MS
 ButtonsOnRight=HIAX
 library=com.deepin.chameleon
 theme=
