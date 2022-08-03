@@ -47,7 +47,9 @@ endmacro()
 
 query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
 
-set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
+if(NOT DEFINED PLUGIN_INSTALL_PATH)
+    set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
+endif()
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed
