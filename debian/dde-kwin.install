@@ -4,10 +4,13 @@ etc/xdg/klaunchrc
 etc/xdg/kwinrc
 etc/xdg/deepin-kwinrulesrc
 usr/bin/deepin-wm-dbus
+usr/bin/deepin-display
 usr/bin/kwin_no_scale
-#usr/lib/*/*.so.*
+#usr/lib/*.so.*
+usr/lib/*.so
 #usr/lib/*/qt5
 usr/share/kwin/scripts
 usr/share/dbus-1/interfaces
 usr/share/dbus-1/services/com.deepin.wm.service
+usr/share/dbus-1/services/com.deepin.display.service
 usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.splitmenu.display.json

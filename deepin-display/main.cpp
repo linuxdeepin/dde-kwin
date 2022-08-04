@@ -16,7 +16,6 @@
 #include "x11/x11_output.h"
 #include "x11/x11_gesture.h"
 #include "x11/x11_tablet.h"
-#include "x11/x11_screen.h"
 
 #include "mouseadaptor.h"
 #include "keyboardadaptor.h"
@@ -113,7 +112,6 @@ int main(int argc, char *argv[])
         new X11Shortcut();
         gesture = new X11Gesture();
         tablet = new X11Tablet();
-        new X11Screen();
     } else {
         amouse = new WaylandMouse();
         akeyboard = new WaylandKeyboard();
@@ -125,7 +123,6 @@ int main(int argc, char *argv[])
         new WaylandShortcut();
         gesture = new WaylandGesture();
         tablet = new WaylandTablet();
-        new WaylandScreen;
     }
 
     MouseAdaptor mouseadadaptor(amouse);

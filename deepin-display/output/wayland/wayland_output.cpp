@@ -1,5 +1,27 @@
+/*
+ * Copyright (C) 2022 Uniontech Technology Co., Ltd.
+ *
+ * Author:     xinbo wang <wangxinbo@uniontech.com>
+ *
+ * Maintainer: xinbo wang <wangxinbo@uniontech.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "wayland_output.h"
 
+#include <QObject>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDebug>
@@ -12,6 +34,15 @@
 #include <QDBusReply>
 #include <QJsonParseError>
 #include <QDir>
+#include <QPoint>
+
+#include "abstract_output.h"
+#include "wayland/wayland_screen.h"
+#include "DWayland/Client/output.h"
+#include "DWayland/Client/outputdevice_v2.h"
+#include "DWayland/Client/outputdevice.h"
+#include "DWayland/Client/pointer.h"
+#include "DWayland/Client/compositor.h"
 
 #define DBUS_DEEPIN_WM_SERVICE "org.kde.KWin"
 #define DBUS_DEEPIN_WM_OBJ "/KWin"
@@ -22,6 +53,8 @@
 #define DBUS_DEEPIN_DOCK_INTF "com.deepin.dde.daemon.Dock"
 
 #define BLACK_LIGHT_PATH "/sys/class/backlight"
+
+//using namespace KWayland::Client;
 
 WaylandOutput:: WaylandOutput(QObject *parent)
     : AbstractOutput(parent)
@@ -59,23 +92,71 @@ void WaylandOutput::init()
 
 void WaylandOutput::setupRegistry(Registry *registry)
 {
-    connect(registry, &Registry::outputManagementAnnounced, this,
+    connect(registry, &Registry::outputManagementV2Announced, this,
         [this, registry] (quint32 name, quint32 version) {
-            m_outputManagement = registry->createOutputManagement(name, version, this);
+            m_outputManagement = registry->createOutputManagementV2(name, version, this);
             m_outputManagement->setEventQueue(m_eventQueue);
         }
     );
 
-    connect(registry, &Registry::outputDeviceAnnounced, this,
+    connect(registry, &Registry::outputDeviceV2Announced, this,
         [this, registry] (quint32 name, quint32 version) {
-            OutputDevice *pOutputDevice = registry->createOutputDevice(name, version, this);
+            OutputDeviceV2 *pOutputDevice = registry->createOutputDeviceV2(name, version, this);
             if (pOutputDevice) {
                 m_outputDeviceLst << pOutputDevice;
-                connect(pOutputDevice, &OutputDevice::changed, this, [=](){
+                emit outputAdded();
 
+                connect(pOutputDevice, &OutputDeviceV2::changed, this, [=](){
+                });
+
+                connect(pOutputDevice, &OutputDeviceV2::removed, this, [=](){
+
+                    QString strScreenPath = QString("%1%2").arg("/com/deepin/kwin/Display/Screen_").arg(QString(pOutputDevice->uuid().left(8)));
+                    QDBusConnection::sessionBus().unregisterObject(strScreenPath, QDBusConnection::UnregisterTree);
+
+                    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+                        if (m_outputDeviceLst.at(i) == pOutputDevice) {
+                            m_outputDeviceLst.removeAt(i);
+                            break;
+                        }
+                    }
+
+                    QMap<QString, QVariant> OutputDeviceInfo;
+                    OutputDeviceInfo["screenName"] = findNameForOutputDevice(pOutputDevice);
+                    OutputDeviceInfo["uuid"] = QString(pOutputDevice->uuid().left(8));
+                    emit outputRemoved(OutputDeviceInfo);
+
+                    WaylandScreen *pWaylandScreen = pOutputDevice->findChild<WaylandScreen *>(QString(pOutputDevice->uuid().left(8)));
+                    if (pWaylandScreen) {
+                        delete pWaylandScreen;
+                        pWaylandScreen = nullptr;
+                    }
+
+                });
+
+                connect(pOutputDevice, &OutputDeviceV2::done, this, [=](){
+                    WaylandScreen *pWaylandScreen = pOutputDevice->findChild<WaylandScreen *>(QString(pOutputDevice->uuid().left(8)));
+                    if (!pWaylandScreen) {
+                        pWaylandScreen = new WaylandScreen(pOutputDevice, m_outputManagement, pOutputDevice);
+                        pWaylandScreen->setObjectName(QString(pOutputDevice->uuid().left(8)));
+                    }
                 });
             }
         }
+    );
+
+    connect(registry, &Registry::compositorAnnounced, this,
+        [this, registry] (quint32 name, quint32 version) {
+            m_compositor = registry->createCompositor(name, version, this);
+            m_compositor->setEventQueue(m_eventQueue);
+            m_Surface = m_compositor->createSurface(m_compositor);
+    }
+    );
+
+    connect(registry, &Registry::seatAnnounced, this,
+        [this, registry] (quint32 name, quint32 version) {
+            m_pSeat = registry->createSeat(name, version, this);
+    }
     );
 
     connect(registry, &Registry::dpmsAnnounced, this,
@@ -91,7 +172,6 @@ void WaylandOutput::setupRegistry(Registry *registry)
             if (pOutput) {
                 m_OutputList << pOutput;
                 connect(pOutput, &Output::changed, this, [=](){
-
                 });
             }
         }
@@ -102,120 +182,49 @@ void WaylandOutput::setupRegistry(Registry *registry)
     registry->setup();
 }
 
-QStringList WaylandOutput::Monitors()
-{
-    return QStringList();
-}
-
-// Abandonment method
-QStringList WaylandOutput::CustomIdList()
-{
-    return QStringList();
-}
-
 QVariantList WaylandOutput::Touchscreens()
 {
-    return QVariantList();
-}
-
-// about configuration file
-bool WaylandOutput::HasChanged()
-{
-    return true;
-}
-
-// check taskbar display mode
-uchar WaylandOutput::DisplayMode()
-{
-    int nDockMode = 0;
-    QDBusInterface dockInter(DBUS_DEEPIN_DOCK_SERVICE,
-                             DBUS_DEEPIN_DOCK_OBJ,
-                             DBUS_DEEPIN_DOCK_INTF,
-                             QDBusConnection::sessionBus());
-    if (dockInter.isValid()) {
-        nDockMode = dockInter.property("DisplayMode").toInt();
-    }
-    return nDockMode;
-}
-
-QMap<QString, QVariant> WaylandOutput::Brightness()
-{
-    if (outputBrightnessMap.count() == 0) {
-        QMap<QString, QVariant> brightnessInfo;
-        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-            QString strScreenName = findNameForOutputDevice(pOutputDevice);
-            if (strScreenName != "") {
-                brightnessInfo[strScreenName] = 1;
+    QVariantList touchScreenList;
+    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
+    QDBusReply<QString> getReply = wm.call("getTouchDeviceToScreenInfo");
+    if(!getReply.value().isEmpty()) {
+        QJsonParseError error;
+        QJsonDocument document = QJsonDocument::fromJson(getReply.value().toUtf8(), &error);
+        if(QJsonParseError::NoError == error.error) {
+            QList<QVariant> list = document.toVariant().toList();
+            foreach(QVariant item, list)
+            {
+                QVariantMap map = item.toMap();
+                for (int i = 0; i < map.keys().count(); i++) {
+                    if (map.keys().at(i) == "TouchDevice") {
+                        OutputDeviceV2 *pOutputDeviceV2 = findOutputDeviceForUuid(map["ScreenUuid"].toString());
+                        if (pOutputDeviceV2) {
+                            map["ScreenName"] = findNameForOutputDevice(pOutputDeviceV2);
+                            touchScreenList << map;
+                        }
+                    }
+                }
             }
-
         }
-        return brightnessInfo;
     }
-
-    return outputBrightnessMap;
+    return touchScreenList;
 }
 
-QMap<QString, QVariant> WaylandOutput::TouchMap()
-{
-    return m_associateMap;
-}
-
-int WaylandOutput::ColorTemperatureManual()
-{
-    return  m_nCCTValue;
-}
-
-int WaylandOutput::ColorTemperatureMode()
-{
-    return m_strCCTMode;
-}
-
-// Abandonment method
-QString WaylandOutput::CurrentCustomId()
-{
-    return QString();
-}
-
-QString WaylandOutput::Primary()
+QString WaylandOutput::PrimaryScreenName()
 {
     return m_strPrimaryScreenName;
 }
 
-QVariantList WaylandOutput::PrimaryRect()
+QStringList WaylandOutput::Monitors()
 {
-    QVariantList primaryRectList;
-    OutputDevice *pOutputDevice = findOutputDeviceForName(m_strPrimaryScreenName);
-    if (pOutputDevice != nullptr) {
-        QRect outputDeviceRect = pOutputDevice->geometry();
-        primaryRectList << outputDeviceRect.x() << outputDeviceRect.y() << outputDeviceRect.width() << outputDeviceRect.height();
-    }
+    QStringList strMonitorsList;
 
-    return primaryRectList;
-}
-
-ushort WaylandOutput::ScreenHeight()
-{
-    int displayheight = 0;
     for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        if (pOutputDevice->geometry().y() + pOutputDevice->geometry().height() > displayheight) {
-            displayheight = pOutputDevice->geometry().y() + pOutputDevice->geometry().height();
-        }
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
+        strMonitorsList << QString("%1%2").arg("/com/deepin/kwin/Display/Screen_").arg(QString(pOutputDevice->uuid().left(8)));
     }
-    return displayheight;
-}
 
-ushort WaylandOutput::ScreenWidth()
-{
-    int displayWidth = 0;
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        if (pOutputDevice->geometry().x() + pOutputDevice->geometry().width() > displayWidth) {
-            displayWidth = pOutputDevice->geometry().x() + pOutputDevice->geometry().width();
-        }
-    }
-    return displayWidth;
+    return strMonitorsList;
 }
 
 uint WaylandOutput::MaxBacklightBrightness()
@@ -244,14 +253,33 @@ uint WaylandOutput::MaxBacklightBrightness()
     return uint();
 }
 
-// about configuration file
-void WaylandOutput::ApplyChanged()
+ushort WaylandOutput::DisplayWidth()
 {
-
+    int displayWidth = 0;
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
+        if (pOutputDevice->geometry().x() + pOutputDevice->geometry().width() > displayWidth) {
+            displayWidth = pOutputDevice->geometry().x() + pOutputDevice->geometry().width();
+        }
+    }
+    return displayWidth;
 }
 
-void WaylandOutput::AssociateTouch(QString strOutputName, QString strTouchSerial)
+ushort WaylandOutput::DisplayHeight()
 {
+    int displayheight = 0;
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
+        if (pOutputDevice->geometry().y() + pOutputDevice->geometry().height() > displayheight) {
+            displayheight = pOutputDevice->geometry().y() + pOutputDevice->geometry().height();
+        }
+    }
+    return displayheight;
+}
+
+QMap<QString, QVariant> WaylandOutput::TouchMap()
+{
+    QMap<QString, QVariant> touchMap;
     QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
     QDBusReply<QString> getReply = wm.call("getTouchDeviceToScreenInfo");
     if(!getReply.value().isEmpty()) {
@@ -262,107 +290,27 @@ void WaylandOutput::AssociateTouch(QString strOutputName, QString strTouchSerial
             foreach(QVariant item, list)
             {
                 QVariantMap map = item.toMap();
-                if (findOutputDeviceForName(strOutputName) == nullptr) {
-                    sendErrorReply(QDBusError::ErrorType::Failed, "No such as touch screen exists");
-                    return;
-                }
-                QString strUUid = QString::fromStdString(findOutputDeviceForName(strOutputName)->uuid().toStdString());
-                if (strUUid.contains(strTouchSerial)) {
-                    for (int i = 0; i < map.keys().count(); i++) {
-                        if (map.keys().at(i) == "TouchDevice") {
-                            m_associateMap[strOutputName] = strTouchSerial;
+                for (int i = 0; i < map.keys().count(); i++) {
+                    if (map.keys().at(i) == "TouchDevice") {
+                        OutputDeviceV2 *pOutputDeviceV2 = findOutputDeviceForUuid(map["ScreenUuid"].toString());
+                        if (pOutputDeviceV2) {
+                            map["ScreenName"] = findNameForOutputDevice(pOutputDeviceV2);
+                            touchMap[QString(pOutputDeviceV2->uuid().left(8))] = findNameForOutputDevice(pOutputDeviceV2);
                         }
                     }
                 }
             }
         }
     }
+    return touchMap;
 }
 
-void WaylandOutput::AssociateTouchByUUID(QString strOutputName, QString strTouchUUID)
-{
-    AssociateTouch(strOutputName, strTouchUUID);
-}
-
-bool WaylandOutput::CanRotate()
-{
-    QString strRotate = QProcessEnvironment::systemEnvironment().value("DEEPIN_DISPLAY_DISABLE_ROTATE");
-    if (strRotate == "1") {
-        return true;
-    }
-    return false;
-}
-
-bool WaylandOutput::CanSetBrightness(QString strOutputName)
-{
-    QString strBrightness = QProcessEnvironment::systemEnvironment().value("CAN_SET_BRIGHTNESS");
-    if (strBrightness == "N" && findOutputDeviceForName(strOutputName)->model().startsWith("HDMI")) {
-        return false;
-    }
-    return true;
-}
-
-void WaylandOutput::ChangeBrightness(bool bRaised)
-{
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        double dBrightness = outputBrightnessMap[findNameForOutputDevice(pOutputDevice)].toDouble();
-        if (bRaised) {
-            dBrightness += 0.1;
-            if (dBrightness > 1) {
-                dBrightness = 1;
-            }
-        } else {
-            dBrightness -= 0.1;
-            if (dBrightness < 0.1) {
-                dBrightness = 0.1;
-            }
-        }
-        SetBrightness(findNameForOutputDevice(pOutputDevice), dBrightness);
-    }
-}
-
-// Abandonment method
-void WaylandOutput::DeleteCustomMode(QString strName)
-{
-
-}
-
-QMap<QString, QVariant> WaylandOutput::GetBrightness()
-{
-    if (outputBrightnessMap.count() == 0) {
-        QMap<QString, QVariant> brightnessMap;
-        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-
-            qDebug() << pOutputDevice->model() << pOutputDevice->eisaId() << pOutputDevice->serialNumber();
-
-            brightnessMap[findNameForOutputDevice(pOutputDevice)] = 1;
-        }
-        return brightnessMap;
-    }
-
-    return  outputBrightnessMap;
-}
-
-QStringList WaylandOutput::GetBuiltinMonitor()
-{
-    QStringList strBuiltinMonitorList;
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        if (pOutputDevice->model().startsWith("edp")) {
-            strBuiltinMonitorList << findNameForOutputDevice(pOutputDevice);
-        }
-    }
-    return strBuiltinMonitorList;
-}
-
-uchar WaylandOutput::GetRealDisplayMode()
+uchar WaylandOutput::DisplayMode()
 {
     if (nDisplayMode == 0) {
         if (m_outputDeviceLst.count() > 1) {
             for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-                OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+                OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
                 if (pOutputDevice->geometry().x() > 0 || pOutputDevice->geometry().y() > 0) {
                     return screenExtendMode;
                 }
@@ -376,224 +324,121 @@ uchar WaylandOutput::GetRealDisplayMode()
     return nDisplayMode;
 }
 
-QStringList WaylandOutput::ListOutputNames()
+void WaylandOutput::SetPrimaryScreen(QString strOutputName)
 {
-    QStringList strOutputNamelist;
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        strOutputNamelist << findNameForOutputDevice(pOutputDevice);
-    }
-    return strOutputNamelist;
-}
-
-// Abandonment method
-QList<QVariant> WaylandOutput::ListOutputsCommonModes()
-{
-    return QList<QVariant>();
-}
-
-// Abandonment method
-void WaylandOutput::ModifyConfigName(QString strName, QString strNewName)
-{
-
-}
-
-// RefreshBrightness Reset brightness,be call by session/power,Restore brightness from configuration
-void WaylandOutput::RefreshBrightness()
-{
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        SetBrightness(findNameForOutputDevice(pOutputDevice), 1.00);
-    }
-}
-
-void WaylandOutput::Reset()
-{
-
-}
-
-void WaylandOutput::ResetChanges()
-{
-
-}
-
-void WaylandOutput::Save()
-{
-
-}
-
-void WaylandOutput::SetAndSaveBrightness(QString strOutputName, double dValue)
-{
-    SetBrightness(strOutputName, dValue);
-}
-
-void WaylandOutput::SetBrightness(QString strOutputName, double dValue)
-{
-    OutputDevice *pOutputDevice = findOutputDeviceForName(strOutputName);
-    OutputDevice::ColorCurves colorCurves = pOutputDevice->colorCurves();
-
+    OutputDeviceV2 *pOutputDevice = findOutputDeviceForName(m_strPrimaryScreenName);
     m_outputConfiguration = m_outputManagement->createConfiguration(this);
-    int rampsize = colorCurves.red.size();
+    if (pOutputDevice) {
+        m_outputConfiguration->setPrimaryOutput(pOutputDevice);
+        m_strPrimaryScreenName = strOutputName;
+    } else {
+        sendErrorReply(QDBusError::ErrorType::Failed, "No such as screen name exists!");
+        return;
+    }
+}
 
-    float gammaRed = 1.0;
-    float gammaGreen = 1.0;
-    float gammaBlue = 1.0;
-    QVector<quint16> vecRed;
-    QVector<quint16> vecGreen;
-    QVector<quint16> vecBlue;
+void WaylandOutput::showCursor()
+{
+//    if (m_Surface) {
+//        Pointer *p = m_pSeat->createPointer(m_pSeat);
+//        if (p) {
+//            p->setCursor(m_Surface, QPoint(0 ,0));
+//        }
+//    }
+}
 
-    for (int i = 0; i < rampsize; i++) {
-        if (gammaRed == 1.0 && dValue == 1.0)
-            vecRed.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
-        else
-            vecRed.append(dmin(pow((double)i/(double)(rampsize - 1),
-                                   gammaRed) * dValue,
-                               1.0) * (double)UINT16_MAX);
+void WaylandOutput::hideCursor()
+{
+//    Pointer *p = m_pSeat->createPointer(m_pSeat);
+//    if (p) {
+//        p->hideCursor();
+//    }
+}
 
-        if (gammaGreen == 1.0 && dValue == 1.0)
-            vecGreen.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
-        else
-            vecGreen.append(dmin(pow((double)i/(double)(rampsize - 1),
-                                     gammaGreen) * dValue,
-                                 1.0) * (double)UINT16_MAX);
+void WaylandOutput::SetDisplayMode(uchar uMode, QVariantList screenInfoList)
+{
+    m_outputConfiguration = m_outputManagement->createConfiguration(this);
 
-        if (gammaBlue == 1.0 && dValue == 1.0)
-            vecBlue.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
-        else
-            vecBlue.append(dmin(pow((double)i/(double)(rampsize - 1),
-                                    gammaBlue) * dValue,
-                                1.0) * (double)UINT16_MAX);
+    for (int i = 0; i < screenInfoList.count(); i++) {
+        QMap<QString, QVariant> screenInfo = screenInfoList.at(i).toMap();
+        QString strName = screenInfo["name"].toString();
+        QString strUUid = screenInfo["uuid"].toString();
+        bool bEnable = screenInfo["enable"].toBool();
+        int nRotation = screenInfo["rotation"].toInt();
+        int x = screenInfo["x"].toInt();
+        int y = screenInfo["y"].toInt();
+        int nMode = screenInfo["modeId"].toInt();
+        bool bPrimary = screenInfo["primary"].toBool();
+        double dBrightness = screenInfo["brightness"].toDouble();
+
+        OutputDeviceV2 *pOutputDeviceV2 = findOutputDeviceForName(strName);
+        if (!pOutputDeviceV2) {
+            sendErrorReply(QDBusError::ErrorType::Failed, QString("No named %1 screen exists!").arg(strName));
+            return;
+        }
+
+        WaylandScreen *pWaylandScreen = pOutputDeviceV2->findChild<WaylandScreen *>(QString(pOutputDeviceV2->uuid().left(8)));
+        if (!pWaylandScreen) {
+            sendErrorReply(QDBusError::ErrorType::Failed, QString("%1 uuid not exists!").arg(strName));
+            return;
+        }
+        pWaylandScreen->SetBrightness(dBrightness);
+
+        m_outputConfiguration->setMode(pOutputDeviceV2, nMode - 1);
+        m_outputConfiguration->setEnabled(pOutputDeviceV2, OutputDeviceV2::Enablement(bEnable));
+        m_outputConfiguration->setTransform(pOutputDeviceV2, OutputDeviceV2::Transform(nRotation));
+        m_outputConfiguration->setPosition(pOutputDeviceV2, QPoint(x, y));
+
+        if (bPrimary) {
+            m_outputConfiguration->setPrimaryOutput(pOutputDeviceV2);
+            m_strPrimaryScreenName = strName;
+        }
+        m_outputConfiguration->apply();
+    }
+    nDisplayMode = uMode;
+}
+
+void WaylandOutput::SetColorTemperatureMode(int nValue)
+{
+    m_nCCTMode = nValue;
+}
+
+int WaylandOutput::ColorTemperatureMode()
+{
+    return m_nCCTMode;
+}
+
+double WaylandOutput::Scale()
+{
+    return m_dScale;
+}
+
+void WaylandOutput::SetScale(double dScale)
+{
+    if (dScale > 2.5) {
+        m_dScale = 2.5;
+    } if (dScale < 0.5) {
+        m_dScale = 0.5;
+    } else {
+        m_dScale = dScale;
     }
 
-    m_outputConfiguration->setColorCurves(pOutputDevice, vecRed, vecGreen, vecBlue);
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
+        m_outputConfiguration->setScaleF(pOutputDevice, m_dScale);
+    }
     m_outputConfiguration->apply();
-
-    outputBrightnessMap[findNameForOutputDevice(pOutputDevice)] = dValue;
 }
 
-void WaylandOutput::SetColorTemperature(int nValue)
+void WaylandOutput::mapToOutput(int nDeviceId, QString strOutputName)
+{
+
+}
+
+OutputDeviceV2* WaylandOutput::findOutputDeviceForName(QString strName)
 {
     for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-        OutputDevice::ColorCurves colorCurves = pOutputDevice->colorCurves();
-
-        m_outputConfiguration = m_outputManagement->createConfiguration(this);
-        int rampsize = colorCurves.red.size();
-
-        QVector<quint16> vecRed;
-        QVector<quint16> vecGreen;
-        QVector<quint16> vecBlue;
-
-        // linear default state
-        for (int i = 0; i < rampsize; i++) {
-            uint16_t value = (double)i / rampsize * (UINT16_MAX + 1);
-            vecRed.push_back(value);
-            vecGreen.push_back(value);
-            vecBlue.push_back(value);
-        }
-
-        // approximate white point
-        float whitePoint[3];
-        float alpha = (nValue % 100) / 100.;
-        int bbCIndex = ((nValue - 1000) / 100) * 3;
-        whitePoint[0] = (1. - alpha) * blackbodyColor[bbCIndex] + alpha * blackbodyColor[bbCIndex + 3];
-        whitePoint[1] = (1. - alpha) * blackbodyColor[bbCIndex + 1] + alpha * blackbodyColor[bbCIndex + 4];
-        whitePoint[2] = (1. - alpha) * blackbodyColor[bbCIndex + 2] + alpha * blackbodyColor[bbCIndex + 5];
-
-        for (int i = 0; i < rampsize; i++) {
-            vecRed[i] = (double)vecRed[i] / (UINT16_MAX+1) * whitePoint[0] * (UINT16_MAX+1);
-            vecGreen[i] = (double)vecGreen[i] / (UINT16_MAX+1) * whitePoint[1] * (UINT16_MAX+1);
-            vecBlue[i] = (double)vecBlue[i] / (UINT16_MAX+1) * whitePoint[2] * (UINT16_MAX+1);
-        }
-        m_outputConfiguration->setColorCurves(pOutputDevice, vecRed, vecGreen, vecBlue);
-        m_outputConfiguration->apply();
-    }
-
-    if (m_strCCTMode == manualmode) {
-        m_nCCTValue = nValue;
-    }
-}
-
-// set automatic color temperature adjustment
-void WaylandOutput::SetMethodAdjustCCT(int nAdjustMethod)
-{
-    m_strCCTMode = nAdjustMethod;
-
-    if (m_strCCTMode != manualmode) {
-        SetColorTemperature(6500);
-    }
-}
-
-void WaylandOutput::SetPrimary(QString strOutputName)
-{
-    m_strPrimaryScreenName = strOutputName;
-}
-
-void WaylandOutput::SwitchMode(uchar uMode, QString strName)
-{
-    if (!findOutputDeviceForName(strName) || uMode > displayMode::screenShowAloneMode) {
-        return;
-    }
-
-    m_outputConfiguration = m_outputManagement->createConfiguration(this);
-
-    switch (uMode) {
-    case screenExtendMode: {
-        int x = 0;
-        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-            m_outputConfiguration->setEnabled(pOutputDevice, OutputDevice::Enablement::Enabled);
-            m_outputConfiguration->setMode(pOutputDevice, pOutputDevice->modes().first().flags);
-            m_outputConfiguration->setTransform(pOutputDevice, pOutputDevice->transform());
-            if (i == 0) {
-                m_outputConfiguration->setPosition(pOutputDevice, QPoint(0, 0));
-            } else {
-                x += pOutputDevice->geometry().width();
-                m_outputConfiguration->setPosition(pOutputDevice, QPoint(x, 0));
-            }
-        }
-        m_outputConfiguration->apply();
-        nDisplayMode = screenExtendMode;
-    }
-        break;
-    case screenCopyMode: {
-        for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-            m_outputConfiguration->setEnabled(pOutputDevice, OutputDevice::Enablement::Enabled);
-            m_outputConfiguration->setMode(pOutputDevice, pOutputDevice->modes().first().flags);
-            m_outputConfiguration->setTransform(pOutputDevice, pOutputDevice->transform());
-            m_outputConfiguration->setPosition(pOutputDevice,QPoint(0, 0));
-        }
-        m_outputConfiguration->apply();
-        nDisplayMode = screenCopyMode;
-    }
-        break;
-    case screenShowAloneMode: {
-         for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-            OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
-            if (findNameForOutputDevice(pOutputDevice) == strName) {
-                m_outputConfiguration->setEnabled(pOutputDevice, OutputDevice::Enablement::Enabled);
-                m_outputConfiguration->setMode(pOutputDevice, pOutputDevice->modes().first().flags);
-                m_outputConfiguration->setTransform(pOutputDevice, pOutputDevice->transform());
-                m_outputConfiguration->setPosition(pOutputDevice,QPoint(0, 0));
-            } else {
-                m_outputConfiguration->setEnabled(pOutputDevice, OutputDevice::Enablement::Disabled);
-                m_outputConfiguration->setMode(pOutputDevice, pOutputDevice->modes().first().flags);
-            }
-         }
-         m_outputConfiguration->apply();
-         nDisplayMode = screenShowAloneMode;
-    }
-        break;
-    default:
-        return;
-    }
-}
-
-OutputDevice* WaylandOutput::findOutputDeviceForName(QString strName)
-{
-    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
-        OutputDevice *pOutputDevice = m_outputDeviceLst.at(i);
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
         if (pOutputDevice->model().startsWith(strName)) {
             return pOutputDevice;
         }
@@ -601,7 +446,7 @@ OutputDevice* WaylandOutput::findOutputDeviceForName(QString strName)
     return nullptr;
 }
 
-QString WaylandOutput::findNameForOutputDevice(OutputDevice *pOutputDevice)
+QString WaylandOutput::findNameForOutputDevice(OutputDeviceV2 *pOutputDevice)
 {
     QStringList strResultLst;
     QString strOutputName = pOutputDevice->model();
@@ -656,4 +501,15 @@ void WaylandOutput::setDpmsStatus(Dpms::Mode mode, Output *pOutput)
         Dpms *pDpms = m_dpmsManager->getDpms(pOutput, this);
         pDpms->requestMode(mode);
     }
+}
+
+OutputDeviceV2* WaylandOutput::findOutputDeviceForUuid(QString strUuid)
+{
+    for (int i = 0; i < m_outputDeviceLst.count(); i++) {
+        OutputDeviceV2 *pOutputDevice = m_outputDeviceLst.at(i);
+        if (pOutputDevice->model().contains(strUuid)) {
+            return pOutputDevice;
+        }
+    }
+    return nullptr;
 }

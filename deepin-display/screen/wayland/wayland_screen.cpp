@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2022 Uniontech Technology Co., Ltd.
+ *
+ * Author:     xinbo wang <wangxinbo@uniontech.com>
+ *
+ * Maintainer: xinbo wang <wangxinbo@uniontech.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "wayland_screen.h"
 
 #include <QDBusConnection>
@@ -10,8 +31,10 @@
 #include <QProcess>
 #include <QStringList>
 #include <QDBusReply>
+#include <QRect>
 
 #include "wayland/wayland_screen.h"
+#include "DWayland/Client/outputdevice_v2.h"
 #include "screenadaptor.h"
 
 #define DBUS_DEEPIN_WM_SERVICE "org.kde.KWin"
@@ -32,69 +55,26 @@ bool isX11Platform()
     return true;
 }
 
-WaylandScreen::WaylandScreen(QObject *parent)
+WaylandScreen::WaylandScreen(OutputDeviceV2 *pOutputDevice, OutputManagementV2 *pOutputManagementV2, QObject *parent)
     : AbstractScreen(parent)
 {
     new ScreenAdaptor(this);
 
-    QDBusInterface wm(DBUS_DEEPIN_WM_SERVICE, DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF);
-    QDBusReply<QString> getReply = wm.call("getTouchDeviceToScreenInfo");
-    if(!getReply.value().isEmpty()) {
-        QJsonParseError error;
-        QJsonDocument document = QJsonDocument::fromJson(getReply.value().toUtf8(), &error);
-        if (QJsonParseError::NoError == error.error) {
-            QList<QVariant> list = document.toVariant().toList();
-            for (int i = 0; i < list.count(); i++) {
-                QVariant item = list.at(i);
-                QVariantMap map = item.toMap();
-                int nScreenId = map["ScreenId"].toInt();
-                QString strUUId = map["ScreenUuid"].toString();
-                QString strTouchDeviceNode = map.find("TouchDevice")->toString();
-                QString str = QString(screenPath).append("%1""%2").arg("_").arg(nScreenId);
-                QDBusConnection::sessionBus().registerObject(str, this, QDBusConnection::ExportAllContents);
-            }
-        }
-    }
+    m_outputManagement = pOutputManagementV2;
+    m_pOutputDevice = pOutputDevice;
+    QString strScreenPath = QString("%1%2").arg("/com/deepin/kwin/Display/Screen_").arg(QString(pOutputDevice->uuid().left(8)));
+    QDBusConnection::sessionBus().registerObject(strScreenPath, this, QDBusConnection::ExportAllContents);
+    m_modesList = Modes();
 }
 
-WaylandScreen::~ WaylandScreen()
+WaylandScreen::~WaylandScreen()
 {
 
 }
 
-QVariantList WaylandScreen::Modes()
+int WaylandScreen::ColorTemperatureManual()
 {
-    return QVariantList();
-}
-
-QVariantList WaylandScreen::PreferredModes()
-{
-    return QVariantList();
-}
-
-QVariantList WaylandScreen::Reflects()
-{
-    return QVariantList();
-}
-
-QVariantList WaylandScreen::Rotations()
-{
-    return QVariantList();
-}
-
-bool WaylandScreen::Connected()
-{
-    return true;
-}
-
-bool WaylandScreen::Enabled()
-{
-    return true;
-}
-
-uchar WaylandScreen::CurrentRotateMode()
-{
-    return uchar();
+    return int();
 }
 
 double WaylandScreen::Brightness()
@@ -102,113 +82,249 @@ double WaylandScreen::Brightness()
     return double();
 }
 
+QMap<QString, QVariant> WaylandScreen::BestDisplayMode()
+{
+    for (int i = 0; i < m_pOutputDevice->modes().count(); i++) {
+        DeviceModeV2 *pDeviceModeV2 = m_pOutputDevice->modes().at(i);
+        QMap<QString, QVariant> modesInfo;
+        modesInfo["id"] = i+1;
+        modesInfo["width"] = pDeviceModeV2->size().width();
+        modesInfo["height"] = pDeviceModeV2->size().height();
+        modesInfo["refreshRate"] = pDeviceModeV2->refreshRate() / 1000.00;
+        if (pDeviceModeV2->preferred()) {
+            return modesInfo;
+        }
+    }
+    return QMap<QString, QVariant>();
+}
+
+int WaylandScreen::ScreenWidth()
+{
+    return m_pOutputDevice->geometry().width();
+}
+
+int WaylandScreen::ScreenHeight()
+{
+    return m_pOutputDevice->geometry().height();
+}
+
 double WaylandScreen::RefreshRate()
 {
-    return double();
+    return m_pOutputDevice->currentMode()->refreshRate() / 1000.00;
 }
 
-int WaylandScreen::X()
+bool WaylandScreen::Connected()
 {
-    return 0;
-}
-
-int WaylandScreen::Y()
-{
-    return 0;
-}
-
-QString WaylandScreen::Manufacturer()
-{
-    return QString();
+    return bool(m_pOutputDevice->enabled());
 }
 
 QString WaylandScreen::Model()
 {
-    return QString();
+    return m_pOutputDevice->model();
 }
 
-QString WaylandScreen::Name()
+QVariantList WaylandScreen::Rotations()
 {
-    return QString();
+    QVariantList rotationsList;
+    rotationsList << 0 << 1 <<2 << 3;
+    return rotationsList;
 }
 
-QVariantList WaylandScreen::BestMode()
+int WaylandScreen::X()
 {
-    return QVariantList();
+    return m_pOutputDevice->globalPosition().x();
 }
 
-QVariantList WaylandScreen::CurrentMode()
+int WaylandScreen::Y()
 {
-    return QVariantList();
+    return m_pOutputDevice->globalPosition().y();
 }
 
-int WaylandScreen::Height()
+QString WaylandScreen::ID()
 {
-    return 0;
+    return QString(m_pOutputDevice->uuid().left(8));
 }
 
-int WaylandScreen::Reflect()
+bool WaylandScreen::Enabled()
 {
-    return 0;
+    return bool(m_pOutputDevice->enabled());
+}
+
+int WaylandScreen::PhysicalWidth()
+{
+    return  m_pOutputDevice->physicalSize().width();
+}
+
+int WaylandScreen::PhysicalHeight()
+{
+    return m_pOutputDevice->physicalSize().height();
 }
 
 int WaylandScreen::Rotation()
 {
-    return 0;
+    return int(m_pOutputDevice->transform());
 }
 
-int WaylandScreen::Width()
+QString WaylandScreen::Name()
 {
-    return 0;
+    QStringList strResultLst;
+    QString strOutputName = m_pOutputDevice->model();
+    QStringList outputname = strOutputName.split("-");
+    for (int i = 0; i < outputname.count(); i++) {
+        QString strName = outputname.at(i);
+        if (strName.front().isNumber()) {
+          strResultLst << strName;
+          break;
+        }
+        strResultLst << strName;
+    }
+    return strResultLst.join("-");
 }
 
-int WaylandScreen::ID()
+QString WaylandScreen::Manufacturer()
 {
-    return 0;
+    return m_pOutputDevice->manufacturer();
 }
 
-int WaylandScreen::MmHeight()
+QVariantList WaylandScreen::Modes()
 {
-    return 0;
+    QVariantList modesList;
+    for (int i = 0; i < m_pOutputDevice->modes().count(); i++) {
+        DeviceModeV2 *pDeviceModeV2 = m_pOutputDevice->modes().at(i);
+        QMap<QString, QVariant> modesInfo;
+        modesInfo["id"] = i+1;
+        modesInfo["width"] = pDeviceModeV2->size().width();
+        modesInfo["height"] = pDeviceModeV2->size().height();
+        modesInfo["refreshRate"] = pDeviceModeV2->refreshRate() / 1000.00;
+        modesList << modesInfo;
+    }
+    m_modesList = modesList;
+    return m_modesList;
 }
 
-int WaylandScreen::MmWidth()
+QVariantList WaylandScreen::CurrentMode()
 {
-    return 0;
+    QVariantList modesList;
+    for (int i = 0; i < m_modesList.count(); i++) {
+        QMap<QString, QVariant> modesInfo = m_modesList.at(i).toMap();
+        if (modesInfo["width"].toInt() == m_pOutputDevice->currentMode()->size().width() &&
+                modesInfo["height"].toInt() == m_pOutputDevice->currentMode()->size().height() &&
+                modesInfo["refreshRate"].toDouble() == m_pOutputDevice->currentMode()->refreshRate() / 1000.00){
+            modesList << modesInfo;
+        }
+    }
+    return modesList;
 }
 
-
-void WaylandScreen::Enable(bool isEnable)
+void WaylandScreen::SetResolution(int nWidth, int nHeight)
 {
+    int nModeId = 0;
+    for (int i = 0; i < m_modesList.count(); i++) {
+        QMap<QString, QVariant> modesInfo = m_modesList.at(i).toMap();
+        if (modesInfo["width"].toInt() == nWidth && modesInfo["height"].toInt() == nHeight){
+            nModeId = modesInfo["id"].toInt() - 1;
+        }
+    }
 
-}
+    if (nModeId < 0) {
+        sendErrorReply(QDBusError::ErrorType::Failed, "No support this Resolution!");
+        return;
+    }
 
-void WaylandScreen::SetMode(int nMode)
-{
-
-}
-
-void WaylandScreen::SetModeBySize(int nWidth, int nHeight)
-{
-
-}
-
-void WaylandScreen::SetPosition(int x,int y)
-{
-
-}
-
-void WaylandScreen::SetReflect(int nReflect)
-{
-
+    m_outputConfiguration = m_outputManagement->createConfiguration(this);
+    m_outputConfiguration->setMode(m_pOutputDevice, nModeId);
+    m_outputConfiguration->apply();
 }
 
 void WaylandScreen::SetRefreshRate(double dRefreshRate)
 {
+    int nWidth = m_pOutputDevice->currentMode()->size().width();
+    int nHeight = m_pOutputDevice->currentMode()->size().height();
 
+    for (int i = 0; i < m_modesList.count(); i++) {
+        QMap<QString, QVariant> modesInfo = m_modesList.at(i).toMap();
+        if (modesInfo["width"].toInt() == nWidth && modesInfo["height"].toInt() == nHeight && modesInfo["refreshRate"].toInt() / 1000.00 == dRefreshRate){
+            m_outputConfiguration->setMode(m_pOutputDevice, modesInfo["id"].toInt());
+            m_outputConfiguration->apply();
+            return;
+        }
+    }
 }
 
 void WaylandScreen::SetRotation(int nRotation)
 {
+    if (nRotation > 3 || nRotation < 0) {
+        sendErrorReply(QDBusError::ErrorType::Failed, "No support this Rotation!");
+        return;
+    }
+    m_outputConfiguration->setTransform(m_pOutputDevice, KWayland::Client::OutputDeviceV2::Transform(nRotation));
+    m_outputConfiguration->apply();
+}
 
+void WaylandScreen::SetScreenPosition(int x, int y)
+{
+    m_outputConfiguration->setPosition(m_pOutputDevice, QPoint(x, y));
+    m_outputConfiguration->apply();
+}
+
+void WaylandScreen::SetBrightness(double dBrightness)
+{
+////    OutputDevice::ColorCurves colorCurves = pOutputDevice->colorCurves();
+
+    m_outputConfiguration = m_outputManagement->createConfiguration(this);
+//    int rampsize = colorCurves.red.size();
+
+    int rampsize = 1;
+    float gammaRed = 1.0;
+    float gammaGreen = 1.0;
+    float gammaBlue = 1.0;
+    QVector<quint16> vecRed;
+    QVector<quint16> vecGreen;
+    QVector<quint16> vecBlue;
+
+    for (int i = 0; i < rampsize; i++) {
+        if (gammaRed == 1.0 && dBrightness == 1.0)
+            vecRed.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
+        else
+            vecRed.append(dmin(pow((double)i/(double)(rampsize - 1),
+                                   gammaRed) * dBrightness,
+                               1.0) * (double)UINT16_MAX);
+
+        if (gammaGreen == 1.0 && dBrightness == 1.0)
+            vecGreen.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
+        else
+            vecGreen.append(dmin(pow((double)i/(double)(rampsize - 1),
+                                     gammaGreen) * dBrightness,
+                                 1.0) * (double)UINT16_MAX);
+
+        if (gammaBlue == 1.0 && dBrightness == 1.0)
+            vecBlue.append((double)i / (double)(rampsize - 1) * (double)UINT16_MAX);
+        else
+            vecBlue.append(dmin(pow((double)i/(double)(rampsize - 1),
+                                    gammaBlue) * dBrightness,
+                                1.0) * (double)UINT16_MAX);
+    }
+
+    m_outputConfiguration->setColorCurves(m_pOutputDevice, vecRed, vecGreen, vecBlue);
+    m_outputConfiguration->apply();
+}
+
+void WaylandScreen::SetColorTemperature(int nColorTemperature)
+{
+
+}
+
+QString WaylandScreen::CurrentScalingMode()
+{
+    return QString();
+}
+
+void WaylandScreen::setScalingMode(int nMode)
+{
+
+}
+
+QVariantList WaylandScreen::SupportScalingMode()
+{
+    return QVariantList();
 }

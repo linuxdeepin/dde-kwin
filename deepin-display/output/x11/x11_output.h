@@ -7,6 +7,10 @@
 #include <QDBusContext>
 #include <QVariant>
 
+#include <xcb/randr.h>
+
+class XCBEventListener;
+
 class X11Output : public AbstractOutput
 {
     Q_OBJECT
@@ -15,47 +19,53 @@ public:
     explicit X11Output(QObject *parent = nullptr);
     ~X11Output();
 
-    virtual QStringList Monitors();
-    virtual QStringList CustomIdList();
-    virtual QVariantList Touchscreens();
-    virtual bool HasChanged();
-    virtual uchar DisplayMode();
-    virtual QMap<QString, QVariant> Brightness();
-    virtual QMap<QString, QVariant> TouchMap();
-    virtual int ColorTemperatureManual();
-    virtual int ColorTemperatureMode();
-    virtual QString CurrentCustomId();
-    virtual QString Primary();
-    virtual QVariantList PrimaryRect();
-    virtual ushort ScreenHeight();
-    virtual ushort ScreenWidth();
-    virtual uint MaxBacklightBrightness();
+    virtual QVariantList Touchscreens() override;
+    virtual QString PrimaryScreenName() override;
+    virtual QStringList Monitors() override;
+    virtual uint MaxBacklightBrightness() override;
+    virtual ushort (DisplayWidth)() override;
+    virtual ushort (DisplayHeight)() override;
+    virtual QMap<QString, QVariant> TouchMap() override;
+    virtual int ColorTemperatureMode() override;
+    virtual uchar DisplayMode() override;
+    virtual double Scale() override;
+
+public:
+    QString formatOutputName(QString strOutputName);
+    void colorramp_fill(uint16_t *gamma_r, uint16_t *gamma_g, uint16_t *gamma_b, int size, int temperature, double dBrightness = 1);
+    void setBrightness(double dBrightness);
+    void testGetMode();
 
 public slots:
-    virtual void ApplyChanged();
-    virtual void AssociateTouch(QString strOutputName, QString strTouchSerial);
-    virtual void AssociateTouchByUUID(QString strOutputName, QString strTouchUUID);
-    virtual bool CanRotate();
-    virtual bool CanSetBrightness(QString strOutputName);
-    virtual void ChangeBrightness(bool bRaised);
-    virtual void DeleteCustomMode(QString strName);
-    virtual QMap<QString, QVariant> GetBrightness();
-    virtual QStringList GetBuiltinMonitor();// ???
-    virtual uchar GetRealDisplayMode();
-    virtual QStringList ListOutputNames();
-    virtual QList<QVariant> ListOutputsCommonModes();
-    virtual void ModifyConfigName(QString strName, QString strNewName);
-    virtual void RefreshBrightness();
-    virtual void Reset();
-    virtual void ResetChanges();
-    virtual void Save();
-    virtual void SetAndSaveBrightness(QString strOutputName, double dValue);
-    virtual void SetBrightness(QString strOutputName, double dValue);
-    virtual void SetColorTemperature(int nValue);
-    virtual void SetMethodAdjustCCT(int nAdjustMethod);
-    virtual void SetPrimary(QString strOutputName);
-    virtual void SwitchMode(uchar uMode, QString strName);
+    void outputChanged(xcb_randr_output_t output, xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_connection_t connection);
+    void crtcChanged(xcb_randr_crtc_t crtc, xcb_randr_mode_t mode, xcb_randr_rotation_t rotation, const QRect &geom, xcb_timestamp_t timestamp);
+    void screenChanged(xcb_randr_rotation_t rotation, const QSize &sizePx, const QSize &sizeMm);
+
+
+public slots:
+
+    virtual void SetPrimaryScreen(QString strOutputName) override;
+    virtual void showCursor() override;
+    virtual void hideCursor() override;
+    virtual void SetDisplayMode(uchar uMode, QVariantList screenInfoList) override;
+    virtual void SetColorTemperatureMode(int nValue) override;
+    virtual void SetScale(double dScale) override;
+    virtual void mapToOutput(int nDeviceId, QString strOutputName) override;
+
+Q_SIGNALS:
+    void outputRemoved(QMap<QString, QVariant> outputInfo);
+    void outputAdded();
+
+private:
+    XCBEventListener *m_x11Helper;
+
+    int m_nColor = 6500;
+    double m_dBrightness = 1.00;
+    int nDisplayMode = 0;
+    int m_nCCTMode = 0;
+    double m_dScale = 1.00;
+    QMap<QString, QVariant> touchScreensInfo;
+
 
 };
-
 #endif // DEEPINWMFAKER_H

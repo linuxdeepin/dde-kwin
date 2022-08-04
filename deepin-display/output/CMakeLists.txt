@@ -8,6 +8,7 @@ find_package(X11 REQUIRED)
 find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(KF5Wayland REQUIRED)
+find_package(Qt5X11Extras REQUIRED)
 
 add_subdirectory(wayland)
 add_subdirectory(x11)
@@ -30,6 +31,9 @@ add_library(
     abstract_output.cpp
     wayland/wayland_output.cpp
     x11/x11_output.cpp
+    x11/xcbeventlistener.cpp
+    x11/utils.cpp
+    x11/xcbwrapper.cpp
     ${output_SRCS}
 )
 
@@ -44,10 +48,22 @@ target_link_libraries(
     Qt5::Core
     Qt5::DBus
     Qt5::Gui
+    Qt5::X11Extras
     dtkcore
-    KF5::WaylandServer
-    KF5::WaylandClient
+    DWaylandServer
+    DWaylandClient
+    -lxcb-randr
+    -lXfixes
+    -lXi
+    -lXinerama
+    -lXrandr
 )
+
+if (QT_MAJOR_VERSION EQUAL "5")
+    target_link_libraries(Qt::X11Extras)
+else()
+    target_link_libraries(Qt::GuiPrivate)
+endif()
 
 install_targets("/lib" ${TARGET_NAME})
 

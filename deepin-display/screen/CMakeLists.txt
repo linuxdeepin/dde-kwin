@@ -8,6 +8,7 @@ find_package(X11 REQUIRED)
 find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(KF5Wayland REQUIRED)
+find_package(Qt5X11Extras REQUIRED)
 
 add_subdirectory(wayland)
 add_subdirectory(x11)
@@ -44,6 +45,7 @@ target_link_libraries(
     Qt5::Core
     Qt5::DBus
     Qt5::Gui
+    Qt5::X11Extras
     dtkcore
     KF5::WaylandServer
     KF5::WaylandClient
