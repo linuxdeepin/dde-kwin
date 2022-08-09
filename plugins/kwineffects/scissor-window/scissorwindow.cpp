@@ -114,22 +114,6 @@ public:
 
         QPointF window_radius = data_radius.toPointF();
 
-        const int RR = 17;
-        if (KWin::effects->waylandDisplay()) {
-            if (w->windowClass().contains("Deepin") || w->windowClass().contains("dde-")) {
-                window_radius.setX(RR);
-                window_radius.setY(RR);
-            } else if(w->isTooltip()) {
-                window_radius.setX(RR);
-                window_radius.setY(RR);
-            } else if(w->isDock()) {
-                window_radius.setX(RR);
-                window_radius.setY(RR);
-            }
-            else {
-            }
-        }
-
         // 排除无效的数据
         if (qIsNull(window_radius.x()) || qIsNull(window_radius.y()))
             return TextureData();
