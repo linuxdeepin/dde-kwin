@@ -23,6 +23,10 @@
 
 #include <QObject>
 
+#ifndef DISBLE_DDE_KWIN_XCB
+#include "kwinutils.h"
+#endif
+
 #include <kwineffects.h>
 
 // 标记窗口当前是否正在使用变色龙窗口标题栏主题
@@ -38,7 +42,12 @@
 #define _NET_WM_WINDOW_TYPE "_NET_WM_WINDOW_TYPE"
 
 namespace KWin {
-class Client;
+#if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 25 && KWIN_VERSION_MIN < 4
+class AbstractClient;
+#else
+class Window;
+#endif
+
 class Unmanaged;
 class EffectWindow;
 class Toplevel;
@@ -54,7 +63,7 @@ class ChameleonConfig : public QObject
 
 public:
     enum EffectDataRole {
-        BaseRole = KWin::DataRole::LanczosCacheRole + 100,
+        BaseRole = KWin::DataRole::WindowBackgroundContrastRole + 100,
         WindowRadiusRole = BaseRole + 1,
         WindowClipPathRole = BaseRole + 2,
         WindowMaskTextureRole = BaseRole + 3
@@ -93,7 +102,11 @@ protected:
 
 private slots:
     void onConfigChanged();
-    void onClientAdded(KWin::Client *client);
+#if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 25 && KWIN_VERSION_MIN < 4
+    void onClientAdded(KWin::AbstractClient *client);
+#else
+    void onClientAdded(KWin::Window *client);
+#endif
     // 针对X11BypassWindowManagerHint类型的窗口需要做一些特殊处理
     void onUnmanagedAdded(KWin::Unmanaged *client);
     void onCompositingToggled(bool active);

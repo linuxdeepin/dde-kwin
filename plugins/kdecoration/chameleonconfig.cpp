@@ -24,10 +24,6 @@
 #include "chameleon.h"
 #include "chameleonwindowtheme.h"
 
-#ifndef DISBLE_DDE_KWIN_XCB
-#include "kwinutils.h"
-#endif
-
 #include <kwineffects.h>
 
 #include <KConfig>
@@ -147,7 +143,11 @@ void ChameleonConfig::onConfigChanged()
 }
 
 #define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
-void ChameleonConfig::onClientAdded(KWin::Client *client)
+#if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 25 && KWIN_VERSION_MIN < 4
+void ChameleonConfig::onClientAdded(KWin::AbstractClient *client)
+#else
+void ChameleonConfig::onClientAdded(KWin::Window *client)
+#endif
 {
     QObject *c = reinterpret_cast<QObject*>(client);
 
@@ -911,7 +911,11 @@ void ChameleonConfig::init()
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     connect(KWinUtils::workspace(), SIGNAL(configChanged()), this, SLOT(onConfigChanged()));
-    connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::Client*)), this, SLOT(onClientAdded(KWin::Client*)));
+#if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 25 && KWIN_VERSION_MIN < 4
+    connect(KWinUtils::workspace(), SIGNAL(windowAdded(KWin::AbstractClient*)), this, SLOT(onClientAdded(KWin::AbstractClient*)));
+#else
+    connect(KWinUtils::workspace(), SIGNAL(windowAdded(KWin::Window*)), this, SLOT(onClientAdded(KWin::Window*)));
+#endif
     connect(KWinUtils::workspace(), SIGNAL(unmanagedAdded(KWin::Unmanaged*)), this, SLOT(onUnmanagedAdded(KWin::Unmanaged*)));
     connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
     connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);
@@ -1231,7 +1235,11 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
         effect = window->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
 
         if (effect) {
-            QRect shape_rect = effect->shape().boundingRect();
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+            QRect shape_rect = effect->geometry();
+#else
+            QRect shape_rect = effect->clientGeometry();
+#endif
             const QRect window_rect(QPoint(0, 0), window->property("size").toSize());
 
             // 减去窗口的shape区域

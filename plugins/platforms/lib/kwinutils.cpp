@@ -87,9 +87,15 @@ public:
 public Q_SLOTS:
     void slotWindowMove();
     void slotWindowMaximize();
-    bool compositing() const;
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
+     // remove by c61085dc2e28cb7d737c9b049499b4433916b194
+     // change to Compositor::compositing()
+     bool compositing() const;
+ #endif
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     void slotTouchPadTomoveWindow(int x, int y);
     void slotEndTouchPadToMoveWindow();
+#endif
 
 #if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 10, 95, 0)
     // kwin < 5.10.95
@@ -139,16 +145,30 @@ class Compositor : public QObject
 public:
     enum SuspendReason { NoReasonSuspend = 0, UserSuspend = 1<<0, BlockRuleSuspend = 1<<1, ScriptSuspend = 1<<2, AllReasonSuspend = 0xff };
     static Compositor *s_compositor;
+    bool isActive();
 };
 
 // 光标管理
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 23, 4, 0)
+class Cursors : public QObject
+{
+public:
+    static Cursors *s_self;
+};
+#else
 class Cursor : public QObject
 {
 public:
     static Cursor *s_self;
 };
+#endif
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 class AbstractClient : public QObject {};
+#else
+class Window : public QObject {};
+#endif
+
 class Options {
 public:
     enum WindowOperation {};
@@ -311,7 +331,7 @@ public:
         clientMaximize = (ClientMaximize)KWinUtils::resolve("_ZN4KWin14AbstractClient8maximizeENS_12MaximizeModeE");
         activateClient = (ActivateClient)KWinUtils::resolve("_ZN4KWin9Workspace14activateClientEPNS_14AbstractClientEb");
         clientUpdateCursor = (ClientUpdateCursor)KWinUtils::resolve("_ZN4KWin14AbstractClient12updateCursorEv");
-        clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin8Toplevel8setDepthEi");
+        clientSetDepth = (ClientSetDepth)KWinUtils::resolve("_ZN4KWin6Window8setDepthEi");
         clientCheckNoBorder = (ClientCheckNoBorder)KWinUtils::resolve("_ZN4KWin6Client13checkNoBorderEv");
         quickTileWindow = (QuickTileWindow)KWinUtils::resolve("_ZN4KWin9Workspace15quickTileWindowE6QFlagsINS_13QuickTileFlagEE");
         x11CursorGetCursor = (X11CursorGetCursor)KWinUtils::resolve("_ZN4KWin6Cursor9x11CursorEN2Qt11CursorShapeE");
@@ -619,7 +639,11 @@ QObject *KWinUtils::tabBox()
 
 QObject *KWinUtils::cursor()
 {
+#if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 23, 4, 0)
+    return KWin::Cursors::s_self;
+#else
     return KWin::Cursor::s_self;
+#endif
 }
 
 QObject *KWinUtils::virtualDesktop()
@@ -649,8 +673,13 @@ QObjectList KWinUtils::clientList()
         return {};
     }
 
-    QList<KWin::Client*> clients;
-    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::Client*>, clients));
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
+    QList<KWin::AbstractClient*> clients;
+    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::AbstractClient*>, clients));
+#else
+    QList<KWin::Window*> clients;
+    bool ok = QMetaObject::invokeMethod(jsWorkspaceWrapper, "clientList", Q_RETURN_ARG(QList<KWin::Window*>, clients));
+#endif
 
     if (!ok) {
         return {};
@@ -658,9 +687,15 @@ QObjectList KWinUtils::clientList()
 
     QObjectList list;
 
-    for (KWin::Client *c : clients) {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
+    for (KWin::AbstractClient *c : clients) {
         list << c;
     }
+#else
+    for (KWin::Window *c : clients) {
+        list << c;
+    }
+#endif
 
     return list;
 }
@@ -1073,12 +1108,19 @@ void KWinUtils::removeWindowPropertyMonitor(quint32 property_atom)
 
 bool KWinUtils::isCompositing()
 {
+  #if defined(KWIN_VERSION) && KWIN_VERSION >= KWIN_VERSION_CHECK(5, 23, 4, 0)
+     if (KWin::Compositor::s_compositor) {
+         return KWin::Compositor::s_compositor->isActive();
+     }
+ #else
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
         return ws->compositing();
     } else {
         return compositorIsActive();
     }
+#endif
+    return compositorIsActive();
 }
 
 bool KWinUtils::buildNativeSettings(QObject *baseObject, quint32 windowID)
@@ -1125,7 +1167,9 @@ void KWinUtils::TouchPadToMoveWindow(int x, int y)
 {
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
         ws->slotTouchPadTomoveWindow(x,y);
+#endif
     }
 }
 
@@ -1133,7 +1177,9 @@ void KWinUtils::EndTouchPadToMoveWindow()
 {
     KWin::Workspace *ws = static_cast<KWin::Workspace *>(workspace());
     if (ws) {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
         ws->slotEndTouchPadToMoveWindow();
+#endif
     }
 }
 
@@ -1407,16 +1453,28 @@ void KWinUtils::Window::performWindowOperation(QObject *window, const QString &o
     if (!window || !interface->optionsWindowOperation)
         return;
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(window);
     KWin::Options::WindowOperation op = interface->optionsWindowOperation(opName, restricted);
     QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::AbstractClient*, c), Q_ARG(KWin::Options::WindowOperation, op));
+#else
+    KWin::Window *c = dynamic_cast<KWin::Window*>(window);
+    KWin::Options::WindowOperation op = interface->optionsWindowOperation(opName, restricted);
+    QMetaObject::invokeMethod(workspace(), "performWindowOperation", Q_ARG(KWin::Window*, c), Q_ARG(KWin::Options::WindowOperation, op));
+#endif
 }
 
 void KWinUtils::Window::setQuikTileMode(QObject *window, int m, bool isShowReview)
 {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(window);
 
     QMetaObject::invokeMethod(workspace(), "slotSetClientSplit", Q_ARG(KWin::AbstractClient*, c), Q_ARG(int, m), Q_ARG(bool, isShowReview));
+#else
+    KWin::Window *c = dynamic_cast<KWin::Window*>(window);
+
+    QMetaObject::invokeMethod(workspace(), "slotSetClientSplit", Q_ARG(KWin::Window*, c), Q_ARG(int, m), Q_ARG(bool, isShowReview));
+#endif
 }
 
 QObject *KWinUtils::getDDEShellSurface(QObject * shellClient)
@@ -1425,9 +1483,13 @@ QObject *KWinUtils::getDDEShellSurface(QObject * shellClient)
         return nullptr;
     }
 
-    KWin::AbstractClient *c = dynamic_cast<KWin::AbstractClient*>(shellClient);
+    KWin::Window *c = dynamic_cast<KWin::Window*>(shellClient);
     QObject * dss = nullptr;
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     QMetaObject::invokeMethod(workspace(), "slotGetDdeShellSurface", Q_ARG(KWin::AbstractClient*, c), Q_ARG(QObject *& , dss));
+#else
+    QMetaObject::invokeMethod(workspace(), "slotGetDdeShellSurface", Q_ARG(KWin::Window*, c), Q_ARG(QObject *& , dss));
+#endif
     return dss;
 }
 

@@ -33,7 +33,11 @@
 #include <QSettings>
 #include <QScreen>
 #include <QPainterPath>
+#include <QFont>
+
+#ifdef USE_DEEPIN_WAYLAND
 #include <KWayland/Server/ddeshell_interface.h>
+#endif
 
 class Settings;
 class ChameleonWindowTheme;
@@ -124,7 +128,9 @@ private:
 
     QPointer<KWin::EffectWindow> m_effect;
     QFont m_font;
+#ifdef USE_DEEPIN_WAYLAND
     KWayland::Server::DDEShellSurfaceInterface * m_ddeShellSurface = nullptr;
+#endif
 };
 
 #endif // CHAMELEON_H

@@ -80,6 +80,7 @@ void Chameleon::init()
     updateTheme();
 
     if (!QX11Info::isPlatformX11() && m_client) {
+#ifdef USE_DEEPIN_WAYLAND
         m_ddeShellSurface = static_cast<KWayland::Server::DDEShellSurfaceInterface*>(KWinUtils::getDDEShellSurface(m_client));
         if (m_ddeShellSurface) {
             connect(m_ddeShellSurface, &KWayland::Server::DDEShellSurfaceInterface::noTitleBarPropertyRequested, this,
@@ -102,6 +103,7 @@ void Chameleon::init()
                 }
             );
         }
+#endif
     }
 
     connect(global_config, &ChameleonConfig::themeChanged, this, &Chameleon::updateTheme);
