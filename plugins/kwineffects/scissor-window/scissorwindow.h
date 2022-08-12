@@ -23,12 +23,16 @@
 
 #include <kwineffects.h>
 
+#ifndef DISBLE_DDE_KWIN_XCB
+#include "kwinutils.h"
+#endif
+
 class ScissorWindow : public KWin::Effect
 {
     Q_OBJECT
 public:
     enum DataRole {
-        BaseRole = KWin::DataRole::LanczosCacheRole + 100,
+        BaseRole = KWin::DataRole::WindowBackgroundContrastRole + 100,
         WindowRadiusRole = BaseRole + 1,
         WindowClipPathRole = BaseRole + 2,
         WindowMaskTextureRole = BaseRole + 3,

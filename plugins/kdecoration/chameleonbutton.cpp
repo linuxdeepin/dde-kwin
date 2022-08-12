@@ -222,8 +222,13 @@ void ChameleonButton::mousePressEvent(QMouseEvent *event)
                 if (decoration) {
                     effect = decoration->effect();
                     if (m_pSplitMenu && effect) {
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
                         qreal x = effect->geometry().x();
                         qreal y = effect->geometry().y();
+#else
+                        qreal x = effect->clientGeometry().x();
+                        qreal y = effect->clientGeometry().y();
+#endif
                         QPoint p(x + geometry().x(), y + geometry().height());
                         m_pSplitMenu->setShowSt(true);
                         m_pSplitMenu->stopTime();

@@ -20,6 +20,19 @@ option(USE_SCRIPTS "use scripts" ON)
 option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
 option(USE_TABBOX "use deepin style tabbox" ON)
 option(USE_WINDOW_TOOL "support wayland and x11" ON)
+option(USE_DEEPIN_WAYLAND "use deepin wayland" ON)
+option(ENABLE_BUILTIN_SCISSOR_WINDOW "enable deepin built-in scissor window plugin" ON)
+option(ENABLE_BUILTIN_BLUR "enable deepin built-in blur plugin" ON)
+option(ENABLE_BUILTIN_MULTITASKING "enable deepin built-in multitasking plugin" ON)
+option(ENABLE_BUILTIN_BLACK_SCREEN "enable deepin built-in black screen plugin" ON)
+
+if(ENABLE_BUILTIN_BLUR)
+     add_definitions(-DENABLE_BUILTIN_BLUR)
+endif(ENABLE_BUILTIN_BLUR)
+
+if (USE_DEEPIN_WAYLAND)
+    add_definitions(-DUSE_DEEPIN_WAYLAND)
+endif(USE_DEEPIN_WAYLAND)
 
 #when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
 find_path(
@@ -53,7 +66,10 @@ endmacro()
 
 query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
 
-set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
+if(NOT DEFINED PLUGIN_INSTALL_PATH)
+    set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
+endif()
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed
@@ -97,8 +113,6 @@ if (KWIN_VERSION)
     )
 endif()
 
-add_subdirectory(configures)
-
 if (USE_PLUGINS)
   add_subdirectory(plugins)
 endif()
@@ -122,3 +136,5 @@ endif()
 if (USE_WINDOW_TOOL)
   add_subdirectory(windowtool)
 endif()
+
+add_subdirectory(configures)

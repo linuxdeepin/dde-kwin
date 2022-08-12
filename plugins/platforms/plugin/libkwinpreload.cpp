@@ -53,7 +53,11 @@ struct MenuItem {
     bool checked;
 };
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 static QList<MenuItem> getMenuItemInfos(AbstractClient *cl)
+#else
+static QList<MenuItem> getMenuItemInfos(Window *cl)
+#endif
 {
     QList<MenuItem> menu_items {
         {"minimize", qApp->translate("WindowMenu", "Minimize"),
@@ -85,12 +89,20 @@ class Q_DECL_HIDDEN MenuSlot : public QObject
 {
     Q_OBJECT
 public:
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     MenuSlot(KWin::AbstractClient *cl, QObject *parent = nullptr)
+#else
+    MenuSlot(KWin::Window *cl, QObject *parent = nullptr)
+#endif
         : QObject(parent)
         , m_client(cl)
     {}
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     static void onMenuItemInvoked(const QString &id, bool checked, AbstractClient *cl)
+#else
+    static void onMenuItemInvoked(const QString &id, bool checked, Window *cl)
+#endif
     {
         if (id == "minimize") {
             KWinUtils::Window::setWindowMinimize(cl, true);
@@ -124,12 +136,20 @@ public slots:
     }
 
 private:
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
     AbstractClient *m_client;
+#else
+    Window *m_client;
+#endif
 };
 
 #ifndef WAYLAND_PLATFORM
 #ifdef USE_DBUS_MENU
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
+#else
+
+#endif
 {
     if (KWinUtils::Window::isDesktop(_menuClient) ||
             KWinUtils::Window::isDock(_menuClient) ||
@@ -182,7 +202,12 @@ void Workspace::showWindowMenu(const QRect &pos, AbstractClient *cl)
 }
 #else
 static QPointer<QMenu> _globalWindowMenu;
+
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 static AbstractClient *_menuClient = nullptr;
+#else
+static Window *_menuClient = nullptr;
+#endif
 
 bool UserActionsMenu::isShown() const
 {
@@ -203,7 +228,11 @@ bool UserActionsMenu::hasClient()
     return !_menuClient && isShown();
 }
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 bool UserActionsMenu::isMenuClient(const AbstractClient *c) const
+#else
+bool UserActionsMenu::isMenuClient(const Window *c) const
+#endif
 {
     if (!c || !_menuClient)
         return false;
@@ -218,7 +247,11 @@ void UserActionsMenu::handleClick(const QPoint& pos)
     }
 }
 
+#if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 25, 4, 0)
 void UserActionsMenu::show(const QRect &pos, const QWeakPointer<AbstractClient> &cl)
+#else
+void UserActionsMenu::show(const QRect &pos, const QWeakPointer<Window> &cl)
+#endif
 {
     qDebug() << "------------- menu show ";
     _menuClient = cl.data();
@@ -279,9 +312,11 @@ void RuleBook::save()
 
 namespace BuiltInEffects {
 bool supported(BuiltInEffect effect) {
+#ifdef ENABLE_BUILTIN_BLUR
     if (effect == BuiltInEffect::Blur) {
         return false;
     }
+#endif
 
     typedef bool (*ClientBuiltInEffect)(KWin::BuiltInEffect);
     ClientBuiltInEffect clientBuildInEffect = (ClientBuiltInEffect)QLibrary::resolve("kwin", qApp->applicationVersion(), "_ZN4KWin14BuiltInEffects9supportedENS_13BuiltInEffectE");

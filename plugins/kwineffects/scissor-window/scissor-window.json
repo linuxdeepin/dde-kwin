@@ -4,6 +4,10 @@
             {
                 "Email": "zccrs@live.com",
                 "Name": "zccrs"
+            },
+            {
+                "Email": "lxz@mkacg.com",
+                "Name": "justforlxz"
             }
         ],
         "Description": "Allow clip of window content",
@@ -15,8 +19,15 @@
         "ServiceTypes": [
             "KWin/Effect"
         ],
-        "org.kde.kwin.effect": {
-            "exclusiveGroup": "appearance"
-        }
-    }
+        "Category": "Appearance",
+        "License": "GPL",
+        "Version": "1.0"
+    },
+    "org.kde.kwin.effect": {
+        "exclusiveGroup": "appearance",
+        "enabledByDefaultMethod": true
+    },
+    "X-KDE-Ordering": "5",
+    "X-Plasma-API": "",
+    "X-Plasma-MainScript": ""
 }

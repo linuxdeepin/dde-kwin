@@ -1,10 +1,16 @@
 <RCC>
+    <qresource prefix="/">
+        <file>cornermask_core.frag</file>
+        <file>fullmask_core.frag</file>
+        <file>cornermask.frag</file>
+        <file>fullmask.frag</file>
+    </qresource>
     <qresource prefix="/effect-shaders-1.10">
-        <file alias="corner-mask.frag">cornermask.frag.110</file>
-        <file alias="full-mask.frag">fullmask.frag.110</file>
+        <file alias="cornermask.frag">cornermask_core.frag</file>
+        <file alias="fullmask.frag">fullmask_core.frag</file>
     </qresource>
     <qresource prefix="/effect-shaders-1.40">
-        <file alias="corner-mask.frag">cornermask.frag.140</file>
-        <file alias="full-mask.frag">fullmask.frag.140</file>
+        <file alias="cornermask.frag">cornermask.frag</file>
+        <file alias="fullmask.frag">fullmask.frag</file>
     </qresource>
 </RCC>

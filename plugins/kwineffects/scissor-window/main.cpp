@@ -23,19 +23,27 @@
 class ScissorWindowPluginFactory : public KWin::EffectPluginFactory
 {
     Q_OBJECT
-    Q_INTERFACES(KPluginFactory)
+#if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 23
     Q_PLUGIN_METADATA(IID KPluginFactory_iid FILE "scissor-window.json")
-
+#else
+    Q_PLUGIN_METADATA(IID EffectPluginFactory_iid FILE "scissor-window.json")
+#endif
+    Q_INTERFACES(KPluginFactory)
 public:
-    explicit ScissorWindowPluginFactory();
-    ~ScissorWindowPluginFactory();
+    explicit ScissorWindowPluginFactory() {}
+    ~ScissorWindowPluginFactory() {}
 
-    KWin::Effect *createEffect() const {
-        return ScissorWindow::supported() ? new ScissorWindow() : nullptr;
+    bool isSupported() const override {
+        return ScissorWindow::supported();
+    }
+
+    bool enabledByDefault() const override {
+        return true;
+    }
+
+    KWin::Effect *createEffect() const override {
+        return new ScissorWindow;
     }
 };
-
-K_PLUGIN_FACTORY_DEFINITION(ScissorWindowPluginFactory, registerPlugin<ScissorWindow>();)
-K_EXPORT_PLUGIN_VERSION(KWIN_EFFECT_API_VERSION)
 
 #include "main.moc"
