@@ -2,7 +2,7 @@ etc/xdg/kdeglobals
 etc/xdg/kglobalshortcutsrc
 etc/xdg/klaunchrc
 etc/xdg/kwinrc
-etc/xdg/kwinrulesrc
+etc/xdg/deepin-kwinrulesrc
 usr/bin/deepin-wm-dbus
 usr/bin/kwin_no_scale
 #usr/lib/*/*.so.*
