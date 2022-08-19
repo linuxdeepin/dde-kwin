@@ -609,10 +609,7 @@ void ChameleonConfig::updateClientWindowRadius(QObject *client)
 
     const QVariant client_radius = client->property("windowRadius");
     if (client_radius.isValid()) {
-        QPointF radius = client_radius.toPointF();
-        if (!radius.isNull()) {
-            window_radius = radius;
-        }
+        window_radius = client_radius.toPointF();
     }
 
     const QVariant &effect_window_radius = effect->data(ChameleonConfig::WindowRadiusRole);
