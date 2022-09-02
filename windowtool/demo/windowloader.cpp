@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <windowtool/WindowInfoLoader.h>
+#include "../src/WindowInfoLoader.h"
 
 #include <png.h>
 
