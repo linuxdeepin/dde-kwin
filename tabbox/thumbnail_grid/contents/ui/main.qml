@@ -136,6 +136,8 @@ KWin.Switcher {
                     item_width = maxWidth / max_items_each_row
                 }
 
+                max_items_each_row = Math.floor((maxWidth - spacing) / Math.floor(item_width));
+
                 gridColumns = Math.min(max_items_each_row, count);
                 gridRows = Math.ceil(count / max_items_each_row);
                 if (gridRows == 0) gridRows = 1;
@@ -145,6 +147,8 @@ KWin.Switcher {
 
                 itemsView.thumbnailWidth = item_width;
                 itemsView.thumbnailHeight = item_width;
+
+                tabBox.model.setViewColumnCount(max_items_each_row);
 
                 dialog.dealyUpdate(); //当列数发生变化的时候,延时刷新
 
