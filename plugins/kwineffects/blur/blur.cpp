@@ -487,24 +487,8 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
                 region -= w->decorationInnerRect();
             }
 
-            if (effects->waylandDisplay()) {
-                if ( w->windowClass().contains("dde-clipboard")
-                        || w->windowClass().contains("dde-osd")
-                        || w->windowClass().contains("DeepinAI")
-                        || w->windowClass().contains("dde-launcher")) {
-                    region = rounded(w->shape(), RR);
-                } else if (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE) {
-                    region = rounded(w->shape(), RR);
-                } else if (w->isTooltip()) {
-                    region = rounded(w->shape(), RR);
-                } else {
-                    region |= appRegion.translated(w->contentsRect().topLeft()) &
-                              w->decorationInnerRect();
-                }
-            } else {
-                region |= appRegion.translated(w->contentsRect().topLeft()) &
+            region |= appRegion.translated(w->contentsRect().topLeft()) &
                           w->decorationInnerRect();
-            }
         } else {
             // An empty region means that the blur effect should be enabled
             // for the whole window.
@@ -515,18 +499,6 @@ QRegion BlurEffect::blurRegion(const EffectWindow *w) const
         // the effect behind the decoration.
         region = w->shape();
         region -= w->decorationInnerRect();
-    } else {
-        if (effects->waylandDisplay()) {
-            if (w->isDock() && w->geometry().width() > DOCK_WINDTH_JUDGE) {
-                region = rounded(w->shape(), RR);
-            } else if (w->isTooltip()) {
-                region = rounded(w->shape(), RR);
-            } else if (w->windowClass().contains("dde-launcher")) {
-                region = rounded(w->shape(), RR);
-            } else if (w->windowClass().contains("Deepin")) {
-                region = rounded(w->shape(), RR);
-            }
-        }
     }
 
     return region;
