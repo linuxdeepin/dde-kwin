@@ -164,7 +164,7 @@ void BlurEffect::updateTexture()
         }
 
         if (colorEncoding == GL_SRGB) {
-            textureFormat = GL_SRGB8_ALPHA8;
+            //textureFormat = GL_SRGB8_ALPHA8;
         }
     }
 
