@@ -1,3 +1,9 @@
+dde-kwin (5.5.11+deepin) UNRELEASED; urgency=medium
+
+  * update
+
+ -- Deepin Packages Builder <packages@deepin.com>  Tue, 20 Sep 2022 17:17:48 +0800
+
 dde-kwin (5.5.10-1) unstable; urgency=medium
 
   * Bug fix:
