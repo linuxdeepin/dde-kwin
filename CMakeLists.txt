@@ -10,6 +10,23 @@ if (NOT PROJECT_VERSION_MAJOR)
     set(PROJECT_VERSION_MAJOR 0)
 endif()
 
+find_package(Qt5Core)
+get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+
+macro(query_qmake args output)
+    exec_program(${QT_QMAKE_EXECUTABLE} ARGS -query ${args} OUTPUT_VARIABLE ${output} RETURN_VALUE exitCode)
+
+    if(NOT ${exitCode} EQUAL 0)
+        message(FATAL_ERROR "exec ${QT_QMAKE_EXECUTABLE} failed, with args: ${args}, error message: ${output}")
+    endif()
+endmacro()
+
+query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
+
+if(NOT DEFINED PLUGIN_INSTALL_PATH)
+    set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
+endif()
+
 add_definitions(
     -DPROJECT_NAME=\\"${PROJECT_NAME}\\"
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
@@ -19,20 +36,94 @@ option(USE_PLUGINS "use dde-kwin plugins" ON)
 option(USE_SCRIPTS "use scripts" ON)
 option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
 option(USE_TABBOX "use deepin style tabbox" ON)
-option(USE_WINDOW_TOOL "support wayland and x11" ON)
-option(USE_DEEPIN_WAYLAND "use deepin wayland" ON)
 option(ENABLE_BUILTIN_SCISSOR_WINDOW "enable deepin built-in scissor window plugin" ON)
-option(ENABLE_BUILTIN_BLUR "enable deepin built-in blur plugin" ON)
-option(ENABLE_BUILTIN_MULTITASKING "enable deepin built-in multitasking plugin" ON)
-option(ENABLE_BUILTIN_BLACK_SCREEN "enable deepin built-in black screen plugin" ON)
 
-if(ENABLE_BUILTIN_BLUR)
-     add_definitions(-DENABLE_BUILTIN_BLUR)
-endif(ENABLE_BUILTIN_BLUR)
+# test deepin black screen
+try_compile(TEST_DEEPIN_BLACK_SCREEN
+              ${CMAKE_CURRENT_BINARY_DIR}/try_compile_black_screen
+              ${CMAKE_CURRENT_SOURCE_DIR}/plugins/kwineffects/black-screen
+              "multitasking"
+              CMAKE_FLAGS
+                "-DCMAKE_BUILD_TYPE=Debug"
+)
 
-if (USE_DEEPIN_WAYLAND)
-    add_definitions(-DUSE_DEEPIN_WAYLAND)
-endif(USE_DEEPIN_WAYLAND)
+message(STATUS "TEST_DEEPIN_BLACK_SCREEN ${TEST_DEEPIN_BLACK_SCREEN}")
+if (TEST_DEEPIN_BLACK_SCREEN)
+  option(ENABLE_BUILTIN_BLACK_SCREEN "enable deepin built-in black screen plugin" ON)
+endif(TEST_DEEPIN_BLACK_SCREEN)
+
+# test deepin multitasking
+try_compile(TEST_DEEPIN_MULTITASKING
+              ${CMAKE_CURRENT_BINARY_DIR}/try_compile_multitasking
+              ${CMAKE_CURRENT_SOURCE_DIR}/plugins/kwineffects/multitasking
+              "multitasking"
+              CMAKE_FLAGS
+                "-DCMAKE_BUILD_TYPE=Debug"
+)
+
+message(STATUS "TEST_DEEPIN_MULTITASKING ${TEST_DEEPIN_MULTITASKING}")
+if (TEST_DEEPIN_MULTITASKING)
+  option(ENABLE_BUILTIN_MULTITASKING "enable deepin built-in multitasking plugin" ON)
+endif(TEST_DEEPIN_MULTITASKING)
+
+# test deepin window tool
+try_compile(TEST_DEEPIN_WINDOW_TOOL
+              ${CMAKE_CURRENT_BINARY_DIR}/try_compile_window_tool
+              ${CMAKE_CURRENT_SOURCE_DIR}/windowtool
+              "dde-windowtool"
+              CMAKE_FLAGS
+                "-DCMAKE_BUILD_TYPE=Debug"
+)
+
+message(STATUS "TEST_DEEPIN_WINDOW_TOOL ${TEST_DEEPIN_WINDOW_TOOL}")
+if (TEST_DEEPIN_WINDOW_TOOL)
+  option(USE_WINDOW_TOOL "support wayland and x11" ON)
+endif(TEST_DEEPIN_WINDOW_TOOL)
+
+# test deepin blur
+find_package(KF5WindowSystem REQUIRED)
+find_package(Qt5 CONFIG REQUIRED COMPONENTS Core)
+find_package(X11 REQUIRED)
+try_compile(TEST_DEEPIN_BLUR
+              ${CMAKE_CURRENT_BINARY_DIR}/try_compile_blur
+            SOURCES
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/blur_test.cc
+            LINK_LIBRARIES
+              Qt5::Core
+              KF5::WindowSystem
+              X11::X11
+)
+
+message(STATUS "TEST_DEEPIN_BLUR ${TEST_DEEPIN_BLUR}")
+if (TEST_DEEPIN_BLUR)
+  option(ENABLE_BUILTIN_BLUR "enable deepin built-in blur plugin" ON)
+  if(ENABLE_BUILTIN_BLUR)
+       add_definitions(-DENABLE_BUILTIN_BLUR)
+  endif(ENABLE_BUILTIN_BLUR)
+endif(TEST_DEEPIN_BLUR)
+
+# test deepin wayland
+find_package(KF5WindowSystem REQUIRED)
+find_package(Qt5 CONFIG REQUIRED COMPONENTS Core)
+find_package(X11 REQUIRED)
+try_compile(TEST_DEEPIN_WAYLAND
+              ${CMAKE_CURRENT_BINARY_DIR}/try_compile_wayland
+            SOURCES
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/wayland_test.cc
+            LINK_LIBRARIES
+              Qt5::Core
+              KF5::WindowSystem
+              X11::X11
+)
+
+message(STATUS "TEST_DEEPIN_WAYLAND ${TEST_DEEPIN_WAYLAND}")
+
+if (TEST_DEEPIN_WAYLAND)
+  option(USE_DEEPIN_WAYLAND "use deepin wayland" ON)
+  if (USE_DEEPIN_WAYLAND)
+      add_definitions(-DUSE_DEEPIN_WAYLAND)
+  endif(USE_DEEPIN_WAYLAND)
+endif(TEST_DEEPIN_WAYLAND)
 
 #when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
 find_path(
@@ -51,23 +142,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "mips64")
     # 1050 security testing,security hardening
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-all -z relro -z now -z noexecstack -pie")
     set(CMAKE_EXE_LINKER_FLAGS "-pie")
-endif()
-
-find_package(Qt5Core)
-get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-
-macro(query_qmake args output)
-    exec_program(${QT_QMAKE_EXECUTABLE} ARGS -query ${args} OUTPUT_VARIABLE ${output} RETURN_VALUE exitCode)
-
-    if(NOT ${exitCode} EQUAL 0)
-        message(FATAL_ERROR "exec ${QT_QMAKE_EXECUTABLE} failed, with args: ${args}, error message: ${output}")
-    endif()
-endmacro()
-
-query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
-
-if(NOT DEFINED PLUGIN_INSTALL_PATH)
-    set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
 endif()
 
 # Find includes in corresponding build directories

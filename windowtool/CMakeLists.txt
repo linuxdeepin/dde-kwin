@@ -54,26 +54,28 @@ target_link_libraries(${PROJECT_NAME}  xcb)
 target_link_libraries(${PROJECT_NAME}  Libdrm::Libdrm)
 target_link_libraries(${PROJECT_NAME}  gbm::gbm)
 
-if (CMAKE_INSTALL_LIBDIR)
-    install_targets("/${CMAKE_INSTALL_LIBDIR}" ${PROJECT_NAME})
-elseif (CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-    install(TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-else()
-    install_targets("/lib" ${PROJECT_NAME})
-endif()
+if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
+  if (CMAKE_INSTALL_LIBDIR)
+      install_targets("/${CMAKE_INSTALL_LIBDIR}" ${PROJECT_NAME})
+  elseif (CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+      install(TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+  else()
+      install_targets("/lib" ${PROJECT_NAME})
+  endif()
 
-set(SC_HEADERS
-  src/WindowInfo.h
-  src/XcbWindowLoader.h
-  src/WaylandWindowLoader.h
-  src/ScreenRecorder.h
-  src/WindowInfoLoader.h
-)
+  set(SC_HEADERS
+    src/WindowInfo.h
+    src/XcbWindowLoader.h
+    src/WaylandWindowLoader.h
+    src/ScreenRecorder.h
+    src/WindowInfoLoader.h
+  )
 
-install(FILES
-  ${SC_HEADERS}
-  DESTINATION include/windowtool COMPONENT Devel
-)
+  install(FILES
+    ${SC_HEADERS}
+    DESTINATION include/windowtool COMPONENT Devel
+  )
+endif ()
 
 if (BUILD_TESTING)
     add_subdirectory(demo)

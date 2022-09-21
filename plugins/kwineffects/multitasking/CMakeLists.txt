@@ -74,6 +74,8 @@ find_package(KF5GlobalAccel REQUIRED)
 find_package(KF5I18n REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Qt5LinguistTools REQUIRED)
+find_package(KF5CoreAddons REQUIRED)
+find_package(KF5WindowSystem REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 
@@ -121,4 +123,6 @@ target_link_libraries(
     Qt5::X11Extras
 )
 
-install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
+if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
+  install(TARGETS ${PLUGIN_NAME} DESTINATION ${INSTALL_PATH})
+endif ()

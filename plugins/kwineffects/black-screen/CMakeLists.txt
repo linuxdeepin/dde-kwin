@@ -28,4 +28,6 @@ target_link_libraries(
     KF5::ConfigCore
 )
 
-install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALL_PATH})
+if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
+  install(TARGETS ${TARGET_NAME} DESTINATION ${INSTALL_PATH})
+endif ()
