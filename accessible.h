@@ -1,3 +1,5 @@
+#pragma once
+
 #include "accessibledefine.h"
 
 #include "plugins/kwineffects/multitasking/multitasking.h"
@@ -13,6 +15,3 @@ QAccessibleInterface *accessibleFactory(const QString &classname, QObject *objec
 
     return interface;
 }
-
-
-

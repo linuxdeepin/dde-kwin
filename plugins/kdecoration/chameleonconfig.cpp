@@ -141,7 +141,7 @@ void ChameleonConfig::onConfigChanged()
 }
 
 #define D_KWIN_DEBUG_APP_START_TIME "D_KWIN_DEBUG_APP_START_TIME"
-void ChameleonConfig::onClientAdded(KWin::Client *client)
+void ChameleonConfig::onClientAdded(KWin::AbstractClient *client)
 {
     QObject *c = reinterpret_cast<QObject*>(client);
 
@@ -293,8 +293,8 @@ void ChameleonConfig::onWindowShapeChanged(quint32 windowId)
 void ChameleonConfig::updateWindowNoBorderProperty(QObject *window)
 {
     // NOTE:
-    // since this slot gets executed in the event loop, there is a chance that 
-    // window has already been destroyed as of now. so we need to do double 
+    // since this slot gets executed in the event loop, there is a chance that
+    // window has already been destroyed as of now. so we need to do double
     // check here.
     auto kv = m_pendingWindows.find(window);
     if (kv != m_pendingWindows.end()) {
@@ -846,7 +846,7 @@ void ChameleonConfig::init()
 {
 #ifndef DISBLE_DDE_KWIN_XCB
     connect(KWinUtils::workspace(), SIGNAL(configChanged()), this, SLOT(onConfigChanged()));
-    connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::Client*)), this, SLOT(onClientAdded(KWin::Client*)));
+    connect(KWinUtils::workspace(), SIGNAL(clientAdded(KWin::AbstractClient *)), this, SLOT(onClientAdded(KWin::AbstractClient*)));
     connect(KWinUtils::workspace(), SIGNAL(unmanagedAdded(KWin::Unmanaged*)), this, SLOT(onUnmanagedAdded(KWin::Unmanaged*)));
     connect(KWinUtils::compositor(), SIGNAL(compositingToggled(bool)), this, SLOT(onCompositingToggled(bool)));
     connect(KWinUtils::instance(), &KWinUtils::windowPropertyChanged, this, &ChameleonConfig::onWindowPropertyChanged);
@@ -1164,7 +1164,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
         effect = window->findChild<KWin::EffectWindow*>(QString(), Qt::FindDirectChildrenOnly);
 
         if (effect) {
-            QRect shape_rect = effect->shape().boundingRect();
+            QRect shape_rect = effect->clientGeometry();
             const QRect window_rect(QPoint(0, 0), window->property("size").toSize());
 
             // 减去窗口的shape区域

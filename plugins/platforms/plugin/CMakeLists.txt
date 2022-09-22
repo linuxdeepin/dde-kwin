@@ -10,6 +10,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5DBus REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(DtkGui REQUIRED)
+find_package(X11)
 
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
@@ -40,6 +41,7 @@ install_files(
     org.kde.kwin.KWinUtils.xml
 )
 
+link_libraries(${X11_LIBRARIES})
 # for xcb platform
 add_library(
     ${TARGET_NAME} MODULE
@@ -63,6 +65,7 @@ target_link_libraries(
     Qt5::Widgets
     ${DtkGui_LIBRARIES}
     kwin-xcb
+    X11::X11
 )
 
 # for wayland platform

@@ -8,6 +8,7 @@ find_package(KF5WindowSystem REQUIRED)
 find_package(KF5GlobalAccel REQUIRED)
 find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(X11 REQUIRED)
 
 option(DISABLE_DEEPIN_WM "disable compatibility with deepin-wm" OFF)
 
@@ -64,6 +65,7 @@ target_link_libraries(
     Qt5::DBus
     KF5::ConfigCore
     KF5::WindowSystem
+    X11::X11
     KF5::GlobalAccel
     dtkcore
     ${GSETTINGS_LDFLAGS}

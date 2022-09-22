@@ -211,7 +211,7 @@ public slots:
         QDBusConnection::sessionBus().registerObject(KWinUtilsDbusPath, KWinUtilsDbusInterface, kwinUtils());
 
         if (QObject *cursor = kwinUtils()->cursor()) {
-            connect(cursor, SIGNAL(themeChanged()), this, SLOT(onCursorThemeChanged()), Qt::QueuedConnection);
+            connect(cursor, SIGNAL(currentCursorChanged()), this, SLOT(onCursorThemeChanged()), Qt::QueuedConnection);
         }
 
         // 初始化翻译资源

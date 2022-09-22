@@ -38,7 +38,7 @@
 #define _NET_WM_WINDOW_TYPE "_NET_WM_WINDOW_TYPE"
 
 namespace KWin {
-class Client;
+class AbstractClient;
 class Unmanaged;
 class EffectWindow;
 class Toplevel;
@@ -92,7 +92,7 @@ protected:
 
 private slots:
     void onConfigChanged();
-    void onClientAdded(KWin::Client *client);
+    void onClientAdded(KWin::AbstractClient *client);
     // 针对X11BypassWindowManagerHint类型的窗口需要做一些特殊处理
     void onUnmanagedAdded(KWin::Unmanaged *client);
     void onCompositingToggled(bool active);

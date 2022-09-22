@@ -10,6 +10,8 @@ if (NOT PROJECT_VERSION_MAJOR)
     set(PROJECT_VERSION_MAJOR 0)
 endif()
 
+option(ENABLE_BUILTIN_BLUR "enable deepin built-in blur plugin" OFF)
+
 add_definitions(
     -DPROJECT_NAME=\\"${PROJECT_NAME}\\"
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"

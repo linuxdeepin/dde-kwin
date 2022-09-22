@@ -29,6 +29,7 @@ find_package(KF5I18n REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Qt5LinguistTools REQUIRED)
 find_package(Qt5X11Extras REQUIRED)
+find_package(X11 REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 
@@ -58,6 +59,7 @@ target_link_libraries(
     Qt5::X11Extras
     xcb
     kwineffects
+    X11::X11
 )
 
 include_directories(../plugins/platforms/lib)
