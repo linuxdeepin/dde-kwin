@@ -74,6 +74,7 @@ find_package(KF5GlobalAccel REQUIRED)
 find_package(KF5I18n REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Qt5LinguistTools REQUIRED)
+find_package(X11 REQUIRED)
 
 pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
 

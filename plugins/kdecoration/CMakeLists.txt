@@ -7,6 +7,7 @@ find_package(KF5CoreAddons REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KDecoration2 REQUIRED)
+find_package(X11 REQUIRED)
 
 include_directories(${Qt5Core_PRIVATE_INCLUDE_DIRS})
 include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})

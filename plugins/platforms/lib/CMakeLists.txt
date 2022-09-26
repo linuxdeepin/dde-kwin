@@ -6,6 +6,7 @@ find_package(Qt5Qml REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KF5CoreAddons REQUIRED)
+find_package(X11 REQUIRED)
 
 if (${KF5WindowSystem_VERSION_MINOR} GREATER 45)
     add_definitions(-DKWINDOWSYSTEM_NO_QWIDGET)
