@@ -681,7 +681,7 @@ void BlurEffect::paintEffectFrame(EffectFrame *frame, const QRegion &region, dou
 void BlurEffect::paintEffectFrame(EffectFrame *frame, QRegion region, double opacity, double frameOpacity)
 #endif
 {
-    const QRect screen = effects->virtualScreenGeometry();
+    const QRect screen = GLRenderTarget::virtualScreenGeometry();
     bool valid = m_renderTargetsValid && m_shader && m_shader->isValid();
 
     QRegion shape = frame->geometry().adjusted(-borderSize, -borderSize, borderSize, borderSize) & screen;
