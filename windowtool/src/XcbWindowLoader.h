@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #ifndef H_SRC_XCB_WINDOW_INFO_H_
 #define H_SRC_XCB_WINDOW_INFO_H_
 
