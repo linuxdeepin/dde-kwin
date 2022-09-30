@@ -1,0 +1,32 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dde-kwin
+Upstream-Contact:  <>
+Source: https://github.com/linuxdeepin/dde-kwin
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
+
+Files: windowtool/* tests/* tabbox/* scripts/* plugins/* translations/* configures/* deepin-wm-dbus/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later 
+
+Files: *.png *.svg
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later 
+
+Files: .github/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later 
+
+Files: debian/* rpm/*
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later 
+
+Files: .clog.toml .gitignore .gitlab-ci.yml .release.json .tx/config CHANGELOG.md CMakeLists.txt translate_desktop2ts.sh translate_ts2desktop.sh
+Copyright: UnionTech Software Technology Co., Ltd.
+License: GPL-3.0-or-later 
+
+

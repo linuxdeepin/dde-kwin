@@ -1,4 +1,8 @@
-﻿#ifndef DEEPINWMFAKER_H
+// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#ifndef DEEPINWMFAKER_H
 #define DEEPINWMFAKER_H
 
 #include "kwinutils_interface.h"
