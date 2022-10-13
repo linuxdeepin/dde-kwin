@@ -1238,7 +1238,7 @@ void ChameleonConfig::buildKWinX11Shadow(QObject *window)
 #if !defined(KWIN_VERSION) || KWIN_VERSION < KWIN_VERSION_CHECK(5, 23, 4, 0)
             QRect shape_rect = effect->geometry();
 #else
-            QRect shape_rect = effect->clientGeometry();
+            QRect shape_rect = effect->clientGeometry().toRect();
 #endif
             const QRect window_rect(QPoint(0, 0), window->property("size").toSize());
 

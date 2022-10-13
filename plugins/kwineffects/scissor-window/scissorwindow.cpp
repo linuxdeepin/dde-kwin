@@ -23,6 +23,7 @@
 #include <kwinglplatform.h>
 #include <kwingltexture.h>
 
+#include <QImage>
 #include <QPainter>
 #include <QPainterPath>
 #include <QExplicitlySharedDataPointer>
@@ -80,7 +81,7 @@ public:
             if (path.isEmpty())
                 return TextureData();
 
-            QImage mask(w->size(), QImage::Format_ARGB32);
+            QImage mask(w->size().toSize(), QImage::Format_ARGB32);
             mask.fill(Qt::transparent);
             QPainter pa(&mask);
             pa.setRenderHint(QPainter::Antialiasing);
@@ -212,6 +213,10 @@ ScissorWindow::ScissorWindow(QObject *, const QVariantList &)
     }
 }
 
+ScissorWindow::~ScissorWindow() {
+
+}
+
 #if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
 void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, const QRegion &_region, KWin::WindowPaintData &data)
 {
@@ -242,7 +247,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
 #if KWIN_VERSION_MAJ <= 5 && KWIN_VERSION_MIN < 23
         const QRect window_rect = w->geometry();
 #else
-        const QRect window_rect = w->frameGeometry();
+        const QRect window_rect = w->frameGeometry().toRect();
 #endif
         QRect corner_rect(window_rect.topLeft(), mask_texture->size);
 
@@ -378,7 +383,7 @@ void ScissorWindow::drawWindow(KWin::EffectWindow *w, int mask, QRegion region, 
     glActiveTexture(GL_TEXTURE0);
 
     // 激活着色器
-    KWin::GLShader *shader = mask_texture->customMask ? m_fullMaskShader : m_shader;
+    KWin::GLShader *shader = mask_texture->customMask ? m_fullMaskShader.get() : m_shader.get();
     KWin::ShaderManager::instance()->pushShader(shader);
     shader->setUniform("mask", 1);
 
