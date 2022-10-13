@@ -22,6 +22,7 @@
 #define SCISSORWINDOW_H
 
 #include <kwineffects.h>
+#include <memory>
 
 #ifndef DISBLE_DDE_KWIN_XCB
 #include "kwinutils.h"
@@ -42,6 +43,7 @@ public:
     static bool supported();
 
     explicit ScissorWindow(QObject *parent = nullptr, const QVariantList &args = QVariantList());
+    ~ScissorWindow() override;
 
 #if KWIN_VERSION_MIN > 17 || (KWIN_VERSION_MIN == 17 && KWIN_VERSION_PAT > 5)
     void drawWindow(KWin::EffectWindow* w, int mask, const QRegion &region, KWin::WindowPaintData& data) override;
@@ -50,8 +52,8 @@ public:
 #endif
 
 private:
-    KWin::GLShader *m_shader = nullptr;
-    KWin::GLShader *m_fullMaskShader = nullptr;
+    std::unique_ptr<KWin::GLShader> m_shader;
+    std::unique_ptr<KWin::GLShader> m_fullMaskShader;
 };
 
 #endif // SCISSORWINDOW_H
