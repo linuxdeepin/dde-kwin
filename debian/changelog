@@ -1,3 +1,9 @@
+dde-kwin (5.6.4) unstable; urgency=medium
+  * Bug fix:
+    + 140697 fix: show dock on all desktops
+
+ -- Lei Su <sulei@uniontech.com> Mon, 17 Oct 2022 16:10:00 +0800
+
 dde-kwin (5.6.3) unstable; urgency=medium
   * Bug fix:
     + 141897 fix: set descoration or zone don't need call kwin reconfigure.
