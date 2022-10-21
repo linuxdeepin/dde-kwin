@@ -25,7 +25,8 @@ Files: debian/* rpm/*
 Copyright: UnionTech Software Technology Co., Ltd.
 License: GPL-3.0-or-later 
 
-Files: .clog.toml .gitignore .gitlab-ci.yml .release.json .tx/config CHANGELOG.md CMakeLists.txt translate_desktop2ts.sh translate_ts2desktop.sh
+# auxiliary means
+Files: windowtool/.clang-format windowtool/demo/windowloader .clog.toml .gitignore .gitlab-ci.yml .release.json .tx/config CHANGELOG.md CMakeLists.txt translate_desktop2ts.sh translate_ts2desktop.sh README.md  README.zh_CN.md
 Copyright: UnionTech Software Technology Co., Ltd.
 License: GPL-3.0-or-later 
 
