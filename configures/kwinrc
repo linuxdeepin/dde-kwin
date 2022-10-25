@@ -16,7 +16,7 @@ kwin4_effect_morphingpopupsEnabled=false
 slidingpopupsEnabled=false
 com.deepin.multitaskingEnabled=false
 kwin4_effect_squash=false
-kwin4_effect_fadingpopups=false
+kwin4_effect_fadingpopupsEnabled=false
 
 [Desktops]
 Name_2=工作区 2
