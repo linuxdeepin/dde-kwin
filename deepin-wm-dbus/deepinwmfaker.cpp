@@ -593,22 +593,18 @@ void DeepinWMFaker::SetCurrentWorkspace(const int index)
 
 void DeepinWMFaker::NextWorkspace()
 {
-    // loopback support
-//    int current = m_windowSystem->currentDesktop();
-//    ++current < m_windowSystem->numberOfDesktops() ? current : loopback ? 0 : --current;
-//    SetCurrentWorkspace(current);
-
-   SetCurrentWorkspace(m_windowSystem->currentDesktop() + 1);
+    int current = m_windowSystem->currentDesktop();
+    if (current < m_windowSystem->numberOfDesktops()) {
+        SetCurrentWorkspace(current + 1);
+    }
 }
 
 void DeepinWMFaker::PreviousWorkspace()
 {
-    // loopback support
-//    int current = m_windowSystem->currentDesktop();
-//    --current >= 0 ? current : loopback ? --(m_windowSystem->numberOfDesktops()) : 0;
-//    SetCurrentWorkspace(current);
-
-    SetCurrentWorkspace(m_windowSystem->currentDesktop() - 1);
+    int current = m_windowSystem->currentDesktop();
+    if (current > 1) {
+        SetCurrentWorkspace(current - 1);
+    }
 }
 
 /*!
