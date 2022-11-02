@@ -172,9 +172,6 @@
     <method name="GetIsShowDesktop">
         <arg type="b" name="isShowDesktop" direction="out"/>
     </method>
-    <method name="SetShowDesktop">
-        <arg type="b" name="isShowDesktop" direction="in"/>
-    </method>
     <method name="TouchToMove">
         <arg type="i" name="x" direction="in"/>
         <arg type="i" name="y" direction="in"/>

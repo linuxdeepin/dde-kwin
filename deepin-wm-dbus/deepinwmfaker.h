@@ -135,7 +135,6 @@ public Q_SLOTS:
 
     // minin client
     bool GetIsShowDesktop();
-    void SetShowDesktop(bool isShowDesktop);
 
     void TouchToMove(int x, int y);
     void ClearMoveStatus();
@@ -200,7 +199,6 @@ private:
 
     bool m_isMultitaskingActived = false;
     bool m_isPlatformX11 = true;
-    bool m_isShowDesktop = false;
 };
 
 #endif // DEEPINWMFAKER_H
