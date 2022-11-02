@@ -1396,10 +1396,10 @@ void DeepinWMFaker::SetMultiTaskingStatus(bool isActive)
 
 bool DeepinWMFaker::GetIsShowDesktop()
 {
-    return m_isShowDesktop;
-}
+    QDBusInterface interface_kwin(KWinDBusService, KWinDBusPath);
 
-void DeepinWMFaker::SetShowDesktop(bool isShowDesktop)
-{
-    m_isShowDesktop = isShowDesktop;
+    QDBusReply<bool> reply = interface_kwin.call("showingDesktop");
+    if (reply.isValid())
+        return reply.value();
+    return false;
 }
