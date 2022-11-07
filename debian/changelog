@@ -1,3 +1,10 @@
+dde-kwin (5.6.5) unstable; urgency=medium
+
+  * Bug fix:
+    + 143589 fix: optimize the close about menu.
+
+ -- Lei Su <sulei@uniontech.com> Mon, 07 Nov 2022 16:46:57 +0800
+
 dde-kwin (5.6.4) unstable; urgency=medium
   * Bug fix:
     + 140697 fix: show dock on all desktops
