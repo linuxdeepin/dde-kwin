@@ -178,6 +178,7 @@ void ChameleonButton::hoverEnterEvent(QHoverEvent *event)
                             max_hover_timer->start(500);
                         }
                     }
+		    decoration->requestHideToolTip();
                 }
             }
         }
