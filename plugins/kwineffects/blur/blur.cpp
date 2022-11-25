@@ -686,7 +686,7 @@ void BlurEffect::paintEffectFrame(EffectFrame *frame, QRegion region, double opa
 
     QRegion shape = frame->geometry().adjusted(-borderSize, -borderSize, borderSize, borderSize) & screen;
 
-    if (valid && !shape.isEmpty() && region.intersects(shape.boundingRect()) && frame->style() != EffectFrameNone) {
+    if (valid && !shape.isEmpty() && region.intersects(shape.boundingRect()) && frame->style() != EffectFrameNone && frame->blur()) {
         doBlur(shape, screen, opacity * frameOpacity, frame->screenProjectionMatrix(), false, frame->geometry());
     }
     effects->paintEffectFrame(frame, region, opacity, frameOpacity);
