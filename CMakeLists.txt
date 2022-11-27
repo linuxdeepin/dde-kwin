@@ -43,7 +43,14 @@ macro(query_qmake args output)
     endif()
 endmacro()
 
-query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX /usr)
+endif ()
+include(GNUInstallDirs)
+
+if(NOT DEFINED QT_INSTALL_PLUGINS)
+    query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
+endif()
 
 set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
 # Find includes in corresponding build directories
