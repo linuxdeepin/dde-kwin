@@ -1,4 +1,4 @@
-set(TARGET_PATH "${CMAKE_INSTALL_PREFIX}/bin")
+set(TARGET_PATH "${CMAKE_INSTALL_FULL_BINDIR}")
 set(TARGET_NAME "deepin-wm-dbus")
 
 find_package(Qt5Core REQUIRED)
@@ -23,15 +23,17 @@ configure_file(com.deepin.wm.xml.in com.deepin.wm.xml)
 configure_file(org.kde.kwin.KWinUtils.xml.in org.kde.kwin.KWinUtils.xml)
 configure_file(com.deepin.wm.service.in com.deepin.wm.service)
 
-install_files(
-    "/share/dbus-1/interfaces"
+install(
     FILES
     ${CMAKE_CURRENT_BINARY_DIR}/com.deepin.wm.xml
+    DESTINATION
+    "${CMAKE_INSTALL_DATADIR}/dbus-1/interfaces"
 )
-install_files(
-    "/share/dbus-1/services"
+install(
     FILES
     ${CMAKE_CURRENT_BINARY_DIR}/com.deepin.wm.service
+    DESTINATION
+    "${CMAKE_INSTALL_DATADIR}/dbus-1/services"
 )
 
 qt5_add_dbus_adaptor(
@@ -69,4 +71,9 @@ target_link_libraries(
     ${GSETTINGS_LDFLAGS}
 )
 
-install_targets("/bin" deepin-wm-dbus)
+install(
+    TARGETS 
+    ${TARGET_NAME}
+    DESTINATION
+    "${CMAKE_INSTALL_BINDIR}"
+)
