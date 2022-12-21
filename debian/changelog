@@ -1,3 +1,10 @@
+dde-kwin (5.5.27-1) unstable; urgency=medium
+
+  * Bug fix:
+    + 94679 fix: presentwindow text-box don't need blur effect.
+
+ -- Lei Su <sulei@uniontech.com>  Wed, 21 Dec 2022 21:18:01 +0800
+
 dde-kwin (5.5.24) unstable; urgency=medium
 
   * Modify the copyright notice of the file to comply with the open source protocol.
