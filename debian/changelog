@@ -1,3 +1,10 @@
+dde-kwin (5.6.6) unstable; urgency=medium
+
+  * Bug fix:
+    + 160597 change laucher package name for shotcut
+
+ -- Lei Su <sulei@uniontech.com>  Thu, 05 Jan 2023 16:45:59 +0800
+
 dde-kwin (5.6.5) unstable; urgency=medium
 
   * Bug fix:
