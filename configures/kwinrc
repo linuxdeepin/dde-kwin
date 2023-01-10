@@ -101,4 +101,4 @@ CommandAll3=Nothing
 
 # for wayland platform
 [ModifierOnlyShortcuts]
-Meta=com.deepin.dde.Launcher,/com/deepin/dde/Launcher,com.deepin.dde.Launcher,Toggle
+Meta=org.deepin.dde.Launcher1,/org/deepin/dde/Launcher1,org.deepin.dde.Launcher1,Toggle
