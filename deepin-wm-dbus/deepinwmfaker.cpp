@@ -63,6 +63,8 @@ const char defaultSecondBackgroundUri[] = "francesco-ungaro-1fzbUyzsHV8-unsplash
 
 const char fallback_background_name[] = "file:///usr/share/backgrounds/default_background.jpg";
 
+const char wallpaper_lock[] = "/var/lib/deepin/permission-manager/wallpaper_locked";
+
 using org::kde::KWin;
 
 // deepin-wm's accel as Key
@@ -365,6 +367,9 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
             AllDeepinWMKWinAccelsMap.insert(iter.key(), iter.value());
         }
     }
+
+    m_whiteProcess.insert("kwin_x11");
+    m_whiteProcess.insert("kwin_wayland");
 }
 
 DeepinWMFaker::~DeepinWMFaker()
@@ -527,8 +532,26 @@ QString DeepinWMFaker::GetWorkspaceBackgroundForMonitor(const int index,const QS
     return uri.toString();
 }
 
+bool DeepinWMFaker::isValidInvoker(const uint &pid)
+{
+    QFileInfo fileInfo(QString("/proc/%1/exe").arg(pid));
+    if (!fileInfo.exists()) {
+        return false;
+    }
+
+    QString invokerPath = fileInfo.canonicalFilePath().split("/").last();
+    return m_whiteProcess.contains(invokerPath);
+}
+
 void DeepinWMFaker::SetWorkspaceBackgroundForMonitor(const int index, const QString &strMonitorName, const QString &uri)
 {
+    if (QFileInfo(wallpaper_lock).isFile()) {
+        uint invokerPid = connection().interface()->servicePid(message().service());
+        if (!isValidInvoker(invokerPid)) {
+            QDBusConnection::sessionBus().send(message().createErrorReply(QLatin1String("com.deepin.wm.Error.locked"), QLatin1String("wallpaper locked")));
+            return;
+        }
+    }
     m_transientBackgroundUri.clear();
     setWorkspaceBackgroundForMonitor( index,strMonitorName,uri );
 }

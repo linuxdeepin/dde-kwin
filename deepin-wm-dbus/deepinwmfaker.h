@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
+﻿// SPDX-FileCopyrightText: 2022 UnionTech Software Technology Co., Ltd.
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -176,6 +176,7 @@ private:
     void syncConfigForKWin();
     void updateCursorConfig();
     bool maybeShowWarningDialog();
+    bool isValidInvoker(const uint &pid);
 
     KWindowSystem *m_windowSystem;
     KConfig *m_deepinWMConfig;
@@ -196,7 +197,7 @@ private:
 #endif
 
     QPair<uint, bool> m_previewWinMiniPair;
-
+    QSet<QString> m_whiteProcess;
     bool m_isMultitaskingActived = false;
     bool m_isPlatformX11 = true;
 };
