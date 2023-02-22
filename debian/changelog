@@ -1,3 +1,10 @@
+dde-kwin (5.6.1-1) unstable; urgency=medium
+
+  * Task:
+    + 244581 feat: wallpaper lock.
+
+ -- zhangyu <zhangyud@uniontech.com>  Wed, 22 Feb 2023 13:38:01 +0800
+
 dde-kwin (5.5.27-1) unstable; urgency=medium
 
   * Bug fix:
