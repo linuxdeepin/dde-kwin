@@ -1,3 +1,10 @@
+dde-kwin (5.7.2-1) unstable; urgency=medium
+
+  * Task & rely:
+    + 244581 feat: wallpaper lock. adapter 1060
+
+ -- zhangyu <zhangyud@uniontech.com>  Thu, 23 Feb 2023 11:45:01 +0800
+
 dde-kwin (5.7.1-1) unstable; urgency=medium
 
   * Task:
