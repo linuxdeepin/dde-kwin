@@ -1,3 +1,9 @@
+dde-kwin (5.7.4-1) unstable; urgency=medium
+
+    + fix: water mark policy file path error in Debian's Dir
+
+ -- xinbo wang <wangxinbo@uniontech.com>  Fri, 3 Mar 2023 22:16:08 +0800
+
 dde-kwin (5.7.3-1) unstable; urgency=medium
 
   * Task:
