@@ -14,6 +14,7 @@ install(
 install(
     FILES
     org.kde.kwin.multitaskview.display.json
+    org.deepin.displayjack.watermark.display.json
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin"
 )
