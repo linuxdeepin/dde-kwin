@@ -13,4 +13,4 @@ usr/share/dbus-1/interfaces
 usr/share/dbus-1/services/com.deepin.wm.service
 usr/share/dde-kwin-xcb
 usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.multitaskview.display.json
-usr/share/dsg/configs/org.deepin.displayjack/org.deepin.displayjack.watermark.display.json
+usr/share/dsg/configs/org.kde.kwin/org.deepin.displayjack.watermark.display.json
