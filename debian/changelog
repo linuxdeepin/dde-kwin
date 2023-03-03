@@ -1,3 +1,10 @@
+dde-kwin (5.7.3-1) unstable; urgency=medium
+
+  * Task:
+    + feat: water mark group policy . adapter 1060
+
+ -- zhangyu <zhangyud@uniontech.com>  Fri, 3 Mar 2023 18:18:01 +0800
+
 dde-kwin (5.7.2-1) unstable; urgency=medium
 
   * Task & rely:
