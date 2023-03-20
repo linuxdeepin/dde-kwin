@@ -6,5 +6,5 @@ install(
     ddelauncher
     gtkframe
     DESTINATION
-    ${CMAKE_INSTALL_DATADIR}/kwin/scripts
+    ${CMAKE_INSTALL_DATADIR}/deepin-kwin/scripts
 )
