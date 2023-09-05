@@ -1,99 +1,54 @@
-dde-kwin (5.7.4-1) unstable; urgency=medium
-
-    + fix: water mark policy file path error in Debian's Dir
-
- -- xinbo wang <wangxinbo@uniontech.com>  Fri, 3 Mar 2023 22:16:08 +0800
-
-dde-kwin (5.7.3-1) unstable; urgency=medium
-
-  * Task:
-    + feat: water mark group policy . adapter 1060
-
- -- zhangyu <zhangyud@uniontech.com>  Fri, 3 Mar 2023 18:18:01 +0800
-
-dde-kwin (5.7.2-1) unstable; urgency=medium
-
-  * Task & rely:
-    + 244581 feat: wallpaper lock. adapter 1060
-
- -- zhangyu <zhangyud@uniontech.com>  Thu, 23 Feb 2023 11:45:01 +0800
-
-dde-kwin (5.7.1-1) unstable; urgency=medium
-
-  * Task:
-    + 244581 feat: wallpaper lock.
-
- -- zhangyu <zhangyud@uniontech.com>  Wed, 22 Feb 2023 16:54:01 +0800
-
-dde-kwin (5.5.27-1) unstable; urgency=medium
+dde-kwin (5.6.5) unstable; urgency=medium
 
   * Bug fix:
-    + 94679 fix: presentwindow text-box don't need blur effect.
+    + 143589 fix: optimize the close about menu.
 
- -- Lei Su <sulei@uniontech.com>  Wed, 21 Dec 2022 21:18:01 +0800
+ -- Lei Su <sulei@uniontech.com> Mon, 07 Nov 2022 16:46:57 +0800
 
-dde-kwin (5.5.24) unstable; urgency=medium
+dde-kwin (5.6.4) unstable; urgency=medium
+  * Bug fix:
+    + 140697 fix: show dock on all desktops
 
-  * Modify the copyright notice of the file to comply with the open source protocol.
+ -- Lei Su <sulei@uniontech.com> Mon, 17 Oct 2022 16:10:00 +0800
 
- -- Lei Su <sulei@uniontech.com>  Fri, 30 Sep 2022 15:05:24 +0800
+dde-kwin (5.6.3) unstable; urgency=medium
+  * Bug fix:
+    + 141897 fix: set descoration or zone don't need call kwin reconfigure.
 
-dde-kwin (5.5.22-1) unstable; urgency=medium
+ -- Lei Su <sulei@uniontech.com> Fri, 19 Aug 2022 13:40:00 +0800
+
+dde-kwin (5.6.2) unstable; urgency=medium
+  * Bug fix:
+    + 150343 fix: kwinrules to deepin-kwinrules
+
+ -- zhang yu <zhangyud@uniontech.com> Mon, 15 Aug 2022 15:40:00 +0800
+
+dde-kwin (5.6.1) unstable; urgency=medium
 
   * Bug fix:
-    + 151433 fix: the problem of atl + tab up and down arrow keys switching
+    + 141799 fix: kglobalaccel read wrong shortcut component name.
 
- -- Lei Su <sulei@uniontech.com>  Wed, 7 Sep 2022 15:44:58 +0800
+ -- Lei Su <sulei@uniontech.com>  Thu, 07 Jul 2022 10:21:21 +0800
 
-dde-kwin (5.5.21-1) unstable; urgency=medium
+dde-kwin (5.6.0) unstable; urgency=medium
 
-  * Bug fix:
-    + fix: remove special code about override and onscreendisplay,fix the problem of setting corner radius 0 cann't apply.
-    + fix: remove some special code about dde and deepin.
+  * update release version (5.6.0).
 
- -- Lei Su <sulei@uniontech.com>  Wed, 24 Aug 2022 17:59:58 +0800
+ -- xinbo wang <wangxinbo@uniontech.com>  Mon, 20 Jun 2022 19:44:04 +0800
 
-dde-kwin (5.5.19-1) unstable; urgency=medium
+dde-kwin (5.5.14) unstable; urgency=medium
 
   * Bug fix:
-    + fix: popup window should get blur region from dtk.
+    + 137089 fix: the four corners disappearing delay
 
- -- Lei Su <sulei@uniontech.com>  Tue, 12 Jul 2022 16:07:58 +0800
+ -- diguoliang <diguoliang@uniontech.com>  Fri, 17 Jun 2022 21:56:04 +0800
 
-dde-kwin (5.5.18-1) unstable; urgency=medium
-
-  * Bug fix:
-    + 124157   fix: the client of override type do not scissor window.
-
- -- Lei Su <sulei@uniontech.com>  Thu, 07 Jul 2022 17:07:44 +0800
-
-dde-kwin (5.5.17-1) unstable; urgency=medium
+dde-kwin (5.5.13) unstable; urgency=medium
 
   * Bug fix:
-    + 126389, 124949, 123663 fix: setup viewport the size of allscreens when blur effect drawed.
+    + 137121 fix: the problem of no menu icon in titlebar
 
- -- Lei Su <sulei@uniontech.com>  Tue, 21 Jun 2022 13:50:16 +0800
-
-dde-kwin (5.5.15-1) unstable; urgency=medium
-
-  * Task:
-    + 99095 feat: add interface to outside about display rules
-
- -- Lei Su <sulei@uniontech.com>  Tue, 07 Jun 2022 17:53:12 +0800
-
-dde-kwin (5.5.14-1) unstable; urgency=medium
-
-  * Bug fix:
-    + 124417 add checkClientAllowToSplite when splitmenu show
-
- -- Lei Su <sulei@uniontech.com>  Wed, 01 Jun 2022 14:05:31 +0800
-
-dde-kwin (5.5.13-1) unstable; urgency=medium
-
-  * Bug fix:
-    + 123355 fix: blur area did not update when window geomety changed
-
- -- Lei Su <sulei@uniontech.com>  Thu, 26 May 2022 10:20:24 +0800
+ -- diguoliang <diguoliang@uniontech.com>  Wed, 15 Jun 2022 10:24:15 +0800
 
 dde-kwin (5.5.10-1) unstable; urgency=medium
 

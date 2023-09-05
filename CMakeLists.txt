@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.13)
+
 project(DDEKWin)
 
 set(PROJECT_NAME "dde-kwin")
@@ -10,27 +12,17 @@ if (NOT PROJECT_VERSION_MAJOR)
     set(PROJECT_VERSION_MAJOR 0)
 endif()
 
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_definitions(
     -DPROJECT_NAME=\\"${PROJECT_NAME}\\"
     -DPROJECT_VERSION=\\"${PROJECT_VERSION}\\"
 )
 
-option(USE_PLUGINS "use dde-kwin plugins" ON)
 option(USE_SCRIPTS "use scripts" ON)
 option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
-option(USE_TABBOX "use deepin style tabbox" ON)
-option(USE_WINDOW_TOOL "support wayland and x11" ON)
-
-#when "KWIN_VERSION > KWIN_VERSION_CHECK(5, 18, 90, 0)"
-find_path(
-    KWaylandServerPath
-    blur_interface.h
-    /usr/include/KWaylandServer
-    /usr/local/include/KWaylandServer
-    )
-if(KWaylandServerPath)
-    add_definitions(-DKWaylandServerPath)
-endif()
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "mips64")
     set(CMAKE_CXX_FLAGS "-O3 -ftree-vectorize -march=loongson3a -mhard-float -mno-micromips -mno-mips16 -flax-vector-conversions  -mloongson-ext2 -mloongson-mmi -Wl,--as-needed,-O1 -fno-stack-protector")
@@ -99,10 +91,6 @@ endif()
 
 add_subdirectory(configures)
 
-if (USE_PLUGINS)
-  add_subdirectory(plugins)
-endif()
-
 if (USE_SCRIPTS)
   add_subdirectory(scripts)
 endif()
@@ -111,14 +99,6 @@ if (USE_DEEPIN_WM_DBUS)
   add_subdirectory(deepin-wm-dbus)
 endif()
 
-if (USE_TABBOX)
-add_subdirectory(tabbox)
-endif()
-
 if (BUILD_TESTING)
     add_subdirectory(tests)
-endif()
-
-if (USE_WINDOW_TOOL)
-  add_subdirectory(windowtool)
 endif()

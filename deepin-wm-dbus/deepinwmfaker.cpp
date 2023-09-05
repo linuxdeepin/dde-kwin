@@ -785,14 +785,15 @@ bool DeepinWMFaker::SetAccel(const QString &data)
             seq = QKeySequence(transFromDaemonAccelStr(accelStr));
         }
 
-        if (seq.isEmpty()) {
+        if (seq.isEmpty() || seq.toString() == "") {
              qDebug() << "WARNING: got an empty key sequence for accel string:" << accelStr;
-        } 
+             continue;
+        }
 
         if(!qgetenv("WAYLAND_DISPLAY").isEmpty()) {
             m_globalAccel->stealShortcutSystemwide(seq);
         }
-        
+
         accelList.append(seq);
     }
 

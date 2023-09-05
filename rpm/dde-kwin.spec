@@ -21,7 +21,6 @@ BuildRequires:  kwin-devel
 BuildRequires:  pkgconfig(Qt5X11Extras)
 BuildRequires:  gsettings-qt-devel
 BuildRequires:  libepoxy-devel
-BuildRequires:  dtkcore-devel
 BuildRequires:  kf5-kwayland-devel
 BuildRequires:  kf5-kglobalaccel-devel
 BuildRequires:  kf5-kdeclarative-devel
@@ -36,7 +35,6 @@ BuildRequires:  qt5-linguist
 BuildRequires:  qt5-qtbase-static
 BuildRequires:  qt5-qtbase-private-devel
 BuildRequires:  qt5-qtdeclarative-devel
-BuildRequires:  dtkgui-devel
 BuildRequires:  kf5-ki18n-devel
 %{?_qt5:Requires: %{_qt5}%{?_isa} = %{_qt5_version}}
 Requires:       dde-qt5integration%{?_isa}
@@ -67,7 +65,6 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       kwin-devel%{?_isa}
 Requires:       qt5-qtx11extras-devel%{?_isa}
 Requires:       gsettings-qt-devel%{?_isa}
-Requires:       dtkcore-devel%{?_isa}
 Requires:       kf5-kglobalaccel-devel%{?_isa}
 Requires:       deepin-desktop-server
 

@@ -30,10 +30,9 @@ find_package(PkgConfig REQUIRED)
 find_package(Qt5LinguistTools REQUIRED)
 find_package(Qt5X11Extras REQUIRED)
 
-pkg_search_module(QGSETTINGS REQUIRED IMPORTED_TARGET gsettings-qt)
-
 set( test
     ut_mulitask_model.cpp
+    ../plugins/kwineffects/multitasking/multitasking_model.cpp
 )
 
 add_executable(${PROJECT_NAME_TEST} ${test})
@@ -53,7 +52,6 @@ target_link_libraries(
     KF5::WindowSystem
     KF5::GlobalAccel
     KF5::I18n
-    PkgConfig::QGSETTINGS
     Qt5::X11Extras
     xcb
     kwineffects

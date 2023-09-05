@@ -7,7 +7,6 @@ find_package(X11 REQUIRED)
 find_package(KF5Config REQUIRED)
 find_package(KF5WindowSystem REQUIRED)
 find_package(KF5GlobalAccel REQUIRED)
-find_package(DtkCore REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 option(DISABLE_DEEPIN_WM "disable compatibility with deepin-wm" OFF)
@@ -21,6 +20,7 @@ else()
 endif()
 
 configure_file(com.deepin.wm.xml.in com.deepin.wm.xml)
+configure_file(org.kde.kwin.KWinUtils.xml.in org.kde.kwin.KWinUtils.xml)
 configure_file(com.deepin.wm.service.in com.deepin.wm.service)
 
 install_files(
@@ -42,7 +42,7 @@ qt5_add_dbus_adaptor(
 )
 qt5_add_dbus_interface(
     wm_SRCS
-    ../plugins/platforms/plugin/org.kde.kwin.KWinUtils.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/org.kde.kwin.KWinUtils.xml
     kwinutils_interface
 )
 
@@ -66,7 +66,6 @@ target_link_libraries(
     KF5::ConfigCore
     KF5::WindowSystem
     KF5::GlobalAccel
-    Dtk::Core
     ${GSETTINGS_LDFLAGS}
 )
 

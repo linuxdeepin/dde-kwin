@@ -1,6 +1,6 @@
 [Plugins]
-#默认使用com.deepin.blur
-blurEnabled=false
+blurEnabled=true
+scissorEnabled=true
 enforcedecoEnabled=false
 minimizeallEnabled=true
 kwin4_effect_dialogparentEnabled=false
@@ -15,6 +15,9 @@ kwin4_effect_morphingpopupsEnabled=false
 #Popup类型窗口的展开动画
 slidingpopupsEnabled=false
 com.deepin.multitaskingEnabled=false
+kwin4_effect_squash=false
+kwin4_effect_fadingpopupsEnabled=false
+
 #切换工作区
 slideEnabled=false
 
