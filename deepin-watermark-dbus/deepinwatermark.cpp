@@ -96,6 +96,9 @@ DeepinWatermark::DeepinWatermark(QWidget *parent) :
     // 监听控制中心字体变化
     QDBusConnection::sessionBus().connect("com.deepin.daemon.Appearance", "/com/deepin/daemon/Appearance", "com.deepin.daemon.Appearance", "Changed", this, SLOT(fontChanged(QString, QString)));
 
+    // 监听时间日期更改
+    QDBusConnection::sessionBus().connect("com.deepin.daemon.Timedate", "/com/deepin/daemon/Timedate", "com.deepin.daemon.Timedate", "TimeUpdate", this, SLOT(updateTime()));
+
     m_currentTime = new QTimer(this);
     m_currentTime->setInterval(TIME_INTERVAL);
     connect(m_currentTime, &QTimer::timeout, this, [this](){
@@ -642,4 +645,11 @@ void DeepinWatermark::fontChanged(const QString &fontType, const QString &fontNa
         m_fontFamily = fontName;
         update();
     }
+}
+
+void DeepinWatermark::updateTime()
+{
+    m_currentTimeString = QDateTime::currentDateTime().toString("yyyy-MM-dd");
+    clearMask();
+    update();
 }
