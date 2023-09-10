@@ -99,6 +99,7 @@ private Q_SLOTS:
     void displayMode(QRect rect);
     void lockFrontStatus(bool visible);
     void fontChanged(const QString &fontType, const QString &fontName);
+    void updateTime();
 };
 
 #endif // DEEPINWATERMARK_H
