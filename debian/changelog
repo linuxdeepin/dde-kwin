@@ -1,9 +1,9 @@
-dde-kwin (5.8.1) unstable; urgency=medium
+dde-kwin (5.8.4) unstable; urgency=medium
 
   * Bug fix:
     + 217441 fix: dbus and shortcut can't switch 2D or 3D.
 
- -- xinbo wang <wangxinbo@uniontech.com>  Mon, 11 Sep 2023 16:27:11 +0800
+ -- wangboyu <wangboyu@uniontech.com>  Mon, 11 Sep 2023 17:53:11 +0800
 
 dde-kwin (5.6.5) unstable; urgency=medium
 
