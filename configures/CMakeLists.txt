@@ -20,5 +20,5 @@ install(
 
 if (USE_KWIN_NO_SCALE)
     configure_file(kwin_no_scale.in kwin_no_scale)
-    install_files("/bin" FILES ${CMAKE_CURRENT_BINARY_DIR}/kwin_no_scale)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kwin_no_scale DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif()
