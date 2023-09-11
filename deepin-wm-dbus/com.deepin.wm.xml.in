@@ -141,6 +141,9 @@
         <arg type="i" name="count"/>
     </signal>
 
+    <signal name="ShowWorkspaceChanged">
+    </signal>
+
     ${DEEPIN_WM_PREFIX}
     <method name="ChangeCurrentWorkspaceBackground">
         <arg type="s" name="uri" direction="in"/>

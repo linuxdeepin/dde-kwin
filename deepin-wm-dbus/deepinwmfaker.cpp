@@ -1064,7 +1064,7 @@ void DeepinWMFaker::ShowWorkspace()
     if (maybeShowWarningDialog())
         return;
 
-    m_kwinUtilsInter->ShowWorkspacesView();
+    emit ShowWorkspaceChanged();
 }
 
 void DeepinWMFaker::setZoneEnabled(bool zoneEnabled)

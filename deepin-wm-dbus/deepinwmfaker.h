@@ -155,6 +155,8 @@ Q_SIGNALS:
 
     void desktopStatusChanged();
 
+    void ShowWorkspaceChanged();
+
 private:
     QAction *accelAction(const QString accelKid) const;
     QString transFromDaemonAccelStr(const QString &accelStr) const;
