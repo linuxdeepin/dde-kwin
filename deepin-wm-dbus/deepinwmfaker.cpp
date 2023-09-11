@@ -1023,10 +1023,13 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
         return;
     }
 
-    if (on)
-        m_kwinUtilsInter->ResumeCompositor(1);
-    else
-        m_kwinUtilsInter->SuspendCompositor(1);
+    if (on) {
+        QDBusInterface interface_kwin(KWinDBusService, KWinDBusCompositorPath);
+        interface_kwin.call("resume");
+    } else {
+        QDBusInterface interface_kwin(KWinDBusService, KWinDBusCompositorPath);
+        interface_kwin.call("suspend");
+    }
 
     // !on 时说明再关闭窗口特效，关闭特效往往都能成功，因此不再需要判断是否成功（KWin中给出值时有些延迟，导致未能及时获取到值）
     if (!on || compositingEnabled() == on)
