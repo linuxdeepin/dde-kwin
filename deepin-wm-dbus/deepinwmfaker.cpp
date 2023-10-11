@@ -117,6 +117,9 @@ static QMap<QString, QString> AllDeepinWMKWinAccelsMap {
     { "expose-all-windows", "ExposeAll" },
     { "expose-windows", "Expose" },
     { "preview-workspace", "ShowMultitasking" },
+    { "view-zoom-in", "view_zoom_in" },
+    { "view-zoom-out", "view_zoom_out" },
+    { "view-actual-size", "view_actual_size" },
 };
 
 static const QMap<QString, QString> WaylandDeepinWMKWinAccelsMap {
