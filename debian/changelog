@@ -1,3 +1,10 @@
+dde-kwin (5.8.6) unstable; urgency=medium
+
+  * feat:
+    + feat: add dconfig file about watermark\multitaskview\titlebar
+
+ -- zhangyu <zhangyud@uniontech.com>  Fri, 20 Oct 2023 17:45:11 +0800
+
 dde-kwin (5.8.5) unstable; urgency=medium
 
   * feat:
