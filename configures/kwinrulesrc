@@ -15,27 +15,30 @@ wmclasscomplete=true
 wmclassmatch=1
 
 [3]
-Description=Disable Minmium for Dialogs
-minimize=false
-minimizerule=2
-strictgeometry[$d]
-strictgeometryrule[$d]
-types=32
-wmclass=
+Description=Window settings for chinime-qim
+acceptfocusrule=2
+types=1
+wmclass=chinime-qim
 wmclasscomplete=false
-wmclassmatch=0
+wmclassmatch=1
 
 [4]
-#解除坚果云窗口的最大限制，设置其最大值为500x500，防止在kwin上使用aurorae窗口修饰主题时窗口大小错误
-Description=Window settings for nutstore
-desktop[$d]
-desktoprule[$d]
-maxsize=500,500
-maxsizerule=2
+Description=Window settings for iflyime-qim
+acceptfocusrule=2
+minimizerule=0
 types=1
-wmclass=nutstore
+wmclass=iflyime-qim
+wmclasscomplete=false
+wmclassmatch=1
+
+[5]
+Description=Window settings for sougou-qim
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=sogouImeService-uos
 wmclasscomplete=false
 wmclassmatch=1
 
 [General]
-count=4
+count=5
