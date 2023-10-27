@@ -32,6 +32,10 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 #define GsettingsZoneLeftUp "leftUp"
 #endif // DISABLE_DEEPIN_WM
 
+#define DBUS_DEEPIN_WM_SERVICE   "com.deepin.wm"
+#define DBUS_DEEPIN_WM_OBJ       "/com/deepin/wm"
+#define DBUS_DEEPIN_WM_INTF      "com.deepin.wm"
+
 #define DBUS_APPEARANCE_SERVICE "com.deepin.daemon.Appearance"
 #define DBUS_APPEARANCE_OBJ "/com/deepin/daemon/Appearance"
 #define DBUS_APPEARANCE_INTF "com.deepin.daemon.Appearance"
@@ -53,6 +57,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(QGSettings, _gsettings_dde_zone, ("com.deepin.dde.zone
 // kwin dbus
 #define KWinDBusService "org.kde.KWin"
 #define KWinDBusPath "/KWin"
+#define KWinDBusInterface "org.kde.KWin"
 #define KWinDBusCompositorInterface "org.kde.kwin.Compositing"
 #define KWinDBusCompositorPath "/Compositor"
 const char defaultFirstBackgroundUri[] = "file:///usr/share/wallpapers/deepin/desktop.jpg";
@@ -974,12 +979,15 @@ void DeepinWMFaker::SwitchApplication(bool backward)
 
 void DeepinWMFaker::TileActiveWindow(uint side)
 {
-    m_kwinUtilsInter->QuickTileWindow(side);
+    QDBusMessage message = QDBusMessage::createSignal(DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF, "QuickTileWindow");
+    message << uint(side);
+    QDBusConnection::sessionBus().send(message);
 }
 
 void DeepinWMFaker::ToggleActiveWindowMaximize()
 {
-    m_kwinUtilsInter->WindowMaximize();
+    QDBusMessage message = QDBusMessage::createSignal(DBUS_DEEPIN_WM_OBJ, DBUS_DEEPIN_WM_INTF, "WindowMaximize");
+    QDBusConnection::sessionBus().send(message);
 }
 
 void DeepinWMFaker::MinimizeActiveWindow()
@@ -1433,7 +1441,14 @@ bool DeepinWMFaker::GetIsShowDesktop()
     QDBusInterface interface_kwin(KWinDBusService, KWinDBusPath);
 
     QDBusReply<bool> reply = interface_kwin.call("showingDesktop");
-    if (reply.isValid())
+    if (reply.isValid()) {
         return reply.value();
+    } else {
+        QDBusInterface interface(KWinDBusService, KWinDBusPath, "org.freedesktop.DBus.Properties", QDBusConnection::sessionBus());
+        QDBusReply<QVariant> reply = interface.call("Get", KWinDBusInterface, "showingDesktop");
+        if (reply.isValid()) {
+            return reply.value().toBool();
+        }
+    }
     return false;
 }
