@@ -335,6 +335,7 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
     connect(m_windowSystem, &KWindowSystem::numberOfDesktopsChanged, this, &DeepinWMFaker::workspaceCountChanged);
     connect(_gsettings_dde_appearance, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEAppearanceChanged);
     connect(_gsettings_dde_zone, &QGSettings::changed, this, &DeepinWMFaker::onGsettingsDDEZoneChanged);
+    QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusPath, KWinDBusInterface, "MultitaskStateChanged", this, SLOT(slotUpdateMultiTaskingStatus(bool)));
 
     // 启动后先将所有热区设置同步一遍
     const QStringList zoneKeyList = {GsettingsZoneRightUp, GsettingsZoneRightDown,
@@ -1431,7 +1432,7 @@ bool DeepinWMFaker::GetMultiTaskingStatus()
     return m_isMultitaskingActived;
 }
 
-void DeepinWMFaker::SetMultiTaskingStatus(bool isActive)
+void DeepinWMFaker::slotUpdateMultiTaskingStatus(bool isActive)
 {
     m_isMultitaskingActived = isActive;
 }

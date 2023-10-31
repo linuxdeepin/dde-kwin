@@ -169,9 +169,6 @@
     <method name="GetMultiTaskingStatus">
         <arg type="b" name="isActive" direction="out"/>
     </method>
-    <method name="SetMultiTaskingStatus">
-        <arg type="b" name="isActive" direction="in"/>
-    </method>
     <method name="GetIsShowDesktop">
         <arg type="b" name="isShowDesktop" direction="out"/>
     </method>
