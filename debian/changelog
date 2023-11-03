@@ -1,3 +1,10 @@
+dde-kwin (5.8.8) unstable; urgency=medium
+
+  * fix:
+    + fix: touchpad can't exit multitaskview in wayland
+
+ -- huangzeming <huangzeming@uniontech.com>  Fri, 03 Nov 2023 17:22:23 +0800
+
 dde-kwin (5.8.7) unstable; urgency=medium
 
   * fix:
