@@ -14,7 +14,6 @@ kwin4_effect_loginEnabled=false
 kwin4_effect_morphingpopupsEnabled=false
 #Popup类型窗口的展开动画
 slidingpopupsEnabled=false
-com.deepin.multitaskingEnabled=false
 kwin4_effect_squash=false
 kwin4_effect_fadingpopupsEnabled=false
 
