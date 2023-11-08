@@ -1,3 +1,10 @@
+dde-kwin (5.8.9) unstable; urgency=medium
+
+  * fix:
+    + fix: multitaskview effect was disabled by default
+
+ -- huangzeming <huangzeming@uniontech.com>  Wed, 08 Nov 2023 16:18:35 +0800
+
 dde-kwin (5.8.8) unstable; urgency=medium
 
   * fix:
