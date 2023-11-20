@@ -297,9 +297,15 @@ static const QStringList NotConfigurationAction = {
 };
 
 static const QMap<QString, QString> SpecialKeyMap = {
-    {"minus", "-"}, {"equal", "="}, {"brackertleft", "["}, {"breckertright", "]"},
+    {"minus", "-"}, {"equal", "="}, {"bracketleft", "["}, {"bracketright", "]"},
     {"backslash", "\\"}, {"semicolon", ";"}, {"apostrophe", "'"}, {"comma", ","},
     {"period", "."}, {"slash", "/"}, {"grave", "`"},
+};
+
+static const QMap<QString, QString> KeysCombineWithShift = {
+    {"`", "~"}, {"1", "!"}, {"2", "@"}, {"3", "#"}, {"4", "$"}, {"5", "%"}, {"6", "^"},
+    {"7", "&"}, {"8", "*"}, {"9", "("}, {"0", ")"}, {"-", "_"}, {"=", "+"}, {"[", "{"},
+    {"]", "}"}, {"\\", "|"}, {";", ":"}, {"'", "\""}, {",", "<"}, {".", ">"}, {"/", "?"}
 };
 
 static const QMap<QString, QString> SpecialRequireShiftKeyMap = {
@@ -1196,30 +1202,47 @@ QString DeepinWMFaker::transFromDaemonAccelStr(const QString &accelStr) const
         return accelStr;
     }
 
-    QString str(accelStr);
+    QStringList keys;
+    {
+        QString str(accelStr);
+        str.remove("<")
+                .replace("Control", "Ctrl")
+                .replace("Super", "Meta");
+        keys = str.split('>');
+    }
 
-    str.remove("<")
-            .replace(">", "+")
-            .replace("Control", "Ctrl")
-            .replace("Super", "Meta");
+    int shift_index = keys.indexOf("Shift");
 
-    for (auto it = SpecialKeyMap.constBegin(); it != SpecialKeyMap.constEnd(); ++it) {
-        QString origin(str);
-        str.replace(it.key(), it.value());
-        if (str != origin) {
-            return str;
+    for (QString &key : keys) {
+        if (SpecialKeyMap.contains(key)) {
+            key = SpecialKeyMap[key];
+            if (shift_index == -1) {
+                return keys.join('+');
+            }
         }
     }
 
-    for (auto it = SpecialRequireShiftKeyMap.constBegin(); it != SpecialRequireShiftKeyMap.constEnd(); ++it) {
-        QString origin(str);
-        str.replace(it.key(), it.value());
-        if (str != origin) {
-            return str.remove("Shift+");
+    if (shift_index != -1) {
+        for (QString &key : keys) {
+            if (KeysCombineWithShift.contains(key)) {
+                key = KeysCombineWithShift[key];
+                keys.removeAt(shift_index);
+                return keys.join('+');
+            }
         }
     }
 
-    return str;
+    for (QString &key : keys) {
+        if (SpecialRequireShiftKeyMap.contains(key)) {
+            key = SpecialRequireShiftKeyMap[key];
+            if (shift_index != -1) {
+                keys.removeAt(shift_index);
+            }
+            return keys.join('+');
+        }
+    }
+
+    return keys.join('+');
 }
 
 QString DeepinWMFaker::transToDaemonAccelStr(const QString &accelStr) const
