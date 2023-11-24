@@ -1,3 +1,10 @@
+dde-kwin (5.8.10) unstable; urgency=medium
+
+  * fix:
+    + fix: several shortcuts for zoom effect didn't work
+
+ -- huangzeming <huangzeming@uniontech.com>  Fri, 24 Nov 2023 14:51:42 +0800
+
 dde-kwin (5.8.9) unstable; urgency=medium
 
   * fix:
