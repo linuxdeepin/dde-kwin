@@ -1,8 +1,8 @@
 [kwin]
 Activate Window Demanding Attention=none,none,激活请求注意的窗口
 Decrease Opacity=none,none,降低活动窗口不透明度 5 %
-Expose=Meta+W,Ctrl+F9,切换显示窗口(对当前桌面)
-ExposeAll=Meta+A\tLaunch (C),Ctrl+F10\tLaunch (C),切换显示窗口(对全部桌面)
+Expose=none,none,切换显示窗口(对当前桌面)
+ExposeAll=none,none,切换显示窗口(对全部桌面)
 ExposeClass=none,Ctrl+F7,切换当前窗口分类
 Increase Opacity=none,none,提高活动窗口不透明度 5 %
 Invert Screen Colors=none,none,屏幕反色
