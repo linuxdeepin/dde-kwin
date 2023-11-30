@@ -4,7 +4,6 @@ if [ -n "$HOME" ];then
     cp -n /etc/xdg/kglobalshortcutsrc $HOME/.config/kglobalshortcutsrc
 fi
 
-export KWIN_COMPOSE=O2
 
 EXECUTE_PATH=$(cd `dirname $0`; pwd)
 kwin_x11 :appFilePath=$EXECUTE_PATH/kwin_no_scale $@
