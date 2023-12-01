@@ -1,3 +1,10 @@
+dde-kwin (5.8.11) unstable; urgency=medium
+
+  * fix:
+    + fix: 224825\217447
+
+ -- zhangyu <zhangyud@uniontech.com>  Fri, 01 Dec 2023 15:31:42 +0800
+
 dde-kwin (5.8.10) unstable; urgency=medium
 
   * fix:
