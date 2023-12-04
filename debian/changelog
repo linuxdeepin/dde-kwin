@@ -1,3 +1,10 @@
+dde-kwin (5.8.12) unstable; urgency=medium
+
+  * Bug fix:
+    + 222697 fix: desktop become grey
+
+ -- gengzhijie <gengzhijie@uniontech.com>  Mon, 04 Dec 2023 17:21:17 +0800
+
 dde-kwin (5.8.11) unstable; urgency=medium
 
   * fix:
