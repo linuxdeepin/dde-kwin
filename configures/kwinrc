@@ -16,6 +16,7 @@ kwin4_effect_morphingpopupsEnabled=false
 slidingpopupsEnabled=false
 kwin4_effect_squash=false
 kwin4_effect_fadingpopupsEnabled=false
+kwin4_effect_frozenappEnabled=false
 
 #切换工作区
 slideEnabled=false
