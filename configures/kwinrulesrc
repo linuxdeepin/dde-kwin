@@ -32,7 +32,7 @@ wmclasscomplete=false
 wmclassmatch=1
 
 [5]
-Description=Window settings for sougou-qim
+Description=Window settings for sogouImeService
 acceptfocusrule=2
 minimizerule=0
 types=1
@@ -40,5 +40,69 @@ wmclass=sogouImeService-uos
 wmclasscomplete=false
 wmclassmatch=1
 
+[6]
+Description=Window settings for SogouHandInput
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=SogouHandInput-uos
+wmclasscomplete=false
+wmclassmatch=1
+
+[7]
+Description=Window settings for sougouimebs
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=sogouimebs-session
+wmclasscomplete=false
+wmclassmatch=1
+
+[8]
+Description=Window settings for sogouIme-configtool
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=sogouIme-configtool-uos
+wmclasscomplete=false
+wmclassmatch=1
+
+[9]
+Description=Window settings for sogouImeService-watchdog
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=sogouImeService-watchdog-uos
+wmclasscomplete=false
+wmclassmatch=1
+
+[10]
+Description=Window settings for SogouScreenshot
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=SogouScreenshot-uos
+wmclasscomplete=false
+wmclassmatch=1
+
+[11]
+Description=Window settings for SogouSpecialSymbol
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=SogouSpecialSymbol-uos
+wmclasscomplete=false
+wmclassmatch=1
+
+[12]
+Description=Window settings for SogouVoiceInput
+acceptfocusrule=2
+minimizerule=0
+types=1
+wmclass=SogouVoiceInput-uos
+wmclasscomplete=false
+wmclassmatch=1
+
 [General]
-count=5
+count=12
+rules=1,2,3,4,5,6,7,8,9,10,11,12
