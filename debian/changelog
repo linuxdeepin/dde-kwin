@@ -1,3 +1,10 @@
+dde-kwin (5.8.14) unstable; urgency=medium
+
+  * Bug fix:
+    + 223787, 220071 fix: remove zone detected
+
+ -- gengzhijie <gengzhijie@uniontech.com>  Fri, 15 Dec 2023 16:28:10 +0800
+
 dde-kwin (5.8.13) unstable; urgency=medium
 
   * Bug fix:
