@@ -1159,7 +1159,6 @@ void DeepinWMFaker::PresentWindows(const QList<uint> &xids)
 // TODO(zccrs): 开启/禁用热区
 void DeepinWMFaker::EnableZoneDetected(bool enabled)
 {
-    setZoneEnabled(enabled);
 }
 #endif
 
@@ -1429,6 +1428,7 @@ void DeepinWMFaker::onGsettingsDDEZoneChanged(const QString &key)
 
 void DeepinWMFaker::syncConfigForKWin()
 {
+    qWarning() << "sync config";
     // 同步配置到文件
     m_kwinConfig->sync();
     // 通知kwin重新加载配置文件
