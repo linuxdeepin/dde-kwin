@@ -2,6 +2,8 @@
 Description=dde-dock
 desktop=-1
 desktopsrule=2
+placement=0
+placementrule=2
 wmclass=dde-dock dde-dock
 wmclasscomplete=true
 wmclassmatch=1
