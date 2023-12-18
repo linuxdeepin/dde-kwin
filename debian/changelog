@@ -1,3 +1,10 @@
+dde-kwin (5.8.15) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: optimize Sogou input method window rules
+
+ -- wangboyu <wangboyu@uniontech.com>  Mon, 18 Dec 2023 17:08:10 +0800
+
 dde-kwin (5.8.14) unstable; urgency=medium
 
   * Bug fix:
