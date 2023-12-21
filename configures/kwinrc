@@ -21,7 +21,7 @@ kwin4_effect_frozenappEnabled=false
 #切换工作区
 slideEnabled=false
 
-[Desktops]
+[VirtualDesktops]
 Name_2=工作区 2
 Number=2
 Rows=1
