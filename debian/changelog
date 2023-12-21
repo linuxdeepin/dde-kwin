@@ -1,3 +1,14 @@
+dde-kwin (5.8.16) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: change Desktops to VirtualDesktops
+    + fix: the right-click menu should not be displayed after using the alt+space shortcut key in the launcher window
+    + fix: the right-click menu position of all areas of the taskbar is displayed incorrectly
+  * Task:
+    + feat: add support for switching compositing backend
+
+ -- gengzhijie <gengzhijie@uniontech.com>  Thu, 21 Dec 2023 19:01:23 +0800
+
 dde-kwin (5.8.15) unstable; urgency=medium
 
   * Bug fix:
@@ -87,25 +98,25 @@ dde-kwin (5.6.5) unstable; urgency=medium
   * Bug fix:
     + 143589 fix: optimize the close about menu.
 
- -- Lei Su <sulei@uniontech.com> Mon, 07 Nov 2022 16:46:57 +0800
+ -- Lei Su <sulei@uniontech.com>  Mon, 07 Nov 2022 16:46:57 +0800
 
 dde-kwin (5.6.4) unstable; urgency=medium
   * Bug fix:
     + 140697 fix: show dock on all desktops
 
- -- Lei Su <sulei@uniontech.com> Mon, 17 Oct 2022 16:10:00 +0800
+ -- Lei Su <sulei@uniontech.com>  Mon, 17 Oct 2022 16:10:00 +0800
 
 dde-kwin (5.6.3) unstable; urgency=medium
   * Bug fix:
     + 141897 fix: set descoration or zone don't need call kwin reconfigure.
 
- -- Lei Su <sulei@uniontech.com> Fri, 19 Aug 2022 13:40:00 +0800
+ -- Lei Su <sulei@uniontech.com>  Fri, 19 Aug 2022 13:40:00 +0800
 
 dde-kwin (5.6.2) unstable; urgency=medium
   * Bug fix:
     + 150343 fix: kwinrules to deepin-kwinrules
 
- -- zhang yu <zhangyud@uniontech.com> Mon, 15 Aug 2022 15:40:00 +0800
+ -- zhang yu <zhangyud@uniontech.com>  Mon, 15 Aug 2022 15:40:00 +0800
 
 dde-kwin (5.6.1) unstable; urgency=medium
 
