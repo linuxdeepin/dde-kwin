@@ -23,6 +23,7 @@ class DeepinWMFaker : public QObject, protected QDBusContext
     Q_PROPERTY(bool compositingEnabled READ compositingEnabled WRITE setCompositingEnabled NOTIFY compositingEnabledChanged)
     Q_PROPERTY(bool compositingAllowSwitch READ compositingAllowSwitch FINAL)
     Q_PROPERTY(bool compositingPossible READ compositingPossible)
+    Q_PROPERTY(QString compositingType READ compositingType)
     Q_PROPERTY(bool zoneEnabled READ zoneEnabled WRITE setZoneEnabled)
     Q_PROPERTY(QString cursorTheme READ cursorTheme WRITE setCursorTheme)
     Q_PROPERTY(int cursorSize READ cursorSize WRITE setCursorSize)
@@ -62,6 +63,7 @@ public:
     bool compositingEnabled() const;
     bool compositingPossible() const;
     bool compositingAllowSwitch() const;
+    QString compositingType() const;
     bool zoneEnabled() const;
 
     QString cursorTheme() const;
