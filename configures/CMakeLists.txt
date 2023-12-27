@@ -13,6 +13,7 @@ install(
 
 install(
     FILES
+    org.kde.kwin.logging.json
     org.kde.kwin.multitaskview.display.json
     org.deepin.displayjack.watermark.display.json
     DESTINATION
@@ -24,6 +25,13 @@ install(
     org.kde.kwin.decoration.titlebar.json
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin.decoration"
+)
+
+install(
+    FILES
+    org.deepin.kwin.json
+    DESTINATION
+    "/usr/share/deepin-log-viewer/deepin-log.conf.d/"
 )
 
 if (USE_KWIN_NO_SCALE)
