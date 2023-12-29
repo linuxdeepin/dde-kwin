@@ -1,0 +1,28 @@
+{
+    "magic": "dsg.config.meta",
+    "version": "1.0",
+    "contents": {
+        "current_type": {
+            "value": "0",
+            "serial": 0,
+            "flags": [],
+            "name": "current type",
+            "name[zh_CN]": "当前的特效类型",
+            "description": "current effect type",
+            "description[zh_CN]": "KWin当前的特效类型",
+            "permissions": "readwrite",
+            "visibility": "public"
+        },
+        "user_type": {
+            "value": "0",
+            "serial": 0,
+            "flags": [],
+            "name": "user type",
+            "name[zh_CN]": "用户选择特效类型",
+            "description": "user selected effect type",
+            "description[zh_CN]": "用户选择的特效类型，默认是0由窗管选择特效类型；1~5对应5种从优到劣的特效类型",
+            "permissions": "readwrite",
+            "visibility": "public"
+        }
+    }
+}

@@ -13,6 +13,7 @@ install(
 
 install(
     FILES
+    org.kde.kwin.compositing.json
     org.kde.kwin.logging.json
     org.kde.kwin.multitaskview.display.json
     org.deepin.displayjack.watermark.display.json
