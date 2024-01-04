@@ -3,9 +3,11 @@
     "version": "1.0",
     "contents": {
         "current_type": {
-            "value": "0",
+            "value": 0,
             "serial": 0,
-            "flags": [],
+            "flags": [
+                "global"
+            ],
             "name": "current type",
             "name[zh_CN]": "当前的特效类型",
             "description": "current effect type",
@@ -14,9 +16,11 @@
             "visibility": "public"
         },
         "user_type": {
-            "value": "0",
+            "value": 0,
             "serial": 0,
-            "flags": [],
+            "flags": [
+                "global"
+            ],
             "name": "user type",
             "name[zh_CN]": "用户选择特效类型",
             "description": "user selected effect type",
