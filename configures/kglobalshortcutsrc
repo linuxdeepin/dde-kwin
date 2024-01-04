@@ -146,6 +146,6 @@ Window to Screen 5=none,none,窗口到屏幕 5
 Window to Screen 6=none,none,窗口到屏幕 6
 Window to Screen 7=none,none,窗口到屏幕 7
 _k_friendly_name=KWin
-view_actual_size=Meta+0,Meta+0,实际大小(A)
-view_zoom_in=Meta+=,Meta+=,放大(I)
-view_zoom_out=Meta+-,Meta+-,缩小(O)
+view_actual_size=Meta+0\tMeta+Num+0\tMeta+Num+Ins,Meta+0,缩放为实际大小(A)
+view_zoom_in=Meta+=\tMeta+Num++,Meta++,放大(I)
+view_zoom_out=Meta+-\tMeta+Num+-,Meta+-,缩小(O)
