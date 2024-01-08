@@ -15,7 +15,7 @@ kwin4_effect_morphingpopupsEnabled=false
 #Popup类型窗口的展开动画
 slidingpopupsEnabled=false
 kwin4_effect_squash=false
-kwin4_effect_fadingpopupsEnabled=false
+kwin4_effect_fadingpopupsEnabled=true
 kwin4_effect_frozenappEnabled=false
 
 #切换工作区
