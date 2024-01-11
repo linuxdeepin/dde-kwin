@@ -1,3 +1,9 @@
+dde-kwin (5.8.21) unstable; urgency=medium
+
+  * fix: the tips for the dock are located in the upper left corner of the screen.
+
+ -- wangboyu <wangboyu@uniontech.com>  Thu, 11 Jan 2024 17:07:54 +0800
+
 dde-kwin (5.8.20) unstable; urgency=medium
 
   * feat: config of fadingpopups animation effect
