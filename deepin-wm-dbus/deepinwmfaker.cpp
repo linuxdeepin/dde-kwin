@@ -1039,15 +1039,19 @@ void DeepinWMFaker::setCompositingEnabled(bool on)
         m_kwinConfig->group("Compositing").writeEntry("OpenGLIsUnsafe", false);
     }
 
-    m_kwinConfig->group("Compositing").writeEntry("Enabled", on);
-    // 只同步配置文件，不要通知kwin重新加载配置
-    m_kwinConfig->sync();
-
     if (compositingEnabled() == on) {
         return;
     }
 
-    QDBusInterface(KWinDBusService, KWinDBusCompositorPath).call("reinitialize");
+    QDBusInterface interfaceRequire("org.desktopspec.ConfigManager", "/", "org.desktopspec.ConfigManager", QDBusConnection::systemBus());
+    QDBusReply<QDBusObjectPath> reply = interfaceRequire.call("acquireManager", "org.kde.kwin", "org.kde.kwin.compositing", "");
+    if (!reply.isValid()) {
+        qWarning() << "Error in DConfig reply:" << reply.error();
+        return;
+    }
+    int type = on ? 1 : 4;
+    QDBusInterface interfaceValue("org.desktopspec.ConfigManager", reply.value().path(), "org.desktopspec.ConfigManager.Manager", QDBusConnection::systemBus());
+    interfaceValue.call("setValue", "user_type", QVariant::fromValue(QDBusVariant(type)));
 
     // !on 时说明再关闭窗口特效，关闭特效往往都能成功，因此不再需要判断是否成功（KWin中给出值时有些延迟，导致未能及时获取到值）
     if (!on || compositingEnabled() == on)
