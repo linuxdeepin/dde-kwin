@@ -1,3 +1,9 @@
+dde-kwin (5.8.22) unstable; urgency=medium
+
+  * fix: temporarily support the old version switch
+
+ -- wangboyu <wangboyu@uniontech.com>  Sun, 21 Jan 2024 14:14:54 +0800
+
 dde-kwin (5.8.21) unstable; urgency=medium
 
   * fix: the tips for the dock are located in the upper left corner of the screen.
