@@ -1,5 +1,5 @@
 {
-    "name": "org.kde.kwin",
+    "name": "窗管",
     "submodules": [
         {
             "name": "kwin_x11",
