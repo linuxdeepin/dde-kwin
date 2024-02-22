@@ -1,3 +1,9 @@
+dde-kwin (5.8.23) unstable; urgency=medium
+
+  * fix: dde-control can't read maximize/unmaximize shortcut
+
+ -- xinbo wang <wangxinbo@uniontech.com>  Thur, 22 Feb 2024 17:16:13 +0800
+
 dde-kwin (5.8.22) unstable; urgency=medium
 
   * fix: temporarily support the old version switch
