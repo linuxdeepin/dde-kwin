@@ -3,7 +3,7 @@
     "version": "1.0",
     "contents": {
         "log_rules": {
-            "value": "kwin_libinput=false;kwin*.debug=true",
+            "value": "kwin_libinput=false;kwin*.debug=false;kwin*.info=false;kwin*.warning=true",
             "serial": 0,
             "flags": [
                 "global"
