@@ -1,3 +1,9 @@
+dde-kwin (5.8.24) unstable; urgency=medium
+
+  * fix: set default log level to warning
+
+ -- huangzeming <huangzeming@uniontech.com>  Fri, 01 Mar 2024 10:40:54 +0800
+
 dde-kwin (5.8.23) unstable; urgency=medium
 
   * fix: dde-control can't read maximize/unmaximize shortcut
