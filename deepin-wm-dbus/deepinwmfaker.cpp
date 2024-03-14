@@ -359,6 +359,8 @@ DeepinWMFaker::DeepinWMFaker(QObject *parent)
 
     QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface,
                                           "compositingToggled", "b", this, SLOT(wmCompositingEnabledChanged(bool)));
+    QDBusConnection::sessionBus().connect(KWinDBusService, KWinDBusCompositorPath, KWinDBusCompositorInterface,
+                                          "effectsEnabledChanged", "b", this, SLOT(compositingEnabledChanged(bool)));
 
     // 迁移旧的标题栏主题插件配置
     KConfigGroup decoration_group(m_kwinConfig, "org.kde.kdecoration2");
