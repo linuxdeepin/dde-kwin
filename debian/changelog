@@ -1,3 +1,9 @@
+dde-kwin (5.8.28) unstable; urgency=medium
+
+  * fix: add partialUpdate for org.kde.kwin.compositing
+
+ -- huangzeming <huangzeming@uniontech.com>  Wed, 17 Apr 2024 18:10:06 +0800
+
 dde-kwin (5.8.27) unstable; urgency=medium
 
   * fix: window corner
