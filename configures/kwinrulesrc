@@ -5,6 +5,8 @@ desktopsrule=2
 wmclass=dde-dock dde-dock
 wmclasscomplete=true
 wmclassmatch=1
+noborder=true
+noborderrule=2
 
 [2]
 Description=dde-dock-popup
