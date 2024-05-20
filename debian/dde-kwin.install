@@ -17,3 +17,4 @@ usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.multitaskview.display.json
 usr/share/dsg/configs/org.kde.kwin/org.deepin.displayjack.watermark.display.json
 usr/share/dsg/configs/org.kde.kwin.decoration/org.kde.kwin.decoration.titlebar.json
 usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.eventtracking.json
+usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.virtualterminal.switch.json

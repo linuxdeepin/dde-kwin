@@ -18,6 +18,7 @@ install(
     org.kde.kwin.multitaskview.display.json
     org.deepin.displayjack.watermark.display.json
     org.kde.kwin.eventtracking.json
+    org.kde.kwin.virtualterminal.switch.json
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin"
 )
