@@ -1,3 +1,12 @@
+dde-kwin (5.8.130) unstable; urgency=medium
+
+  * Task:
+    + 347143 feat: add virtual terminal switch dconfig configuration
+  * Bug fix:
+    + fix: add supportDmabufExt for org.kde.kwin.compositing
+
+ -- dingzhixuan <dingzhixuan@uniontech.com>  Wed, 29 May 2024 18:23:48 +0800
+
 dde-kwin (5.8.129) unstable; urgency=medium
 
   [dingzhixuan]
