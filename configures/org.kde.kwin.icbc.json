@@ -1,0 +1,17 @@
+{
+    "magic": "dsg.config.meta",
+    "version": "1.0",
+    "contents": {
+        "ICBCProhibitEnabled": {
+            "value": false,
+            "serial": 0,
+            "flags": [],
+            "name": "ICBC_Prohibit_Enabled",
+            "name[zh_CN]": "工行防截图功能自动启动",
+            "description[zh_CN]": "此配置为是否对防截图功能自动启动，默认为不自动启动防截图功能；如果true则为工行环境防截图功能自动启动;如果为false则不自动启动防截图功能；",
+            "description": "",
+            "permissions": "readwrite",
+            "visibility": "public"
+        }
+    }
+}
