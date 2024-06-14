@@ -11,10 +11,5 @@ usr/share/kwin/scripts
 usr/share/dbus-1/interfaces
 usr/share/dbus-1/services/com.deepin.wm.service
 usr/share/deepin-log-viewer/deepin-log.conf.d/org.deepin.kwin.json
-usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.compositing.json
-usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.logging.json
-usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.multitaskview.display.json
-usr/share/dsg/configs/org.kde.kwin/org.deepin.displayjack.watermark.display.json
+usr/share/dsg/configs/org.kde.kwin/*.json
 usr/share/dsg/configs/org.kde.kwin.decoration/org.kde.kwin.decoration.titlebar.json
-usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.eventtracking.json
-usr/share/dsg/configs/org.kde.kwin/org.kde.kwin.virtualterminal.switch.json
