@@ -1,0 +1,17 @@
+{
+    "magic": "dsg.config.meta",
+    "version": "1.0",
+    "contents": {
+        "DraggingWithContent": {
+            "value": true,
+            "serial": 0,
+            "flags": [],
+            "name": "",
+            "name[zh_CN]": "拖动窗口显示设置",
+            "description[zh_CN]": "此配置为拖动窗口设置是否显示内容，默认为启用：当配置为启用时，窗口拖动会显示内容；当配置为不启用时，窗口拖动会显示虚框",
+            "description": "",
+            "permissions": "readwrite",
+            "visibility": "public"
+        }
+    }
+}

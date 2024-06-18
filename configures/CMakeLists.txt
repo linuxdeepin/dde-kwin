@@ -20,6 +20,7 @@ install(
     org.deepin.displayjack.watermark.display.json
     org.kde.kwin.eventtracking.json
     org.kde.kwin.virtualterminal.switch.json
+    org.kde.kwin.drag.json
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin"
 )
