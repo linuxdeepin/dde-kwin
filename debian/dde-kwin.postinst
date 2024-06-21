@@ -117,3 +117,62 @@ for deviceId in ${iniShieldDevicdId[*]}; do
         writeInifile $KWINRCTMP_FILENAME "Compositing" "OpenGLIsUnsafe" "true"
     fi
 done
+
+
+declare -A needOverridekeyValuePairs
+
+# 定义要替换kglobalshortcutsrc的key
+declare -a needOverrideKey=(
+    "Window to Desktop 5"
+    "Window to Desktop 6"
+    "Switch to Desktop 5"
+    "Switch to Desktop 6"
+)
+
+systemKGlobalFile="/etc/xdg/kglobalshortcutsrc"
+if [ ! -e "$systemKGlobalFile" ]; then
+    exit
+fi
+
+function parseAndOverideConfigFile() {
+    while IFS='=' read -r key value; do
+        if [[ "$key" != \[*\] ]]; then
+            if [[ ! -z "$key" ]]; then
+                if [[ "$1" == "$userKGlobalFile" ]]; then
+                    for overide in "${needOverrideKey[@]}";do
+                        if [ "$key" == "$overide" ];then
+                            sed -i'' -e "s/$key.*/${needOverridekeyValuePairs[$key]}/" $userKGlobalFile
+                        fi
+                    done
+                elif [[ "$1" == "$systemKGlobalFile" ]]; then
+                    for overide in "${needOverrideKey[@]}";do
+                        if [ "$key" == "$overide" ];then
+                            needOverridekeyValuePairs[$key]="$key=$value"
+                        fi
+                    done
+                fi
+            fi
+        fi
+    done < "$1"
+}
+
+# 获取所有用户目录
+user_dirs=$(ls -d /home/*)
+
+# 遍历每个用户目录
+for dir in $user_dirs; do
+    # 提取用户名
+    user=$(basename $dir)
+
+    if [ -z $user ];then
+        continue
+    fi
+
+    userKGlobalFile="/home/$user/.config/kglobalshortcutsrc"
+    if [ ! -e "$userKGlobalFile" ]; then
+	continue
+    fi
+
+    parseAndOverideConfigFile "$systemKGlobalFile"
+    parseAndOverideConfigFile "$userKGlobalFile"
+done
