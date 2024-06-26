@@ -1,3 +1,12 @@
+dde-kwin (5.8.133) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: add drag.json to set dragging with content
+    + fix: The issue of ineffective modification of the meta+a shortcut key 
+    + fix: kwin upgrade and kglobalshortcutsrc config incompatibility
+
+ -- yangtian <yangtian@uniontech.com>  Wed, 26 Jun 2024 13:38:12 +0800
+
 dde-kwin (5.8.132) unstable; urgency=medium
 
   * Task:
