@@ -19,13 +19,7 @@
             "flags": ["global"],
             "value": true
         },
-        "supportDmabufExt": {    
-            "permissions": "readwrite",
-            "serial": 0,
-            "flags": ["global"],
-            "value": false
-        },
-        "edgeSoftCursor": {
+        "supportDmabufExt": {
             "permissions": "readwrite",
             "serial": 0,
             "flags": ["global"],

@@ -1,0 +1,28 @@
+{
+    "magic": "dsg.config.meta",
+    "version": "1.0",
+    "contents": {
+        "perferredOutput": {
+            "permissions": "readwrite",
+            "serial": 0,
+            "flags": ["global"],
+            "value": "",
+            "name": "cursor perferred show output",
+            "name[zh_CN]": "光标优先显示的输出",
+            "description": "cursor perferred show output",
+            "description[zh_CN]": "光标优先显示的输出",
+            "visibility": "public"
+        },
+        "edgeSoftCursor": {
+            "permissions": "readwrite",
+            "serial": 0,
+            "flags": ["global"],
+            "value": false,
+            "name": "output edge show softcursor",
+            "name[zh_CN]": "屏幕边缘显示软光标",
+            "description": "output edge show softcursor",
+            "description[zh_CN]": "屏幕边缘显示软光标",
+            "visibility": "private"
+        }
+    }
+}

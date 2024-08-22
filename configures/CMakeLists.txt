@@ -21,6 +21,7 @@ install(
     org.kde.kwin.eventtracking.json
     org.kde.kwin.virtualterminal.switch.json
     org.kde.kwin.drag.json
+    org.kde.kwin.cursor.json
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin"
 )
