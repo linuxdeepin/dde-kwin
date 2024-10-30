@@ -11,17 +11,11 @@ install(
     "/etc/xdg"
 )
 
+file(GLOB KWIN_DCONFIG_ITEMS CONFIGURE_DEPENDS *.json)
+
 install(
     FILES
-    org.kde.kwin.compositing.json
-    org.kde.kwin.icbc.json
-    org.kde.kwin.logging.json
-    org.kde.kwin.multitaskview.display.json
-    org.deepin.displayjack.watermark.display.json
-    org.kde.kwin.eventtracking.json
-    org.kde.kwin.virtualterminal.switch.json
-    org.kde.kwin.drag.json
-    org.kde.kwin.cursor.json
+    ${KWIN_DCONFIG_ITEMS}
     DESTINATION
     "/usr/share/dsg/configs/org.kde.kwin"
 )

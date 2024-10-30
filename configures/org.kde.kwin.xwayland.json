@@ -1,0 +1,17 @@
+{
+    "magic": "dsg.config.meta",
+    "version": "1.0",
+    "contents": {
+        "forceGlamorSupport": {
+            "permissions": "readonly",
+            "serial": 0,
+            "flags": ["global"],
+            "value": false,
+            "name": "glamor supporting for xwayland",
+            "name[zh_CN]": "xwayland的2d加速支持",
+            "description": "glamor supporting for xwayland",
+            "description[zh_CN]": "xwayland的2d加速支持",
+            "visibility": "public"
+        }
+    }
+}
