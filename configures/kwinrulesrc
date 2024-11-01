@@ -92,6 +92,14 @@ wmclass=org.deepin.browser
 wmclasscomplete=false
 wmclassmatch=1
 
+[11]
+Description=callpu
+enablewindowshadow=true
+enablewindowshadowrule=2
+wmclass=callpu
+wmclasscomplete=false
+wmclassmatch=1
+
 [General]
-count=10
-rules=1,2,3,4,5,6,7,8,9,10
+count=11
+rules=1,2,3,4,5,6,7,8,9,10,11
