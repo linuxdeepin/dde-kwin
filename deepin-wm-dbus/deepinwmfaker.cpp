@@ -207,6 +207,7 @@ static const QMap<QString, QString> WaylandDeepinWMKWinAccelsMap {
     { "switch-monitors",        "Switch monitors"},
     { "capslock",               "Capslock"},
     { "numlock",                "Numlock"},
+    { "script-wayland",         "ScriptWayland"},
     { "notification-center",    "Notification Center"},
     { "screenshot-ocr",    "ScreenshotOcr"},
     { "screenshot-scroll",    "ScreenshotScroll"},
@@ -296,6 +297,7 @@ static const QStringList NotConfigurationAction = {
     "ScreenshotOcr",
     "ScreenshotScroll",
     "Global Search",
+    "ScriptWayland",
 };
 
 static const QMap<QString, QString> SpecialKeyMap = {
