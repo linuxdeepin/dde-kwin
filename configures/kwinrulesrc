@@ -84,6 +84,14 @@ wmclass=com.qq.weixin.work.deepin
 wmclasscomplete=false
 wmclassmatch=1
 
+[10]
+Description=Window settings for org.deepin.browser
+enablewindowshadow=true
+enablewindowshadowrule=2
+wmclass=org.deepin.browser
+wmclasscomplete=false
+wmclassmatch=1
+
 [General]
-count=9
-rules=1,2,3,4,5,6,7,8,9
+count=10
+rules=1,2,3,4,5,6,7,8,9,10
