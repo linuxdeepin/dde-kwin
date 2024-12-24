@@ -1,3 +1,11 @@
+dde-kwin (5.8.183) unstable; urgency=medium
+
+  * Bug fix:
+    + fix: add browser into shadow whitelist
+    + fix: flmx-ai shortcuts register failed
+
+ -- huangzeming <huangzeming@uniontech.com>  Tue, 24 Dec 2024 11:34:44 +0800
+
 dde-kwin (5.8.182) unstable; urgency=medium
 
   * Bug fix:
