@@ -22,7 +22,6 @@ add_definitions(
 )
 
 option(USE_SCRIPTS "use scripts" ON)
-option(USE_DEEPIN_WM_DBUS "use deepin-wm dbus service" ON)
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "mips64")
     set(CMAKE_CXX_FLAGS "-O3 -ftree-vectorize -march=loongson3a -mhard-float -mno-micromips -mno-mips16 -flax-vector-conversions  -mloongson-ext2 -mloongson-mmi -Wl,--as-needed,-O1 -fno-stack-protector")
@@ -32,20 +31,11 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "mips64")
     set(CMAKE_EXE_LINKER_FLAGS "-pie")
 endif()
 
-find_package(Qt5Core)
-get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX /usr)
+endif ()
+include(GNUInstallDirs)
 
-macro(query_qmake args output)
-    exec_program(${QT_QMAKE_EXECUTABLE} ARGS -query ${args} OUTPUT_VARIABLE ${output} RETURN_VALUE exitCode)
-
-    if(NOT ${exitCode} EQUAL 0)
-        message(FATAL_ERROR "exec ${QT_QMAKE_EXECUTABLE} failed, with args: ${args}, error message: ${output}")
-    endif()
-endmacro()
-
-query_qmake("QT_INSTALL_PLUGINS" QT_INSTALL_PLUGINS)
-
-set(PLUGIN_INSTALL_PATH ${QT_INSTALL_PLUGINS}/platforms)
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed
@@ -53,11 +43,6 @@ set(CMAKE_AUTOMOC ON)
 # Create code from a list of Qt designer ui files
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-
-if (NOT KWIN_VERSION)
-    find_package(KDecoration2 REQUIRED)
-    set(KWIN_VERSION ${KDecoration2_VERSION})
-endif()
 
 if (KWIN_VERSION)
     message("kwin version: ${KWIN_VERSION}")
@@ -93,12 +78,4 @@ add_subdirectory(configures)
 
 if (USE_SCRIPTS)
   add_subdirectory(scripts)
-endif()
-
-if (USE_DEEPIN_WM_DBUS)
-  add_subdirectory(deepin-wm-dbus)
-endif()
-
-if (BUILD_TESTING)
-    add_subdirectory(tests)
 endif()

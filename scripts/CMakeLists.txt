@@ -3,8 +3,8 @@ install(
     screenedge/runcommandaction
     screenedge/closewindowaction
     ddeshortcuts
-    ddelauncher
+    ddelaunchpad
     gtkframe
     DESTINATION
-    ${CMAKE_INSTALL_PREFIX}/share/kwin/scripts
+    ${CMAKE_INSTALL_DATADIR}/kwin/scripts
 )

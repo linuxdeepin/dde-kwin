@@ -22,8 +22,11 @@ kwin4_effect_frozenappEnabled=false
 slideEnabled=false
 
 [VirtualDesktops]
+Name_1=工作区 1
 Name_2=工作区 2
-Number=2
+Name_3=工作区 3
+Name_4=工作区 4
+Number=4
 Rows=1
 
 [org.kde.kdecoration2]
