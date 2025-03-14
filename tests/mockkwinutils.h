@@ -1,4 +1,0 @@
-#ifndef MOCKKWINUTILS_H
-#define MOCKKWINUTILS_H
-
-#endif // MOCKKWINUTILS_H
