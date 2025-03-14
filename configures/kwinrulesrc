@@ -100,6 +100,14 @@ wmclass=callpu
 wmclasscomplete=false
 wmclassmatch=1
 
+[12]
+Description=dde-shell
+desktops=-1
+desktopsrule=2
+wmclass=dde-shell org.deepin.dde-shell
+wmclasscomplete=true
+wmclassmatch=1
+
 [General]
 count=11
-rules=1,2,3,4,5,6,7,8,9,10,11
+rules=1,2,3,4,5,6,7,8,9,10,11,12
