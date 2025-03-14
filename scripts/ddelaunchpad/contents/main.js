@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2018 - 2024 UnionTech Software Technology Co., Ltd.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 function rectContains(rect1, rect2)
 {
     rect1.right = rect1.x + rect1.width - 1;
@@ -23,24 +27,19 @@ function forceFullScreen(client) {
     var screenGeometry = workspace.clientArea(KWin.ScreenArea, screen, 0);
 
     if (!rectContains(screenGeometry, newGeometry)) {
-        newGeometry.x = screenGeometry.x;
-        newGeometry.y = screenGeometry.y;
-	newGeometry.width = screenGeometry.width;   //fix width
-	newGeometry.height = screenGeometry.height;  //fix height
+        newGeometry = screenGeometry;
         client.geometry = newGeometry;
+        workspace.updateWindowGeometry(client, screenGeometry);
     }
 }
 
 function setupConnection(client) {
-    if (client.resourceClass != "dde-launcher"
-            || client.resourceName != "dde-launcher" || client.dialog) {
-        return;
+    if (client.caption == "Fullscreen Launchpad") {
+        forceFullScreen(client)
+        client.geometryChanged.connect(client, function () {
+            forceFullScreen(this);
+        });
     }
-
-    forceFullScreen(client)
-    client.geometryChanged.connect(client, function () {
-        forceFullScreen(this);
-    });
 }
 
 workspace.clientAdded.connect(setupConnection);
