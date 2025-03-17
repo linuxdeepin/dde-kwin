@@ -3,41 +3,21 @@ Section: devel
 Priority: optional
 Maintainer: Deepin Packages Builder <packages@deepin.com>
 Build-Depends: debhelper (>=9),
- cmake,
- qtbase5-dev,
- qtbase5-private-dev,
- libqt5x11extras5-dev,
- libxcb1-dev,
- libkf5globalaccel-dev,
- libkf5windowsystem-dev,
- libkf5coreaddons-dev,
- kwin-dev,
- libkf5config-dev,
- libgsettings-qt-dev,
- libxrender-dev,
- qttools5-dev-tools,
- qttools5-dev,
- extra-cmake-modules,
- libkdecorations2-dev,
- libkf5i18n-dev,
- qtdeclarative5-dev,
- libxcb-composite0-dev,
- libxcb-damage0-dev
+ cmake
 Standards-Version: 3.9.8
 Homepage: https://github.com/linuxdeepin/dde-kwin
 
 Package: dde-kwin
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends},
- kwin-x11, kwin-wayland, plasma-framework, libkf5globalaccel-bin,
- qml-module-qtquick-controls2, qml-module-qtquick-templates2
+Depends: ${misc:Depends},
+ kwin-x11, kwin-wayland
 Description: KWin configures/plugins on the DDE
  Let kwin work well in the Deepin Desktop Environment.
 
 Package: dde-kwin-dev
 Section: libdevel
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}
 Description: Developer package of dde-kwin
  Provide dde-kwin plugin implementation basis files.
 
