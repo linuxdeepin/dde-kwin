@@ -1,3 +1,9 @@
+dde-kwin (6.0.0) unstable; urgency=medium
+
+  * Port to deepin v25
+
+ -- rewine <luhongxu@uniontech.com>  Mon, 24 Mar 2025 09:57:52 +0800
+
 dde-kwin (5.8.184) unstable; urgency=medium
 
   * add config for callpu
