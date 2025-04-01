@@ -24,4 +24,4 @@ $ cmake --build .
 
 ## License
 
-**dde-kwin** is licensed under MIT.
+**dde-kwin** is licensed under GPL-3.0-or-later.

@@ -24,4 +24,4 @@ $ cmake --build .
 
 ## 许可证
 
-dde-kwin 遵循 MIT 许可证发布。
+**dde-kwin** 遵循 GPL-3.0-or-later 许可证发布。

@@ -1,0 +1,47 @@
+version = 1
+SPDX-PackageName = "dde-kwin"
+SPDX-PackageSupplier = "<>"
+SPDX-PackageDownloadLocation = "https://github.com/linuxdeepin/dde-kwin"
+
+[[annotations]]
+path = ["windowtool/**", "tests/**", "tabbox/**", "scripts/**", "plugins/**", "translations/**", "configures/**", "deepin-wm-dbus/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["**.png", "**.svg"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ".github/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["debian/*", "debian/*/*", "rpm/*"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["windowtool/.clang-format", "windowtool/demo/windowloader", ".clog.toml", ".gitignore", ".gitlab-ci.yml", ".release.json", ".tx/config", "CHANGELOG.md", "CMakeLists.txt", "translate_desktop2ts.sh", "translate_ts2desktop.sh", "README.md", "README.zh_CN.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = [".github/**", ".obs/**.yml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["**/**.md", "README.md", "README.zh_CN.md", "CONTRIBUTING.md", "ChangeLog", "CONTRIBUTORS"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "UnionTech Software Technology Co., Ltd."
+SPDX-License-Identifier = "CC-BY-4.0"
+
