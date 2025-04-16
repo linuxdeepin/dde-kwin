@@ -1,3 +1,9 @@
+dde-kwin (6.0.2) unstable; urgency=medium
+
+  * feat: set default workspaces name to 2
+
+ -- rewine <luhongxu@deepin.org>  Wed, 16 Apr 2025 18:23:41 +0800
+
 dde-kwin (6.0.1) unstable; urgency=medium
 
   * Fix shortcuts
