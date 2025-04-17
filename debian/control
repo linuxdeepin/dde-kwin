@@ -10,7 +10,9 @@ Homepage: https://github.com/linuxdeepin/dde-kwin
 Package: dde-kwin
 Architecture: any
 Depends: ${misc:Depends},
- deepin-kwin-x11, deepin-kwin-wayland
+ deepin-kwin-x11 (>= 4:6.0.0),
+ deepin-kwin-wayland (>= 4:6.0.0),
+Breaks: deepin-kwin-data (<< 4:6.0.0~),
 Description: KWin configures/plugins on the DDE
  Let kwin work well in the Deepin Desktop Environment.
 
