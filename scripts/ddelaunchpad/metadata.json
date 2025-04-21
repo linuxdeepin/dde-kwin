@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "justforlxz",
+                "Email": "lxz@mkacg.com"
+            }
+        ],
+        "Description": "Force the dde-launchpad window keep in screen area",
+        "EnabledByDefault": true,
+        "Icon": "preferences-system-windows-script-test",
+        "Id": "ddelaunchpad",
+        "License": "GPL",
+        "Name": "ddelaunchpad",
+        "Version": "1.0"
+    },
+    "X-KDE-PluginKeyword": "ddelaunchpad",
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js"
+}
