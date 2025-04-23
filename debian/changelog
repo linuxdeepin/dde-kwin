@@ -1,3 +1,9 @@
+dde-kwin (6.0.3) unstable; urgency=medium
+
+  * fix(ddelaunchpad): make it work at kf6
+
+ -- rewine <luhongxu@deepin.org>  Wed, 23 Apr 2025 14:29:40 +0800
+
 dde-kwin (6.0.2) unstable; urgency=medium
 
   * feat: set default workspaces name to 2
