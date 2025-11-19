@@ -3,13 +3,24 @@
     "version": "1.0",
     "contents": {
         "user_type": {
-            "value": 1,
+            "value": 0,
             "serial": 0,
             "flags": [],
             "name": "user type",
             "name[zh_CN]": "用户选择特效类型",
-            "description": "user selected effect type",
-            "description[zh_CN]": "用户选择的特效类型，默认是0由窗管选择特效类型；1~5对应5种从优到劣的特效类型",
+            "description": "User-selected effect type. 0 indicates automatic selection. Manually set types must be within the user_type_range values. If out of range, the closest supported value will be automatically selected.",
+            "description[zh_CN]": "用户选择的特效类型，0 是自动选择，手动设置的类型只能是 user_type_range 中的值。如果超出范围，则会自动选择支持范围内最接近的值。",
+            "permissions": "readwrite",
+            "visibility": "public"
+        },
+        "user_type_range": {
+            "value": [1, 2, 3, 4, 5],
+            "serial": 0,
+            "flags": [],
+            "name": "user type range",
+            "name[zh_CN]": "特效等级范围",
+            "description": "Special effect type range, the value of user_type can only be selected from here. Available options are: 1-OpenGLComplete (Full OpenGL effects), 2-OpenGLNoMotion (OpenGL without motion effects), 3-OpenGLNoScissor (OpenGL without scissor effects), 4-XRenderComplete (Full XRender effects), 5-NoneCompositor (No compositor effects)",
+            "description[zh_CN]": "特效类型范围，user_type的值只能从以下选项中选择：1-OpenGLComplete（完整OpenGL特效），2-OpenGLNoMotion（无动态特效的OpenGL），3-OpenGLNoScissor（无裁剪特效的OpenGL），4-XRenderComplete（完整XRender特效），5-NoneCompositor（无特效模式）",
             "permissions": "readwrite",
             "visibility": "public"
         },
