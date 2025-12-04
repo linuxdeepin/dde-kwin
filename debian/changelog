@@ -1,3 +1,9 @@
+dde-kwin (6.0.4) unstable; urgency=medium
+
+  * chore: add dconfig value for compositing level
+
+ -- shining <shining@uniontech.com>  Thu, 04 Dec 2025 14:17:15 +0800
+
 dde-kwin (6.0.3) unstable; urgency=medium
 
   * fix(ddelaunchpad): make it work at kf6
