@@ -3,7 +3,7 @@
 DEEPINVER_FILENAME=/etc/deepin-version
 OSVER_FILENAME=/etc/os-version
 KWINRC_FILENAME=/etc/xdg/kwinrc
-KWINRCTMP_FILENAME=~/.config/kwinrc
+
 
 #DEEPINVER_FILENAME=./deepin-version
 #KWINRC_FILENAME=./kwinrc
@@ -13,8 +13,6 @@ DEEPINVER=Server
 iniOptions=()
 iniSections=()
 
-iniDisplayDevicdId={`lshw -C display | grep product`}
-iniShieldDevicdId=(JM7200)
 
 iniValue=
 
@@ -110,13 +108,6 @@ fi
 if [ $iniValue = $DEEPINVER ]; then 
     writeInifile $KWINRC_FILENAME "Compositing" "OpenGLIsUnsafe" "true"  
 fi
-
-for deviceId in ${iniShieldDevicdId[*]}; do
-    if [[ $iniDisplayDevicdId =~ $deviceId ]]; then
-        writeInifile $KWINRC_FILENAME "Compositing" "OpenGLIsUnsafe" "true"  
-        writeInifile $KWINRCTMP_FILENAME "Compositing" "OpenGLIsUnsafe" "true"
-    fi
-done
 
 
 declare -A needOverridekeyValuePairs
