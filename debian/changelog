@@ -1,3 +1,9 @@
+dde-kwin (6.0.5) unstable; urgency=medium
+
+  * fix: resolve dde-kwin configuration hang
+
+ -- shining <shining@uniontech.com>  Mon, 22 Dec 2025 15:59:09 +0800
+
 dde-kwin (6.0.4) unstable; urgency=medium
 
   * chore: add dconfig value for compositing level
