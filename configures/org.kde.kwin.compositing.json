@@ -3,8 +3,8 @@
     "version": "1.0",
     "contents": {
         "user_type": {
-            "value": 0,
-            "serial": 0,
+            "value": 1,
+            "serial": 1,
             "flags": [],
             "name": "user type",
             "name[zh_CN]": "用户选择特效类型",
