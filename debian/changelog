@@ -1,3 +1,9 @@
+dde-kwin (6.0.6) unstable; urgency=medium
+
+  * chore: change user_type default to 1
+
+ -- Dingyuan Zhang <zhangdingyuan@uniontech.com>  Mon, 5 Jan 2026 15:59:09 +0800
+
 dde-kwin (6.0.5) unstable; urgency=medium
 
   * fix: resolve dde-kwin configuration hang
