@@ -1,3 +1,9 @@
+dde-kwin (6.0.7) unstable; urgency=medium
+
+  * rename deepin-kwin to kwin
+
+ -- guoyao <guoyao@uniontech.com>  Thu, 22 Jan 2026 10:16:52 +0800
+
 dde-kwin (6.0.6) unstable; urgency=medium
 
   * chore: change user_type default to 1
