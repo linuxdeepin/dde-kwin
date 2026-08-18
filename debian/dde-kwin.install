@@ -1,8 +1,8 @@
-etc/xdg/kdeglobals
-etc/xdg/kglobalshortcutsrc
-etc/xdg/klaunchrc
-etc/xdg/kwinrc
-etc/xdg/kwinrulesrc
+usr/share/kwin/xdg/kdeglobals
+usr/share/kwin/xdg/kglobalshortcutsrc
+usr/share/kwin/xdg/klaunchrc
+usr/share/kwin/xdg/kwinrc
+usr/share/kwin/xdg/kwinrulesrc
 #usr/lib/*/*.so.*
 #usr/lib/*/qt5
 usr/share/kwin/scripts

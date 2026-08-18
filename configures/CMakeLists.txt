@@ -8,7 +8,7 @@ install(
     klaunchrc
     kdeglobals
     DESTINATION
-    "${CMAKE_INSTALL_SYSCONFDIR}/xdg"
+    "${CMAKE_INSTALL_DATADIR}/kwin/xdg"
 )
 
 file(GLOB KWIN_DCONFIG_ITEMS CONFIGURE_DEPENDS *.json)
