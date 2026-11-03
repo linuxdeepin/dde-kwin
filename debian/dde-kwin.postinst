@@ -1,9 +1,16 @@
 #!/bin/bash
+# dde-kwin 维护脚本(postinst)，仅在 dpkg configure 阶段执行：
+# 1) 服务器版(Server)写入 /etc/xdg/kwinrc: [Compositing] OpenGLIsUnsafe=true
+# 2) 以 /etc/xdg/kglobalshortcutsrc 为准，覆盖各用户 kglobalshortcutsrc 中指定快捷键
+
+# 只在 configure 阶段执行，避免 abort-upgrade/abort-configure 等场景误写配置
+if [ "${1:-}" != "configure" ]; then
+    exit 0
+fi
 
 DEEPINVER_FILENAME=/etc/deepin-version
 OSVER_FILENAME=/etc/os-version
 KWINRC_FILENAME=/etc/xdg/kwinrc
-
 
 #DEEPINVER_FILENAME=./deepin-version
 #KWINRC_FILENAME=./kwinrc
@@ -12,7 +19,6 @@ DEEPINVER=Server
 
 iniOptions=()
 iniSections=()
-
 
 iniValue=
 
@@ -26,27 +32,27 @@ function ReadINIfile()
      
 
      if [ "${section}" = "" ];then
-        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
+        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' "${iniFile}")
         iniSections=(${allSections// /})
         echo "[info]:iniSections size:-${#iniSections[@]}- eles:-${iniSections[@]}- "
     elif [ "${section}" != "" ] && [ "${option}" = "" ];then
-        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
-        echo $allSections|grep ${section}
+        allSections=$(awk -F '[][]' '/\[.*]/{print $2}' "${iniFile}")
+        echo $allSections|grep "${section}"
         if [ "$?" = "1" ];then
             echo "[error]:section --${section}-- not exist!"
             return 0
         fi
-        a=$(awk "/\[${section}\]/{a=1}a==1"  ${iniFile}|sed -e'1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e 's/[ ]/@G@/g' -e '/\[/,$d' )
+        a=$(awk "/\[${section}\]/{a=1}a==1"  "${iniFile}"|sed -e'1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e 's/[ ]/@G@/g' -e '/\[/,$d' )
         b=(${a})
         for i in ${b[@]};do
-          if [ -n "${i}" ]||[ "${i}" i!= "@S@" ];then
+          if [ -n "${i}" ];then
               iniOptions[${#iniOptions[@]}]=${i//@G@/ }
           fi
         done
         echo "[info]:iniOptions size:-${#iniOptions[@]}- eles:-${iniOptions[@]}-"
     elif [ "${section}" != "" ] && [ "${option}" != "" ];then
-        iniValue=$(awk -F '=' '/\['${section}'\]/{a=1} (a==1 && "'${option}'"==$1){a=0;print $2}' ${iniFile}) 
- 
+        iniValue=$(awk -F '=' '/\['${section}'\]/{a=1} (a==1 && "'${option}'"==$1){a=0;print $2}' "${iniFile}") 
+
         #iniValue=`awk -F '=' "/\[${section}\]/{a=1}a==1" ${iniFile}|sed -e '1d' -e '/^$/d' -e '/^\[.*\]/,$d' -e "/^${option}.*=.*/!d" -e "s/^${option}.*= *//"`
         echo $iniValue
     fi
@@ -56,6 +62,7 @@ function ReadINIfile()
 
 function writeInifile()
 {
+
 	iniFile=$1
 	section=$2
 	option=$3
@@ -66,7 +73,7 @@ function writeInifile()
 	iniOptions=()
 	iniSections=()
 
-    allSections=$(awk -F '[][]' '/\[.*]/{print $2}' ${iniFile})
+    allSections=$(awk -F '[][]' '/\[.*]/{print $2}' "${iniFile}")
     iniSections=(${allSections// /})
     sectionFlag="0"
     for temp in ${iniSections[@]};do
@@ -77,18 +84,25 @@ function writeInifile()
     done
  
     if [ "$sectionFlag" = "0" ];then
-        echo "[${section}]" >>${iniFile}
+        echo "[${section}]" >>"${iniFile}"
     fi
-    awk "/\[${section}\]/{a=1}a==1" ${iniFile}|sed -e '1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e '/\[/,$d'|grep "${option}.\?=">/dev/null
+    awk "/\[${section}\]/{a=1}a==1" "${iniFile}"|sed -e '1d' -e '/^$/d'  -e 's/[ \t]*$//g' -e 's/^[ \t]*//g' -e '/\[/,$d'|grep "${option}.\?=">/dev/null
     if [ "$?" = "0" ];then
-        sectionNum=$(sed -n -e "/\[${section}\]/=" ${iniFile})
+        # 仅取首个匹配 section 的行号：重复 section 时多行行号会导致 sed 报错
+        sectionNum=$(sed -n -e "/\[${section}\]/=" "${iniFile}"|head -1)
+        echo "[info] section num: ${sectionNum}"
 
-        echo "section num  "+$sectionNum
-        sed -i "${sectionNum},/^\[.*\]/s/\(${option}.\?=\).*/\1${value}/g" ${iniFile}
-        echo "[success] update [$iniFile][$section][$option][$value]"
+        if sed -i "${sectionNum},/^\[.*\]/s/\(${option}.\?=\).*/\1${value}/g" "${iniFile}";then
+            echo "[success] update [$iniFile][$section][$option][$value]"
+        else
+            echo "[error] update [$iniFile][$section][$option][$value]"
+        fi
     else
-        sed -i "/^\[${section}\]/a\\${option}=${value}" ${iniFile}
-        echo "[success] add [$iniFile][$section][$option][$value]"
+        if sed -i "/^\[${section}\]/a\\${option}=${value}" "${iniFile}";then
+            echo "[success] add [$iniFile][$section][$option][$value]"
+        else
+            echo "[error] add [$iniFile][$section][$option][$value]"
+        fi
     fi
 }
 
@@ -96,17 +110,18 @@ function writeInifile()
 
 if [ ! -f "$OSVER_FILENAME" ] && [ ! -f "$DEEPINVER_FILENAME" ];then
     echo "[error:] $DEEPINVER_FILENAME and $OSVER_FILENAME not exist"
-    exit
+    exit 0
 elif [ ! -f "$OSVER_FILENAME" ]; then
-    ReadINIfile  $DEEPINVER_FILENAME "Release" "Type" 
+    ReadINIfile "$DEEPINVER_FILENAME" "Release" "Type"
 else
-    ReadINIfile  $OSVER_FILENAME "Version" "ProductType" 
+    ReadINIfile "$OSVER_FILENAME" "Version" "ProductType"
 fi
 #echo $iniValue
 #echo $DEEPINVER
 
-if [ $iniValue = $DEEPINVER ]; then 
-    writeInifile $KWINRC_FILENAME "Compositing" "OpenGLIsUnsafe" "true"  
+# 引号防止 iniValue 为空或含多行时 test 报错
+if [ "$iniValue" = "$DEEPINVER" ]; then 
+    writeInifile "$KWINRC_FILENAME" "Compositing" "OpenGLIsUnsafe" "true"  
 fi
 
 
@@ -121,18 +136,28 @@ declare -a needOverrideKey=(
 )
 
 systemKGlobalFile="/etc/xdg/kglobalshortcutsrc"
-if [ ! -e "$systemKGlobalFile" ]; then
-    exit
+if [ ! -f "$systemKGlobalFile" ]; then
+    exit 0
 fi
 
 function parseAndOverideConfigFile() {
+    if [ ! -f "$1" ]; then
+        return 0
+    fi
     while IFS='=' read -r key value; do
         if [[ "$key" != \[*\] ]]; then
             if [[ ! -z "$key" ]]; then
                 if [[ "$1" == "$userKGlobalFile" ]]; then
                     for overide in "${needOverrideKey[@]}";do
                         if [ "$key" == "$overide" ];then
-                            sed -i'' -e "s/$key.*/${needOverridekeyValuePairs[$key]}/" $userKGlobalFile
+                            # 系统文件缺少该 key 时跳过，避免把用户配置整行删掉
+                            pair="${needOverridekeyValuePairs[$key]:-}"
+                            pair="${pair//&/\\&}"
+                            if [ -n "$pair" ];then
+                                sed -i -e "s|^${key}=.*|${pair}|" "$userKGlobalFile"
+                            else
+                                echo "[warn] no system value for --${key}--, keep user config"
+                            fi
                         fi
                     done
                 elif [[ "$1" == "$systemKGlobalFile" ]]; then
@@ -147,21 +172,27 @@ function parseAndOverideConfigFile() {
     done < "$1"
 }
 
-# 获取所有用户目录
-user_dirs=$(ls -d /home/*)
-
-# 遍历每个用户目录
-for dir in $user_dirs; do
+# 遍历所有用户目录(nullglob: 无用户目录时不误匹配字面量)
+shopt -s nullglob
+for dir in /home/*/; do
     # 提取用户名
-    user=$(basename $dir)
+    user=$(basename "$dir")
 
-    if [ -z $user ];then
+    if [ -z "$user" ];then
         continue
     fi
 
     userKGlobalFile="/home/$user/.config/kglobalshortcutsrc"
-    if [ ! -e "$userKGlobalFile" ]; then
-	continue
+    # 只处理常规文件：跳过符号链接/目录/FIFO，防止管道文件阻塞配置流程、防止 sed -i 破坏符号链接
+    if [ -L "$userKGlobalFile" ] || [ ! -f "$userKGlobalFile" ];then
+        continue
+    fi
+    # 跳过属主与家目录不一致的文件(如 root 落在用户目录的文件)，避免以 root 特权写用户可控路径
+    fowner=$(stat -c '%u' "$userKGlobalFile" 2>/dev/null) || continue
+    downer=$(stat -c '%u' "$dir" 2>/dev/null) || continue
+    if [ "$fowner" != "$downer" ];then
+        echo "[warn] skip $userKGlobalFile: owner mismatch"
+        continue
     fi
 
     parseAndOverideConfigFile "$systemKGlobalFile"
