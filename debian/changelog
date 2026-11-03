@@ -1,3 +1,9 @@
+dde-kwin (6.0.10) unstable; urgency=medium
+
+  * chore(debian): drop kwin-wayland dependency
+
+ -- justforlxz <justforlxz@gmail.com>  Tue, 03 Nov 2026 11:44:14 +0800
+
 dde-kwin (6.0.9) unstable; urgency=medium
 
   * fix(config): add fullscreen area rule for dde-launcher
