@@ -1,0 +1,5 @@
+rm_conffile /etc/xdg/kdeglobals 6.0.9~
+rm_conffile /etc/xdg/kglobalshortcutsrc 6.0.9~
+rm_conffile /etc/xdg/klaunchrc 6.0.9~
+rm_conffile /etc/xdg/kwinrc 6.0.9~
+rm_conffile /etc/xdg/kwinrulesrc 6.0.9~

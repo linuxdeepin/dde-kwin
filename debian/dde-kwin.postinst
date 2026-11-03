@@ -120,7 +120,7 @@ declare -a needOverrideKey=(
     "Switch to Desktop 6"
 )
 
-systemKGlobalFile="/etc/xdg/kglobalshortcutsrc"
+systemKGlobalFile="/usr/share/kwin/xdg/kglobalshortcutsrc"
 if [ ! -e "$systemKGlobalFile" ]; then
     exit
 fi
